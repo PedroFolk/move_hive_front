@@ -11,7 +11,7 @@ export default function App() {
   const { colorScheme, toggleColorScheme } = useColorScheme();
   
   return (
-    <View className="flex-1 items-center justify-center bg-white dark:bg-black">
+    <View className="flex-1 items-center justify-center bg-white dark:bg-neutral-800">
       <LoginPage />
       
     </View>

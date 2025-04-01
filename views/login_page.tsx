@@ -1,4 +1,8 @@
 /* eslint-disable prettier/prettier */
+
+// Imports
+import AntDesign from '@expo/vector-icons/AntDesign';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState } from 'react';
 import {
   View,
@@ -11,26 +15,39 @@ import {
   ScrollView,
   Pressable,
   Linking,
+  KeyboardType,
+  useColorScheme,
 } from 'react-native';
 
+// Props of TextField
 interface TextFieldProps {
-  isPassword?: string;
+  isPassword?: boolean;
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
   label: string;
+  keyboardType: KeyboardType;
 }
 
-const TextField = ({ isPassword, value, onChangeText, placeholder, label }: TextFieldProps) => {
+// Text Field
+const TextField = ({
+  isPassword = false,
+  value,
+  onChangeText,
+  placeholder,
+  label,
+  keyboardType,
+}: TextFieldProps) => {
   return (
     <View>
-      <Text className="mb-1 mt-10 text-xl text-white">{label}</Text>
+      <Text className="mb-1 mt-10 text-xl text-white dark:text-neutral-800">{label}</Text>
       <TextInput
-        secureTextEntry={isPassword === 'true'}
+        secureTextEntry={isPassword}
         value={value}
+        keyboardType={keyboardType}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        className="h-12  rounded-2xl border-2 border-neutral-100 bg-white px-2 text-xl text-black"
+        className="h-14 rounded-2xl border-2 border-neutral-100 bg-white px-2 pb-1 text-xl text-neutral-600 placeholder:dark:text-neutral-300"
       />
     </View>
   );
@@ -47,43 +64,59 @@ export default function LoginPage() {
     Linking.openURL('https://www.google.com');
   };
 
+  const theme = useColorScheme() || 'light'; // Garante um valor padrão
+
   return (
     <SafeAreaView className="flex-1">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} // Ajuste fino para Android
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         style={{ flex: 1 }}>
         <ScrollView
-          contentContainerStyle={{
-            flexGrow: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-          keyboardShouldPersistTaps="handled" // Melhora interação com o teclado
-        >
-          <View className="w-96 rounded-2xl bg-blue-400 p-6  dark:bg-white">
-            <Text className="mt-10 text-center text-5xl font-bold text-white">Login</Text>
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }}
+          keyboardShouldPersistTaps="handled">
+          <View className="w-96 rounded-2xl bg-neutral-800 p-6 dark:bg-white">
+            <Text className="mt-10 text-center text-5xl font-bold text-neutral-500">MOVE</Text>
+            <Text className="mt-2 text-center text-5xl font-bold text-yellow-500">HIVE</Text>
+
             <TextField
-              label="Usuario"
+              label="Usuário"
               value={username}
               onChangeText={setUsername}
               placeholder="Digite seu usuário"
+              keyboardType="email-address"
             />
-            <View>
-              <TextField
-                label="Senha"
-                isPassword="true"
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Digite sua senha"
-              />
-              <Pressable onPress={handlePress}>
-                <Text className="m-1 mt-2  text-white">Esqueceu sua senha?</Text>
-              </Pressable>
-            </View>
-            <TouchableOpacity onPress={handleLogin} className="mt-10 rounded-2xl bg-white p-3">
-              <Text className="text-center text-xl text-blue-400">Entrar</Text>
+            <TextField
+              label="Senha"
+              isPassword
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Digite sua senha"
+              keyboardType="default"
+            />
+
+            <Pressable onPress={handlePress}>
+              <Text className="m-1 mt-2 text-white dark:text-neutral-800">Esqueceu sua senha?</Text>
+            </Pressable>
+
+            <TouchableOpacity
+              onPress={handleLogin}
+              className="mt-10 rounded-2xl bg-white p-3 dark:bg-neutral-800"
+              accessibilityLabel="Botão de login"
+              accessibilityRole="button">
+              <Text className="text-center text-xl font-bold text-neutral-800 dark:text-white">
+                Entrar
+              </Text>
             </TouchableOpacity>
+
+            <View className="mt-5 flex flex-row justify-center gap-10">
+              <TouchableOpacity
+                className="rounded-2xl bg-white p-2 dark:bg-neutral-800"
+                accessibilityLabel="Login com Google"
+                accessibilityRole="button">
+                <AntDesign name="google" size={48} color={theme === 'dark' ? 'white' : 'black'} />
+              </TouchableOpacity>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
