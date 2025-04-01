@@ -1,13 +1,19 @@
-import { ScreenContent } from 'components/ScreenContent';
-import { StatusBar } from 'expo-status-bar';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable prettier/prettier */
 
 import './global.css';
+import { useColorScheme } from "nativewind";
+import { View } from 'react-native';
+import LoginPage from 'views/login_page';
+
 
 export default function App() {
+  const { colorScheme, toggleColorScheme } = useColorScheme();
+  
   return (
-    <>
-      <ScreenContent title="Home" path="App.tsx" />
-      <StatusBar style="auto" />
-    </>
+    <View className="flex-1 items-center justify-center bg-white dark:bg-black">
+      <LoginPage />
+      
+    </View>
   );
 }
