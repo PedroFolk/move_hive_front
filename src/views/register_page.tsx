@@ -2,7 +2,6 @@
 
 // Imports
 import AntDesign from '@expo/vector-icons/AntDesign';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState } from 'react';
 import {
   View,
@@ -13,7 +12,6 @@ import {
   Platform,
   TouchableOpacity,
   ScrollView,
-  Pressable,
   Linking,
   KeyboardType,
   useColorScheme,
@@ -40,22 +38,25 @@ const TextField = ({
 }: TextFieldProps) => {
   return (
     <View>
-      <Text className="mb-1 mt-10 text-xl text-white dark:text-neutral-800">{label}</Text>
+      <Text className="mb-1 mt-10 text-xl text-white dark:text-neutral-800 ">{label}</Text>
       <TextInput
+        autoComplete={isPassword ? 'password' : 'email'} // 🔹 Autocomplete para e-mail e senha
+        textContentType={isPassword ? 'none' : 'emailAddress'} // 🔹 Remove a barrinha no iOS
         secureTextEntry={isPassword}
         value={value}
         keyboardType={keyboardType}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        className="h-14 rounded-2xl border-2 border-neutral-100 bg-white px-2 pb-1 text-xl text-neutral-600 placeholder:dark:text-neutral-300"
+        className="h-14 rounded-2xl  border-2 border-neutral-300 bg-white px-2 pb-1 text-xl text-neutral-600 focus:border-neutral-400 placeholder:dark:text-neutral-300"
       />
     </View>
   );
 };
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleLogin = () => {
     console.log('Login:', { username, password });
@@ -75,7 +76,7 @@ export default function LoginPage() {
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }}
           keyboardShouldPersistTaps="handled">
-          <View className="w-96 rounded-2xl bg-neutral-800 p-6 dark:bg-white">
+          <View className="w-96 rounded-2xl bg-neutral-800 p-6 dark:bg-white ">
             <Text className="mt-10 text-center text-5xl font-bold text-neutral-500">MOVE</Text>
             <Text className="mt-2 text-center text-5xl font-bold text-yellow-500">HIVE</Text>
 
@@ -94,22 +95,24 @@ export default function LoginPage() {
               placeholder="Digite sua senha"
               keyboardType="default"
             />
-
-            <Pressable onPress={handlePress}>
-              <Text className="m-1 mt-2 text-white dark:text-neutral-800">Esqueceu sua senha?</Text>
-            </Pressable>
+            <TextField
+              label="Confirme sua senha"
+              isPassword
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Confirme sua senha"
+              keyboardType="default"
+            />
 
             <TouchableOpacity
               onPress={handleLogin}
-              className="mt-10 rounded-2xl bg-white p-3 dark:bg-neutral-800"
+              className="mt-10 rounded-2xl bg-neutral-800 p-3  "
               accessibilityLabel="Botão de login"
               accessibilityRole="button">
-              <Text className="text-center text-xl font-bold text-neutral-800 dark:text-white">
-                Entrar
-              </Text>
+              <Text className="text-center text-xl font-bold text-white ">Cadastrar-se</Text>
             </TouchableOpacity>
 
-            <View className="mt-5 flex flex-row justify-center gap-10">
+            <View className="mt-10 flex flex-row justify-center gap-10">
               <TouchableOpacity
                 className="rounded-2xl bg-white p-2 dark:bg-neutral-800"
                 accessibilityLabel="Login com Google"
