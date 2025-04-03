@@ -18,7 +18,7 @@
     "icon": "./assets/icon.png",
 
     "userInterfaceStyle": "automatic",
-
+    "scheme": "my-expo-app",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
