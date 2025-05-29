@@ -1,42 +1,19 @@
-import AntDesign from "@expo/vector-icons/AntDesign";
-import { router } from "expo-router";
-import "../../../global.css";
-import { colors } from "../styles/styles.js";
-
-import { useState } from "react";
 import {
+  SafeAreaView,
   View,
   Text,
-  SafeAreaView,
-  TextInput,
   KeyboardAvoidingView,
-  Platform,
-  TouchableOpacity,
-  Linking,
-  Keyboard,
   TouchableWithoutFeedback,
-  useColorScheme,
-  KeyboardType,
+  Platform,
+  Keyboard,
+  TouchableOpacity,
 } from "react-native";
 import TextField from "../components/fields";
+import { colors } from "../styles/styles";
+import "../../../global.css";
+import { router } from "expo-router";
 
-export default function RegisterPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const theme = useColorScheme() || "light";
-
-  const handleRegister = () => {
-    console.log("Register:", { username, password, confirmPassword });
-    if (
-      username.length > 3 ||
-      password.length > 3 ||
-      confirmPassword == password
-    ) {
-      router.push("../posRegister");
-    }
-  };
-
+export default function PosRegister() {
   return (
     <SafeAreaView className={`flex-1  ${colors.background}`}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -55,42 +32,39 @@ export default function RegisterPage() {
             >
               HIVE
             </Text>
+            <TextField
+              marginTop="10"
+              label="Nome"
+              value={""}
+              onChangeText={() => {}}
+              placeholder="Digite seu Nome"
+              keyboardType="default"
+            />
 
             <TextField
               marginTop="10"
-              label="E-mail"
-              value={username}
-              onChangeText={setUsername}
-              placeholder="Digite seu e-mail"
-              keyboardType="email-address"
-            />
-            <TextField
-              marginTop="10"
-              label="Senha"
-              isPassword
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Digite sua senha"
+              label="Apelido"
+              value={""}
+              onChangeText={() => {}}
+              placeholder="@Apelido"
               keyboardType="default"
             />
             <TextField
-              marginTop="5"
-              label="Confirme sua senha"
-              isPassword
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              placeholder="Confirme sua senha"
+              marginTop="10"
+              label="Esporte Favorito"
+              value={""}
+              onChangeText={() => {}}
+              placeholder="Esporte Favorito"
               keyboardType="default"
             />
 
             <TouchableOpacity
-              onPress={handleRegister}
               className={`mt-10 rounded-2xl ${colors.button} p-3`}
             >
               <Text
                 className={`text-center text-xl font-bold ${colors.textSecondaryButton}`}
               >
-                Proxima
+                Cadastrar-se
               </Text>
             </TouchableOpacity>
 
