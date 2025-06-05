@@ -41,7 +41,9 @@ export default function Login() {
           <View
             className={`w-full max-w-md rounded-2xl ${colors.background} self-center p-6`}
           >
-            <Text className={`text-center text-5xl font-bold text-white `}>
+            <Text
+              className={`text-center text-5xl font-bold ${colors.textPrimaryButton}`}
+            >
               MOVE
             </Text>
             <Text
@@ -89,7 +91,9 @@ export default function Login() {
               onPress={() => router.push("../register")}
               className={`mt-5 rounded-2xl border-2 ${colors.border} p-3`}
             >
-              <Text className="text-center text-xl font-bold text-white">
+              <Text
+                className={`text-center text-xl font-bold ${colors.textPrimaryButton} `}
+              >
                 Cadastrar-se
               </Text>
             </TouchableOpacity>

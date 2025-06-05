@@ -1,22 +1,50 @@
-import { Platform } from "react-native";
+const API_URL = "http://192.168.68.103:8000";
 
-const API_URL =
-  Platform.OS === "android" ? "http://10.0.2.2:8000" : "http://localhost:8000";
-
-export const login = async (user: string, pass: string) => {
+export const RegistrarUsuario = async (
+  nomeCompleto: string,
+  username: string,
+  data_nascimeto: string,
+  email: string,
+  senha: string,
+) => {
   try {
-    const response = await fetch(`${API_URL}/login`, {
+    const dataFormatada = formatDateToISO(data_nascimeto);
+
+    console.log("Enviando para API:", {
+      NomeCompleto: nomeCompleto,
+      username,
+      data_nascimento: dataFormatada,
+      email,
+      senha,
+    });
+
+    const response = await fetch(`${API_URL}/usuario/RegistrarUsuario`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ user, pass }),
+      body: JSON.stringify({
+        NomeCompleto: nomeCompleto,
+        username,
+        data_nascimento: dataFormatada,
+        email,
+        senha,
+      }),
     });
 
-    if (!response.ok) throw new Error("Erro ao fazer login");
-    return await response.json(); // Ex: { token: '...' }
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Erro ${response.status}: ${errorText}`);
+    }
+
+    return await response.json();
   } catch (error) {
-    console.error("Erro no login:", error);
+    console.error("Erro no cadastro:", error);
     return null;
   }
+};
+
+const formatDateToISO = (brDate: string) => {
+  const [dd, mm, yyyy] = brDate.split("/");
+  return `${yyyy}-${mm}-${dd}`;
 };

@@ -1,5 +1,6 @@
-import React from 'react';
-import { Text, View, TextInput, TextInputProps } from 'react-native';
+import React from "react";
+import { Text, View, TextInput, TextInputProps } from "react-native";
+import { colors } from "../styles/styles";
 
 interface TextFieldProps {
   marginTop: string;
@@ -8,7 +9,7 @@ interface TextFieldProps {
   onChangeText: (text: string) => void;
   placeholder?: string;
   label: string;
-  keyboardType?: TextInputProps['keyboardType'];
+  keyboardType?: TextInputProps["keyboardType"];
 }
 
 const TextField: React.FC<TextFieldProps> = ({
@@ -18,14 +19,18 @@ const TextField: React.FC<TextFieldProps> = ({
   onChangeText,
   placeholder,
   label,
-  keyboardType = 'default',
+  keyboardType = "default",
 }) => {
   return (
     <View className="w-full">
-      <Text className={`mt-${marginTop} mb-1 text-xl text-white`}>{label}</Text>
+      <Text
+        className={`mt-${marginTop} mb-1 text-xl ${colors.textPrimaryButton}`}
+      >
+        {label}
+      </Text>
       <TextInput
-        autoComplete={isPassword ? 'password' : 'email'}
-        textContentType={isPassword ? 'password' : 'emailAddress'}
+        autoComplete={isPassword ? "password" : "email"}
+        textContentType={isPassword ? "password" : "emailAddress"}
         secureTextEntry={isPassword}
         autoCapitalize="none"
         value={value}
@@ -33,7 +38,7 @@ const TextField: React.FC<TextFieldProps> = ({
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor="gray"
-        className="h-14 w-full rounded-2xl bg-neutral-600 px-2 pb-1 text-xl text-white"
+        className={`h-14 w-full rounded-2xl bg-white  dark:bg-neutral-600 px-2 pb-1 text-xl ${colors.textPrimaryButton}`}
       />
     </View>
   );

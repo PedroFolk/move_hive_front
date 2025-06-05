@@ -36,7 +36,9 @@ export default function Login() {
           <View
             className={`w-full max-w-md rounded-2xl ${colors.background} self-center p-6`}
           >
-            <Text className={`text-center text-5xl font-bold text-white `}>
+            <Text
+              className={`text-center text-5xl font-bold ${colors.textPrimaryButton} `}
+            >
               MOVE
             </Text>
             <Text

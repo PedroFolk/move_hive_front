@@ -12,8 +12,43 @@ import TextField from "../components/fields";
 import { colors } from "../styles/styles";
 import "../../../global.css";
 import { router } from "expo-router";
+import { useState } from "react";
+import { useLocalSearchParams } from "expo-router";
+import { RegistrarUsuario } from "~/api/auth";
 
 export default function PosRegister() {
+  const params = useLocalSearchParams();
+  const { nome, apelido, dataNascimento } = params;
+
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
+
+  const handleCadastro = async () => {
+    alert(
+      `${nome}, ${apelido}, ${dataNascimento}, ${email}, ${senha}, ${confirmarSenha}`,
+    );
+    if (senha !== confirmarSenha) {
+      alert("Senhas não coincidem");
+      return;
+    }
+
+    const result = await RegistrarUsuario(
+      nome as string,
+      apelido as string,
+      dataNascimento as string,
+      email,
+      senha,
+    );
+
+    if (result) {
+      alert("Usuário registrado com sucesso!");
+      router.push("../login");
+    } else {
+      alert("Erro ao registrar usuário");
+    }
+  };
+
   return (
     <SafeAreaView className={`flex-1  ${colors.background}`}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -34,31 +69,34 @@ export default function PosRegister() {
             </Text>
             <TextField
               marginTop="10"
-              label="Nome"
-              value={""}
-              onChangeText={() => {}}
-              placeholder="Digite seu Nome"
-              keyboardType="default"
+              label="E-mail"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Digite seu E-mail"
+              keyboardType="email-address"
             />
 
             <TextField
               marginTop="10"
-              label="Apelido"
-              value={""}
-              onChangeText={() => {}}
-              placeholder="@Apelido"
-              keyboardType="default"
+              label="Senha"
+              value={senha}
+              onChangeText={setSenha}
+              placeholder="Digite sua senha"
+              isPassword={true}
+              keyboardType="visible-password"
             />
             <TextField
-              marginTop="10"
-              label="Esporte Favorito"
-              value={""}
-              onChangeText={() => {}}
-              placeholder="Esporte Favorito"
-              keyboardType="default"
+              marginTop="5"
+              label="Confirmar senha"
+              value={confirmarSenha}
+              onChangeText={setConfirmarSenha}
+              isPassword={true}
+              placeholder="Cofirme sua senha"
+              keyboardType="visible-password"
             />
 
             <TouchableOpacity
+              onPress={handleCadastro}
               className={`mt-10 rounded-2xl ${colors.button} p-3`}
             >
               <Text
