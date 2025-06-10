@@ -9,12 +9,15 @@ import {
   View,
   Text,
   SafeAreaView,
+  TextInput,
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
   Linking,
   Keyboard,
   TouchableWithoutFeedback,
+  useColorScheme,
+  KeyboardType,
 } from "react-native";
 import { colors } from "../styles/styles.js";
 import { LogarUsuario } from "~/api/auth";
