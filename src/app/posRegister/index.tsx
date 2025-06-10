@@ -25,9 +25,6 @@ export default function PosRegister() {
   const [confirmarSenha, setConfirmarSenha] = useState("");
 
   const handleCadastro = async () => {
-    alert(
-      `${nome}, ${apelido}, ${dataNascimento}, ${email}, ${senha}, ${confirmarSenha}`,
-    );
     if (senha !== confirmarSenha) {
       alert("Senhas não coincidem");
       return;

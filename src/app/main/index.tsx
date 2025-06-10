@@ -1,39 +1,35 @@
-import { View, Text, useColorScheme, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { theme } from 'tailwind.config';
-import AntDesign from '@expo/vector-icons/AntDesign';
+import { useState } from "react";
+import { Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Menu from "../components/menu";
+import { colors } from "../styles/styles";
 
 export default function Main() {
-  const theme = useColorScheme() || 'light'; // Garante um valor padrão
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const renderContent = () => {
+    switch (selectedIndex) {
+      case 0:
+        return <Text className="text-white">Página Home</Text>;
+      case 1:
+        return <Text className="text-white">Página Peso</Text>;
+      case 2:
+        return <Text className="text-white">Página 3</Text>;
+      case 3:
+        return <Text className="text-white">Página Google</Text>;
+      case 4:
+        return <Text className="text-white">Página 5</Text>;
+      default:
+        return <Text className="text-white">Página desconhecida</Text>;
+    }
+  };
+
   return (
-    <SafeAreaView className="flex-1 items-center bg-neutral-800 pt-5">
-      <Text className="font-bold text-white ">Page </Text>
-      <View className="absolute bottom-10 flex-1 flex-row gap-10 rounded-2xl bg-white">
-        <TouchableOpacity>
-          <AntDesign
-            name="google"
-            size={48}
-            color={theme === 'dark' ? 'white' : 'black'}
-            className="p-2"
-          />
-        </TouchableOpacity>
-        <TouchableOpacity className="rounded-2xl bg-green-500">
-          <AntDesign
-            className="p-2"
-            name="google"
-            size={48}
-            color={theme === 'dark' ? 'white' : 'black'}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity className="rounded-2xl  ">
-          <AntDesign
-            className="p-2"
-            name="google"
-            size={48}
-            color={theme === 'dark' ? 'white' : 'black'}
-          />
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView
+      className={`flex-1 items-center justify-center  ${colors.background} pt-5`}
+    >
+      {renderContent()}
+      <Menu selectedIndex={selectedIndex} setSelectedIndex={setSelectedIndex} />
     </SafeAreaView>
   );
 }
