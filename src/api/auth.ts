@@ -36,10 +36,12 @@ export const RegistrarUsuario = async (
 
     return await response.json();
   } catch (error) {
-    console.error("Erro no cadastro:", error);
+    //console.error("Erro no cadastro:", error);
     return null;
   }
 };
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const LogarUsuario = async (email: string, senha: string) => {
   try {
@@ -48,10 +50,7 @@ export const LogarUsuario = async (email: string, senha: string) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        email,
-        senha,
-      }),
+      body: JSON.stringify({ email, senha }),
     });
 
     if (!response.ok) {
@@ -59,9 +58,14 @@ export const LogarUsuario = async (email: string, senha: string) => {
       throw new Error(`Erro ${response.status}: ${errorText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    const token = data.token;
+
+    // Salva localmente
+    await AsyncStorage.setItem("token", token);
+
+    return data;
   } catch (error) {
-    console.error("Erro no cadastro:", error);
     return null;
   }
 };
