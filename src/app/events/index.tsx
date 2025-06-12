@@ -79,7 +79,6 @@ export default function Events() {
           },
         ]}
       >
-        {/* botão de delete */}
         <TouchableOpacity
           style={{
             position: "absolute",
@@ -232,7 +231,6 @@ export default function Events() {
         backgroundColor: theme === "dark" ? "#272727" : "#FFF",
       }}
     >
-      {/* Header */}
       <View style={styles.header}>
         <Text
           style={[
@@ -260,7 +258,6 @@ export default function Events() {
         </View>
       </View>
 
-      {/* Tabs */}
       <View style={styles.tabs}>
         <TouchableOpacity
           onPress={() => setSelectedTab("events")}
@@ -312,7 +309,6 @@ export default function Events() {
         </TouchableOpacity>
       </View>
 
-      {/* Subtitle */}
       <Text
         style={[
           styles.subtitle,
@@ -322,7 +318,6 @@ export default function Events() {
         {selectedTab === "events" ? "Próximos eventos" : "Próximos torneios"}
       </Text>
 
-      {/* Lista */}
       <View style={styles.listContainer}>
         <FlatList
           data={selectedTab === "events" ? events : tournaments}
@@ -331,21 +326,26 @@ export default function Events() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             flexGrow: 1,
-            justifyContent: "center",
-            alignItems: "center",
             paddingBottom: 120,
           }}
-          ListEmptyComponent={
-            <Text style={{ color: theme === "dark" ? "#BBBBBB" : "#777" }}>
-              {selectedTab === "events"
-                ? "Nenhum evento cadastrado"
-                : "Nenhum torneio disponível"}
-            </Text>
-          }
+          ListEmptyComponent={() => (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: theme === "dark" ? "#BBBBBB" : "#777" }}>
+                {selectedTab === "events"
+                  ? "Nenhum evento cadastrado"
+                  : "Nenhum torneio disponível"}
+              </Text>
+            </View>
+          )}
         />
       </View>
 
-      {/* Botão de adicionar */}
       <TouchableOpacity
         style={[
           styles.addButton,
@@ -360,7 +360,6 @@ export default function Events() {
         />
       </TouchableOpacity>
 
-      {/* Modal de criação */}
       <EventCreationModal
         visible={showModal}
         theme={theme}

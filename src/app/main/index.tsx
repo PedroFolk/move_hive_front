@@ -4,6 +4,7 @@ import Menu from "../components/menu";
 import Events from "../events";
 import Perfil from "../perfil";
 import Activity from "../activities";
+import RankingScreen from "../ranking";
 import { colors } from "../styles/styles";
 import Feed from "../feed";
 
@@ -17,7 +18,7 @@ export default function Main() {
       case 1:
         return <Activity />;
       case 2:
-        return <Text className="text-white">token</Text>;
+        return <RankingScreen />;
       case 3:
         return <Events />;
       case 4:
