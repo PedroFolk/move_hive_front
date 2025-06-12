@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "my-expo-app",
-    "slug": "my-expo-app",
+    "name": "Move-Hive",
+    "slug": "move-hive",
     "version": "1.0.0",
-    
+
     "web": {
       "favicon": "./assets/favicon.png"
     },
