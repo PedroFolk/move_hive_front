@@ -12,7 +12,7 @@ export default function Home() {
       if (token) {
         router.replace("/main");
       } else {
-        router.replace("/main");
+        router.replace("/login");
       }
     };
 
