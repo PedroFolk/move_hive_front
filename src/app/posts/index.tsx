@@ -1,6 +1,14 @@
-import { View, Image, Button, Alert, Text } from "react-native";
+import {
+  View,
+  Image,
+  Button,
+  Alert,
+  Text,
+  ScrollView,
+  RefreshControl,
+} from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ExcluirPost, ListarPostProprios } from "~/api/feed";
 
 export default function PostDetails() {
@@ -8,18 +16,25 @@ export default function PostDetails() {
   const { postId } = useLocalSearchParams();
 
   const [post, setPost] = useState<any>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchPost = useCallback(async () => {
+    const dados = await ListarPostProprios();
+    if (dados) {
+      const p = dados.find((item: any) => item.id === postId);
+      setPost(p);
+    }
+  }, [postId]);
 
   useEffect(() => {
-    console.log("postId recebido:", postId);
-    async function fetchPost() {
-      const dados = await ListarPostProprios();
-      if (dados) {
-        const p = dados.find((item: any) => item.id === postId);
-        setPost(p);
-      }
-    }
     fetchPost();
-  }, [postId]);
+  }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchPost();
+    setRefreshing(false);
+  };
 
   if (!post)
     return (
@@ -37,7 +52,6 @@ export default function PostDetails() {
         style: "destructive",
         onPress: async () => {
           await ExcluirPost(postId);
-
           router.back();
         },
       },
@@ -45,17 +59,25 @@ export default function PostDetails() {
   };
 
   return (
-    <View className="flex-1 justify-center items-center bg-black p-4">
+    <ScrollView
+      className="flex-1 bg-black"
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+      contentContainerStyle={{ padding: 16, alignItems: "center", flexGrow: 1 }}
+    >
       <Image
         source={{ uri: post.imagem }}
         style={{
           width: "100%",
-          height: "50%",
+          height: 300,
           borderRadius: 12,
         }}
         resizeMode="contain"
       />
-      <Button title="Deletar Post" color="red" onPress={handleDelete} />
-    </View>
+      <View style={{ marginTop: 16, width: "100%" }}>
+        <Button title="Deletar Post" color="red" onPress={handleDelete} />
+      </View>
+    </ScrollView>
   );
 }

@@ -1,3 +1,5 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 const API_URL = "http://192.168.68.114:8000";
 
 const formatDateToISO = (brDate: string) => {
@@ -33,15 +35,16 @@ export const RegistrarUsuario = async (
       const errorText = await response.text();
       throw new Error(`Erro ${response.status}: ${errorText}`);
     }
+    const data = await response.json();
+    const token = data.token;
 
-    return await response.json();
+    // Salva localmente
+    await AsyncStorage.setItem("token", token);
+    return await data;
   } catch (error) {
-    //console.error("Erro no cadastro:", error);
     return null;
   }
 };
-
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const LogarUsuario = async (email: string, senha: string) => {
   try {

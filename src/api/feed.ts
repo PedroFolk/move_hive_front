@@ -28,16 +28,14 @@ export const ListaTodosPost = async () => {
 export const ExcluirPost = async (postId: any) => {
   const token = await AsyncStorage.getItem("token");
   try {
-    const response = await fetch(
-      `${API_URL}/postagem/ExcluirPostagem/${postId}`,
-      {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+    const response = await fetch(`${API_URL}/postagem/ExcluirPostagem`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-    );
+      body: JSON.stringify({ postagem_id: postId }),
+    });
 
     if (!response.ok) {
       throw new Error(`Erro ${response.status}`);
@@ -87,13 +85,12 @@ export const CriarPost = async (
       uri: imagem.uri,
       name: imagem.name,
       type: imagem.type,
-    } as any); // o 'as any' é para evitar erro TS, pois React Native não tem suporte perfeito para FormData types
+    } as any);
 
     const response = await fetch(`${API_URL}/postagem/CriarPostagem`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
-        // Não setar Content-Type aqui, o fetch define automaticamente para multipart/form-data
       },
       body: formData,
     });

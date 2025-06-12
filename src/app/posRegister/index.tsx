@@ -39,8 +39,8 @@ export default function PosRegister() {
     );
 
     if (result) {
-      alert("Usuário registrado com sucesso!");
-      router.push("../login");
+      //alert("Usuário registrado com sucesso!");
+      router.push({ pathname: "../main", params: { novoCadastro: "true" } });
     } else {
       alert("Erro ao registrar usuário");
     }

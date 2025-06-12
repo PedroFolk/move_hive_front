@@ -26,19 +26,19 @@ export default function Feed() {
 
   const aoAtualizar = async () => {
     setRefreshing(true);
-    await buscarPosts(); // já está definida
+    await buscarPosts();
     setRefreshing(false);
   };
 
   const buscarPosts = async () => {
     const data = await ListaTodosPost();
     if (data) {
-      setPosts(data); // substitui, não adiciona
+      setPosts(data);
     }
   };
 
   useEffect(() => {
-    buscarPosts();
+    //buscarPosts();
   }, []);
 
   const abrirGaleria = async () => {
@@ -61,7 +61,7 @@ export default function Feed() {
         type: asset.type || "image/jpeg",
       };
       setImagem(novaImagem);
-      setModalVisible(true); // abre o modal só depois que a imagem for selecionada
+      setModalVisible(true);
     }
   };
 
@@ -69,7 +69,6 @@ export default function Feed() {
     if (loading) return;
 
     if (!descricao.trim() || !imagem) {
-      // usar trim() para evitar espaços vazios
       alert("Preencha a descrição e selecione uma imagem.");
       return;
     }
@@ -81,9 +80,9 @@ export default function Feed() {
 
       if (resultado) {
         setPosts((postsAntigos) => [resultado, ...postsAntigos]);
-        setDescricao(""); // limpa descrição
-        setImagem(null); // limpa imagem
-        setModalVisible(false); // fecha modal só depois de limpar
+        setDescricao("");
+        setImagem(null);
+        setModalVisible(false);
       } else {
         alert("Erro ao criar post.");
       }
@@ -103,7 +102,7 @@ export default function Feed() {
         className="absolute bottom-[88px] right-4 p-4 rounded-full justify-center items-center shadow-md bg-neutral-900 z-50 "
         onPress={async () => {
           await abrirGaleria();
-          if (!imagem) return; // só abre o modal se tiver imagem
+          if (!imagem) return;
           setModalVisible(true);
         }}
       >

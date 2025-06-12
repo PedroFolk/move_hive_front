@@ -9,15 +9,12 @@ import {
   View,
   Text,
   SafeAreaView,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
   Linking,
   Keyboard,
   TouchableWithoutFeedback,
-  useColorScheme,
-  KeyboardType,
 } from "react-native";
 import { colors } from "../styles/styles.js";
 import { LogarUsuario } from "~/api/auth";
@@ -30,8 +27,7 @@ export default function Login() {
     const result = await LogarUsuario(email, password);
 
     if (result) {
-      alert("Usuário logado com sucesso!");
-      router.push("../main");
+      router.push({ pathname: "../main", params: { novoCadastro: "false" } });
     } else {
       alert("Erro ao logar usuário");
     }
