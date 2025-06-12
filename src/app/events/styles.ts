@@ -1,5 +1,3 @@
-// events/styles.ts
-
 import { StyleSheet } from "react-native";
 
 export const ITEM_HEIGHT = 36;

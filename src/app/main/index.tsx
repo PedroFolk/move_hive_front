@@ -3,6 +3,7 @@ import { Text, SafeAreaView } from "react-native";
 import Menu from "../components/menu";
 import Events from "../events";
 import Perfil from "../perfil";
+import Activity from "../activities";
 import { colors } from "../styles/styles";
 import Feed from "../feed";
 
@@ -14,7 +15,7 @@ export default function Main() {
       case 0:
         return <Feed />;
       case 1:
-        return <Text className="text-white">Página Peso</Text>;
+        return <Activity />;
       case 2:
         return <Text className="text-white">token</Text>;
       case 3:

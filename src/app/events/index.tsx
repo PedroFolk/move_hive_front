@@ -14,7 +14,7 @@ import {
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { BottomNav } from "../components/menuBottom";
 import styles, { darkStyles, IMAGE_SIZE } from "./styles";
-import EventCreationModal from "../components/modalEvets";
+import EventCreationModal from "../components/modalEvents";
 
 interface Event {
   id: string;
@@ -36,7 +36,7 @@ if (
 export default function Events() {
   const theme = useColorScheme() || "light";
   const [selectedTab, setSelectedTab] = useState<"events" | "tournaments">(
-    "events",
+    "events"
   );
   const [events, setEvents] = useState<Event[]>([]);
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);

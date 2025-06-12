@@ -61,10 +61,10 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
   const [selectedMinute, setSelectedMinute] = useState("00");
 
   const hours = Array.from({ length: 24 }, (_, i) =>
-    i.toString().padStart(2, "0"),
+    i.toString().padStart(2, "0")
   );
   const minutes = Array.from({ length: 60 }, (_, i) =>
-    i.toString().padStart(2, "0"),
+    i.toString().padStart(2, "0")
   );
 
   const today = (() => {
@@ -156,7 +156,6 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
             { backgroundColor: theme === "dark" ? "#1F1F1F" : "#FFF" },
           ]}
         >
-          {/* Esporte */}
           <Text
             style={[
               styles.fieldLabel,
@@ -236,7 +235,6 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
             )}
           </View>
 
-          {/* Descrição */}
           <TextInput
             style={[
               styles.input,
@@ -260,7 +258,6 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
             onChangeText={setNewDescription}
           />
 
-          {/* Horário */}
           <TouchableOpacity
             onPress={() => setShowTimePickerModal(true)}
             style={[styles.input, { justifyContent: "center" }]}
@@ -278,7 +275,6 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
             </Text>
           </TouchableOpacity>
 
-          {/* Modal Horário */}
           <Modal
             visible={showTimePickerModal}
             transparent
@@ -315,9 +311,9 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
                       setSelectedHour(
                         hours[
                           Math.round(
-                            e.nativeEvent.contentOffset.y / ITEM_HEIGHT,
+                            e.nativeEvent.contentOffset.y / ITEM_HEIGHT
                           )
-                        ],
+                        ]
                       )
                     }
                     renderItem={({ item }) => (
@@ -356,9 +352,9 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
                       setSelectedMinute(
                         minutes[
                           Math.round(
-                            e.nativeEvent.contentOffset.y / ITEM_HEIGHT,
+                            e.nativeEvent.contentOffset.y / ITEM_HEIGHT
                           )
-                        ],
+                        ]
                       )
                     }
                     renderItem={({ item }) => (
@@ -391,7 +387,6 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
             </View>
           </Modal>
 
-          {/* Localização */}
           <TextInput
             style={[
               styles.input,
@@ -413,7 +408,6 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
             onChangeText={setNewLocation}
           />
 
-          {/* Data */}
           <TouchableOpacity
             onPress={() => setShowCalendarModal(true)}
             style={[styles.input, { justifyContent: "center" }]}
@@ -427,7 +421,6 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
             </Text>
           </TouchableOpacity>
 
-          {/* Modal Calendário */}
           <Modal
             visible={showCalendarModal}
             transparent
@@ -469,7 +462,6 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
             </View>
           </Modal>
 
-          {/* Image Picker */}
           <TouchableOpacity
             onPress={openImagePickerAsync}
             style={[
@@ -507,7 +499,6 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
             </View>
           )}
 
-          {/* Ações */}
           <View style={styles.modalActions}>
             <TouchableOpacity
               onPress={onClose}
