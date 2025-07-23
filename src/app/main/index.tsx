@@ -4,6 +4,8 @@ import { useLocalSearchParams } from "expo-router";
 import Menu from "../components/menu";
 import Events from "../events";
 import Perfil from "../perfil";
+import Activity from "../activities";
+import RankingScreen from "../ranking";
 import Feed from "../feed";
 import { colors } from "../styles/styles";
 import ModalFirstTime from "../components/modalFirstTime";
@@ -18,15 +20,16 @@ export default function Main() {
     if (params.novoCadastro === "true") {
       setModalVisible(true);
     }
+    setModalVisible(true);
   }, []);
   const renderContent = () => {
     switch (selectedIndex) {
       case 0:
         return <Feed />;
       case 1:
-        return <Text className="text-white">Página Peso</Text>;
+        return <Activity />;
       case 2:
-        return <Text className="text-white">token</Text>;
+        return <RankingScreen />;
       case 3:
         return <Events />;
       case 4:
@@ -55,7 +58,6 @@ export default function Main() {
           );
 
           if (result) {
-            alert("Perfil atualizado com sucesso!");
           } else {
             alert("Erro ao atualizar perfil.");
           }

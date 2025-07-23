@@ -1,20 +1,20 @@
 import {
   View,
   Image,
-  Button,
   Alert,
   Text,
   ScrollView,
   RefreshControl,
+  TouchableOpacity,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useEffect, useState, useCallback } from "react";
 import { ExcluirPost, ListarPostProprios } from "~/api/feed";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PostDetails() {
   const router = useRouter();
   const { postId } = useLocalSearchParams();
-
   const [post, setPost] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -36,15 +36,7 @@ export default function PostDetails() {
     setRefreshing(false);
   };
 
-  if (!post)
-    return (
-      <View className="flex-1 justify-center items-center bg-black">
-        <Text className="text-white">Carregando...</Text>
-      </View>
-    );
-
   const handleDelete = () => {
-    console.log("postId paraDeletar:", postId);
     Alert.alert("Deletar Post", "Tem certeza que deseja deletar este post?", [
       { text: "Cancelar", style: "cancel" },
       {
@@ -58,26 +50,55 @@ export default function PostDetails() {
     ]);
   };
 
-  return (
-    <ScrollView
-      className="flex-1 bg-black"
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-      contentContainerStyle={{ padding: 16, alignItems: "center", flexGrow: 1 }}
-    >
-      <Image
-        source={{ uri: post.imagem }}
-        style={{
-          width: "100%",
-          height: 300,
-          borderRadius: 12,
-        }}
-        resizeMode="contain"
-      />
-      <View style={{ marginTop: 16, width: "100%" }}>
-        <Button title="Deletar Post" color="red" onPress={handleDelete} />
+  if (!post)
+    return (
+      <View className="flex-1 justify-center items-center bg-black">
+        <Text className="text-white text-lg">Carregando...</Text>
       </View>
-    </ScrollView>
+    );
+
+  return (
+    <SafeAreaView className="h-full w-full bg-neutral-800 p-4">
+      {/* Botão de Voltar */}
+      <TouchableOpacity onPress={() => router.back()} className="mb-4">
+        <Text className="text-white text-2xl">←</Text>
+      </TouchableOpacity>
+
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        contentContainerStyle={{ alignItems: "center" }}
+      >
+        <Image
+          source={{ uri: post.imagem }}
+          style={{
+            width: "100%",
+            height: 300,
+            borderRadius: 16,
+            marginBottom: 24,
+          }}
+          resizeMode="cover"
+        />
+
+        <Text className="text-white text-2xl font-semibold mb-4 text-center">
+          {post.descricao ?? "Sem descrição disponível."}
+        </Text>
+
+        <TouchableOpacity
+          onPress={handleDelete}
+          style={{
+            backgroundColor: "#ff4d4d",
+            paddingVertical: 12,
+            paddingHorizontal: 24,
+            borderRadius: 8,
+          }}
+        >
+          <Text className="text-white font-semibold text-base">
+            Deletar Post
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 }

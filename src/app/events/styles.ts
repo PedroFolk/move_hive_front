@@ -1,5 +1,3 @@
-// events/styles.ts
-
 import { StyleSheet } from "react-native";
 
 export const ITEM_HEIGHT = 36;
@@ -21,7 +19,7 @@ const base = StyleSheet.create({
   tabs: {
     flexDirection: "row",
     justifyContent: "center",
-    marginBottom: 16,
+    marginBottom: 10,
     paddingHorizontal: 16,
   },
   tabButton: {

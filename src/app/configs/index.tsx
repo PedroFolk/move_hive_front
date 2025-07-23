@@ -28,9 +28,14 @@ export default function Configuracoes() {
   return (
     <SafeAreaView className="bg-neutral-800 items-center justify-center w-full h-full">
       <ScrollView className="w-full h-full px-6 py-8">
-        <Text className="text-3xl font-bold mb-8 text-white">
-          Configurações de Perfil
-        </Text>
+        <View className="flex-row justify-between items-center mb-8">
+          <TouchableOpacity onPress={() => router.back()}>
+            <Text className="text-white text-2xl">←</Text>
+          </TouchableOpacity>
+          <Text className="text-3xl font-bold text-white">
+            Configurações de Perfil
+          </Text>
+        </View>
 
         <View className="mb-6">
           <Text className="text-white font-semibold mb-1">Nome Completo</Text>

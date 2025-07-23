@@ -1,7 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API_URL = "http://192.168.68.114:8000";
-
 export const PreencherDadosModal = async (
   biografia: string,
   cidade: string,

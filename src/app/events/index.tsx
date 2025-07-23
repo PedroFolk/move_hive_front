@@ -10,11 +10,12 @@ import {
   Platform,
   LayoutAnimation,
   UIManager,
+  Alert,
 } from "react-native";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { BottomNav } from "../components/menuBottom";
 import styles, { darkStyles, IMAGE_SIZE } from "./styles";
-import EventCreationModal from "../components/modalEvets";
+import EventCreationModal from "../components/modalEvents";
 
 interface Event {
   id: string;
@@ -36,11 +37,30 @@ if (
 export default function Events() {
   const theme = useColorScheme() || "light";
   const [selectedTab, setSelectedTab] = useState<"events" | "tournaments">(
-    "events",
+    "events"
   );
   const [events, setEvents] = useState<Event[]>([]);
+  const [tournaments, setTournaments] = useState<Event[]>([]);
+
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+
+  const handleDelete = (id: string) => {
+    Alert.alert("Confirmar exclusão", "Deseja realmente excluir este card?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Excluir",
+        style: "destructive",
+        onPress: () => {
+          if (selectedTab === "events") {
+            setEvents((prev) => prev.filter((ev) => ev.id !== id));
+          } else {
+            setTournaments((prev) => prev.filter((t) => t.id !== id));
+          }
+        },
+      },
+    ]);
+  };
 
   const toggleExpand = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -59,6 +79,21 @@ export default function Events() {
           },
         ]}
       >
+        <TouchableOpacity
+          style={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+            zIndex: 1,
+          }}
+          onPress={() => handleDelete(item.id)}
+        >
+          <MaterialIcons
+            name="delete"
+            size={24}
+            color={theme === "dark" ? "#FFF" : "#000"}
+          />
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={() => toggleExpand(item.id)}
           activeOpacity={0.8}
@@ -175,8 +210,12 @@ export default function Events() {
     );
   };
 
-  const handleCreateEvent = (event: Event) => {
-    setEvents((prev) => [event, ...prev]);
+  const handleSave = (item: Event) => {
+    if (selectedTab === "events") {
+      setEvents((prev) => [item, ...prev]);
+    } else {
+      setTournaments((prev) => [item, ...prev]);
+    }
     setShowModal(false);
   };
 
@@ -185,15 +224,13 @@ export default function Events() {
   };
 
   return (
-    // SafeAreaView with flex: 1 and width: "100%" ensures the component takes up the full screen
     <SafeAreaView
       style={{
         flex: 1,
-        width: "100%", // Explicitly set to ensure full width
+        width: "100%",
         backgroundColor: theme === "dark" ? "#272727" : "#FFF",
       }}
     >
-      {/* Header */}
       <View style={styles.header}>
         <Text
           style={[
@@ -201,7 +238,7 @@ export default function Events() {
             { color: theme === "dark" ? "#EBEBEB" : "#1F1F1F" },
           ]}
         >
-          Eventos
+          {selectedTab === "events" ? "Eventos" : "Torneios"}
         </Text>
         <View style={styles.headerIcons}>
           <TouchableOpacity>
@@ -221,7 +258,6 @@ export default function Events() {
         </View>
       </View>
 
-      {/* Tabs */}
       <View style={styles.tabs}>
         <TouchableOpacity
           onPress={() => setSelectedTab("events")}
@@ -273,46 +309,43 @@ export default function Events() {
         </TouchableOpacity>
       </View>
 
-      {/* Subtitle */}
-      {selectedTab === "events" && (
-        <Text
-          style={[
-            styles.subtitle,
-            { color: theme === "dark" ? "#EBEBEB" : "#1F1F1F" },
-          ]}
-        >
-          Próximos eventos
-        </Text>
-      )}
+      <Text
+        style={[
+          styles.subtitle,
+          { color: theme === "dark" ? "#EBEBEB" : "#1F1F1F" },
+        ]}
+      >
+        {selectedTab === "events" ? "Próximos eventos" : "Próximos torneios"}
+      </Text>
 
-      {/* Lista */}
       <View style={styles.listContainer}>
-        {selectedTab === "events" ? (
-          events.length > 0 ? (
-            <FlatList
-              data={events}
-              keyExtractor={(item) => item.id}
-              renderItem={renderEventCard}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 120 }} // Accommodates BottomNav height
-            />
-          ) : (
-            <View style={styles.empty}>
+        <FlatList
+          data={selectedTab === "events" ? events : tournaments}
+          keyExtractor={(item) => item.id}
+          renderItem={renderEventCard}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingBottom: 120,
+          }}
+          ListEmptyComponent={() => (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
               <Text style={{ color: theme === "dark" ? "#BBBBBB" : "#777" }}>
-                Nenhum evento cadastrado
+                {selectedTab === "events"
+                  ? "Nenhum evento cadastrado"
+                  : "Nenhum torneio disponível"}
               </Text>
             </View>
-          )
-        ) : (
-          <View style={styles.empty}>
-            <Text style={{ color: theme === "dark" ? "#BBBBBB" : "#777" }}>
-              Nenhum torneio disponível
-            </Text>
-          </View>
-        )}
+          )}
+        />
       </View>
 
-      {/* Botão de adicionar */}
       <TouchableOpacity
         style={[
           styles.addButton,
@@ -327,12 +360,11 @@ export default function Events() {
         />
       </TouchableOpacity>
 
-      {/* Modal de criação */}
       <EventCreationModal
         visible={showModal}
         theme={theme}
         onClose={handleCancel}
-        onSave={handleCreateEvent}
+        onSave={handleSave}
       />
     </SafeAreaView>
   );

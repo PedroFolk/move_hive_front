@@ -15,6 +15,7 @@ import {
   Linking,
   Keyboard,
   TouchableWithoutFeedback,
+  Alert,
 } from "react-native";
 import { colors } from "../styles/styles.js";
 import { LogarUsuario } from "~/api/auth";
@@ -29,7 +30,7 @@ export default function Login() {
     if (result) {
       router.push({ pathname: "../main", params: { novoCadastro: "false" } });
     } else {
-      alert("Erro ao logar usuário");
+      Alert.alert("Erro ao fazer login", "Usuário e/ou senha incorretos");
     }
   };
 

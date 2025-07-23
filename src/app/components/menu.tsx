@@ -14,7 +14,7 @@ interface MenuProps {
   selectedIndex: number;
   setSelectedIndex: (index: number) => void;
 }
-// Define the button type with specific icon names per library
+
 interface Button {
   name: string;
   type: string;
@@ -25,7 +25,7 @@ const Menu: React.FC<MenuProps> = ({ selectedIndex, setSelectedIndex }) => {
   const buttons: Button[] = [
     { name: "home", type: "Entypo", size: 24 },
     { name: "dumbbell", type: "FontAwesome5", size: 24 },
-    { name: "ranking-star", type: "FontAwesome6", size: 24 }, // Replaced "ranking-star" with "star"
+    { name: "ranking-star", type: "FontAwesome6", size: 24 },
     { name: "trophy", type: "FontAwesome", size: 24 },
     { name: "person", type: "Ionicons", size: 24 },
   ];
