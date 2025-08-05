@@ -10,6 +10,11 @@ import Feed from "../feed";
 import { colors } from "../styles/styles";
 import ModalFirstTime from "../components/modalFirstTime";
 import { PreencherDadosModal } from "~/api/user";
+import AddActivityModal, {
+  ModalActivity,
+
+} from "../components/modalActivities";
+
 
 export default function Main() {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -20,12 +25,11 @@ export default function Main() {
     if (params.novoCadastro === "true") {
       setModalVisible(true);
     }
-    setModalVisible(true);
   }, []);
   const renderContent = () => {
     switch (selectedIndex) {
       case 0:
-        return <Feed />;
+        return <Feed />
       case 1:
         return <Activity />;
       case 2:

@@ -1,5 +1,3 @@
-
-
 import React, { useState } from "react";
 import {
   View,
@@ -14,16 +12,14 @@ import {
   Platform,
   KeyboardAvoidingView,
   Button,
+  SafeAreaView,
 } from "react-native";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { Calendar, DateData } from "react-native-calendars";
-import styles, {
-  darkStyles,
-  ITEM_HEIGHT,
-  PICKER_HEIGHT,
-  IMAGE_SIZE,
-} from "../events/styles";
+import { colors } from "../styles/styles";
+import { Dropdown } from "react-native-element-dropdown";
+import { ESPORTES } from "./modalActivities";
 
 interface Event {
   id: string;
@@ -35,6 +31,9 @@ interface Event {
   imageUri?: string;
 }
 
+export const ITEM_HEIGHT = 36;
+export const PICKER_HEIGHT = 370;
+export const IMAGE_SIZE = 100;
 interface EventCreationModalProps {
   visible: boolean;
   theme: "light" | "dark";
@@ -131,7 +130,6 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
       imageUri: newImageUri,
     };
     onSave(event);
-    // Reset form
     setNewSport("");
     setShowSportDropdown(false);
     setNewDescription("");
@@ -150,384 +148,174 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
       transparent
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={[
-            styles.modalContainer,
-            { backgroundColor: theme === "dark" ? "#1F1F1F" : "#FFF" },
-          ]}
-        >
+      <View
+        className={`${colors.background_modal} rounded-lg p-6  flex-1 justify-between`}
+      >
+        <SafeAreaView className="flex-1">
           <Text
-            style={[
-              styles.fieldLabel,
-              { color: theme === "dark" ? "#EBEBEB" : "#1F1F1F" },
-              { marginBottom: 10 },
-            ]}
+            className={`text-2xl font-bold text-center mt-4 mb-10 ${colors.textPrimaryButton}`}
           >
             Esporte
           </Text>
-          <View style={{ position: "relative", marginBottom: 12 }}>
-            <TouchableOpacity
-              onPress={() => setShowSportDropdown((v) => !v)}
-              style={[
-                styles.dropdownTrigger,
-                {
-                  backgroundColor: theme === "dark" ? "#272727" : "#FFF",
-                  borderColor: theme === "dark" ? "#555" : "#CCC",
-                },
-              ]}
-            >
-              <Text
-                style={{
-                  color: newSport
-                    ? theme === "dark"
-                      ? "#FFF"
-                      : "#000"
-                    : "#888",
-                }}
-              >
-                {newSport || "Selecione um esporte..."}
-              </Text>
-              <Ionicons
-                name={showSportDropdown ? "chevron-up" : "chevron-down"}
-                size={20}
-                color={theme === "dark" ? "#FFF" : "#000"}
-              />
-            </TouchableOpacity>
-            {showSportDropdown && (
-              <View
-                style={[
-                  styles.dropdownListAbsolute,
-                  {
-                    backgroundColor: theme === "dark" ? "#272727" : "#FFF",
-                    borderColor: theme === "dark" ? "#555" : "#CCC",
-                  },
-                ]}
-              >
-                <ScrollView
-                  style={{ maxHeight: 140 }}
-                  contentContainerStyle={{ paddingVertical: 4 }}
-                >
-                  {SPORTS.map((sp) => (
-                    <TouchableOpacity
-                      key={sp}
-                      onPress={() => {
-                        setNewSport(sp);
-                        setShowSportDropdown(false);
-                      }}
-                      style={[
-                        styles.dropdownItem,
-                        {
-                          borderBottomWidth:
-                            sp === SPORTS[SPORTS.length - 1] ? 0 : 1,
-                          borderBottomColor: theme === "dark" ? "#444" : "#EEE",
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={{ color: theme === "dark" ? "#FFF" : "#000" }}
-                      >
-                        {sp}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-          </View>
-
-          <TextInput
-            style={[
-              styles.input,
-              theme === "dark"
-                ? {
-                    borderColor: "#444",
-                    backgroundColor: "#333",
-                    color: "#FFF",
-                  }
-                : {
-                    borderColor: "#CCC",
-                    backgroundColor: "#FFF",
-                    color: "#000",
-                  },
-            ]}
-            placeholder="Descrição"
-            placeholderTextColor={theme === "dark" ? "#AAA" : "#888"}
-            multiline
-            textAlignVertical="top"
-            value={newDescription}
-            onChangeText={setNewDescription}
-          />
-
-          <TouchableOpacity
-            onPress={() => setShowTimePickerModal(true)}
-            style={[styles.input, { justifyContent: "center" }]}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            className="flex-1"
           >
-            <Text
+            <Text className="text-gray-300 mb-1 text-xl">Esporte</Text>
+            <Dropdown
+              data={ESPORTES}
+              labelField="label"
+              valueField="value"
+              placeholder="Selecione um esporte"
+              value={newSport}
+              onChange={(item) => setNewSport(item.value)}
               style={{
-                color: newStartTime
-                  ? theme === "dark"
-                    ? "#FFF"
-                    : "#000"
-                  : "#888",
+                backgroundColor: "transparent",
+                borderRadius: 12,
+                paddingHorizontal: 12,
+                height: 50,
+                marginBottom: 20,
+                borderColor: "#4b5563",
+                borderWidth: 1,
               }}
-            >
-              {newStartTime || "HH:MM"}
-            </Text>
-          </TouchableOpacity>
+              containerStyle={{
+                backgroundColor: "#404040",
+                borderCurve: "circular",
+                borderRadius: 12,
+              }}
+              itemTextStyle={{
+                textAlign: "center",
+                color: "white",
+              }}
+              placeholderStyle={{ color: "#888", fontSize: 16 }}
+              selectedTextStyle={{ color: "white", fontSize: 16 }}
+            />
 
-          <Modal
-            visible={showTimePickerModal}
-            transparent
-            animationType="fade"
-            onRequestClose={commitTimePicker}
-          >
-            <View style={styles.pickerOverlay}>
-              <TouchableWithoutFeedback onPress={commitTimePicker}>
-                <View style={styles.overlayTouchable} />
-              </TouchableWithoutFeedback>
-              <View
-                style={[
-                  styles.pickerContainer,
-                  theme === "dark" && darkStyles.pickerContainer,
-                ]}
-              >
-                <View style={styles.pickerWheelRow}>
-                  <FlatList
-                    data={hours}
-                    keyExtractor={(h) => h}
-                    style={styles.pickerWheel}
-                    showsVerticalScrollIndicator={false}
-                    snapToInterval={ITEM_HEIGHT}
-                    decelerationRate="fast"
-                    getItemLayout={(_, i) => ({
-                      length: ITEM_HEIGHT,
-                      offset: ITEM_HEIGHT * i,
-                      index: i,
-                    })}
-                    contentContainerStyle={{
-                      paddingVertical: (PICKER_HEIGHT - ITEM_HEIGHT) / 2,
-                    }}
-                    onMomentumScrollEnd={(e) =>
-                      setSelectedHour(
-                        hours[
+
+            <TextInput
+              placeholder="Descrição"
+              multiline
+              textAlignVertical="top"
+              value={newDescription}
+              onChangeText={setNewDescription}
+            />
+
+            <TouchableOpacity onPress={() => setShowTimePickerModal(true)}>
+              <Text>{newStartTime || "HH:MM"}</Text>
+            </TouchableOpacity>
+
+            <Modal
+              visible={showTimePickerModal}
+              transparent
+              animationType="fade"
+              onRequestClose={commitTimePicker}
+            >
+              <View>
+                <TouchableWithoutFeedback onPress={commitTimePicker}>
+                  <View />
+                </TouchableWithoutFeedback>
+                <View>
+                  <View>
+                    <FlatList
+                      data={hours}
+                      keyExtractor={(h) => h}
+                      showsVerticalScrollIndicator={false}
+                      onMomentumScrollEnd={(e) =>
+                        setSelectedHour(
+                          hours[
                           Math.round(
                             e.nativeEvent.contentOffset.y / ITEM_HEIGHT
                           )
-                        ]
-                      )
-                    }
-                    renderItem={({ item }) => (
-                      <View style={styles.pickerItem}>
-                        <Text
-                          style={[
-                            styles.pickerText,
-                            theme === "dark" && darkStyles.pickerText,
-                            selectedHour === item && styles.pickerTextSelected,
-                            theme === "dark" &&
-                              selectedHour === item &&
-                              darkStyles.pickerTextSelected,
-                          ]}
-                        >
-                          {item}
-                        </Text>
-                      </View>
-                    )}
-                  />
-                  <FlatList
-                    data={minutes}
-                    keyExtractor={(m) => m}
-                    style={styles.pickerWheel}
-                    showsVerticalScrollIndicator={false}
-                    snapToInterval={ITEM_HEIGHT}
-                    decelerationRate="fast"
-                    getItemLayout={(_, i) => ({
-                      length: ITEM_HEIGHT,
-                      offset: ITEM_HEIGHT * i,
-                      index: i,
-                    })}
-                    contentContainerStyle={{
-                      paddingVertical: (PICKER_HEIGHT - ITEM_HEIGHT) / 2,
-                    }}
-                    onMomentumScrollEnd={(e) =>
-                      setSelectedMinute(
-                        minutes[
+                          ]
+                        )
+                      }
+                      renderItem={({ item }) => (
+                        <View>
+                          <Text>{item}</Text>
+                        </View>
+                      )}
+                    />
+                    <FlatList
+                      data={minutes}
+                      keyExtractor={(m) => m}
+                      showsVerticalScrollIndicator={false}
+                      onMomentumScrollEnd={(e) =>
+                        setSelectedMinute(
+                          minutes[
                           Math.round(
                             e.nativeEvent.contentOffset.y / ITEM_HEIGHT
                           )
-                        ]
-                      )
-                    }
-                    renderItem={({ item }) => (
-                      <View style={styles.pickerItem}>
-                        <Text
-                          style={[
-                            styles.pickerText,
-                            theme === "dark" && darkStyles.pickerText,
-                            selectedMinute === item &&
-                              styles.pickerTextSelected,
-                            theme === "dark" &&
-                              selectedMinute === item &&
-                              darkStyles.pickerTextSelected,
-                          ]}
-                        >
-                          {item}
-                        </Text>
-                      </View>
-                    )}
-                  />
-                  <View
-                    style={[
-                      styles.pickerHighlight,
-                      theme === "dark" && darkStyles.pickerHighlight,
-                    ]}
+                          ]
+                        )
+                      }
+                      renderItem={({ item }) => (
+                        <View>
+                          <Text>{item}</Text>
+                        </View>
+                      )}
+                    />
+                    <View />
+                  </View>
+                  <Button title="OK" onPress={commitTimePicker} />
+                </View>
+              </View>
+            </Modal>
+
+            <TextInput
+              placeholder="Localização"
+              value={newLocation}
+              onChangeText={setNewLocation}
+            />
+
+            <TouchableOpacity onPress={() => setShowCalendarModal(true)}>
+              <Text>{newDate || "dd/mm/aaaa"}</Text>
+            </TouchableOpacity>
+
+            <Modal
+              visible={showCalendarModal}
+              transparent
+              animationType="fade"
+              onRequestClose={commitCalendarPicker}
+            >
+              <View>
+                <TouchableWithoutFeedback onPress={commitCalendarPicker}>
+                  <View />
+                </TouchableWithoutFeedback>
+                <View>
+                  <Calendar
+                    firstDay={1}
+                    monthFormat={"MMMM yyyy"}
+                    minDate={today}
+                    onDayPress={(day: DateData) => {
+                      setNewDate(day.dateString.split("-").reverse().join("/"));
+                      commitCalendarPicker();
+                    }}
                   />
                 </View>
-                <Button title="OK" onPress={commitTimePicker} />
               </View>
-            </View>
-          </Modal>
+            </Modal>
 
-          <TextInput
-            style={[
-              styles.input,
-              theme === "dark"
-                ? {
-                    borderColor: "#444",
-                    backgroundColor: "#333",
-                    color: "#FFF",
-                  }
-                : {
-                    borderColor: "#CCC",
-                    backgroundColor: "#FFF",
-                    color: "#000",
-                  },
-            ]}
-            placeholder="Localização"
-            placeholderTextColor={theme === "dark" ? "#AAA" : "#888"}
-            value={newLocation}
-            onChangeText={setNewLocation}
-          />
+            <TouchableOpacity onPress={openImagePickerAsync}>
+              <MaterialIcons name="image" size={20} />
+              <Text>Escolher imagem</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => setShowCalendarModal(true)}
-            style={[styles.input, { justifyContent: "center" }]}
-          >
-            <Text
-              style={{
-                color: newDate ? (theme === "dark" ? "#FFF" : "#000") : "#888",
-              }}
-            >
-              {newDate || "dd/mm/aaaa"}
-            </Text>
-          </TouchableOpacity>
-
-          <Modal
-            visible={showCalendarModal}
-            transparent
-            animationType="fade"
-            onRequestClose={commitCalendarPicker}
-          >
-            <View style={styles.pickerOverlay}>
-              <TouchableWithoutFeedback onPress={commitCalendarPicker}>
-                <View style={styles.overlayTouchable} />
-              </TouchableWithoutFeedback>
-              <View
-                style={[
-                  styles.calendarContainer,
-                  theme === "dark" && darkStyles.calendarContainer,
-                ]}
-              >
-                <Calendar
-                  firstDay={1}
-                  monthFormat={"MMMM yyyy"}
-                  minDate={today}
-                  theme={{
-                    calendarBackground: theme === "dark" ? "#1F1F1F" : "#fff",
-                    textSectionTitleColor:
-                      theme === "dark" ? "#BDBDBD" : "#2d4150",
-                    dayTextColor: theme === "dark" ? "#fff" : "#2d4150",
-                    monthTextColor: theme === "dark" ? "#fff" : "#2d4150",
-                    arrowColor: theme === "dark" ? "#fff" : "#2d4150",
-                    todayTextColor: theme === "dark" ? "#FFA500" : "#00adf5",
-                    selectedDayBackgroundColor:
-                      theme === "dark" ? "#FFA500" : "#00adf5",
-                    selectedDayTextColor: theme === "dark" ? "#000" : "#fff",
-                  }}
-                  onDayPress={(day: DateData) => {
-                    setNewDate(day.dateString.split("-").reverse().join("/"));
-                    commitCalendarPicker();
-                  }}
-                />
+            {newImageUri && (
+              <View>
+                <Image source={{ uri: newImageUri }} resizeMode="cover" />
               </View>
-            </View>
-          </Modal>
+            )}
 
-          <TouchableOpacity
-            onPress={openImagePickerAsync}
-            style={[
-              styles.imagePickerButton,
-              theme === "dark"
-                ? { borderColor: "#666", backgroundColor: "#2A2A2A" }
-                : { borderColor: "#CCC", backgroundColor: "#F5F5F5" },
-            ]}
-          >
-            <MaterialIcons
-              name="image"
-              size={20}
-              color={theme === "dark" ? "#FFF" : "#333"}
-            />
-            <Text
-              style={{
-                marginLeft: 8,
-                color: theme === "dark" ? "#FFF" : "#333",
-              }}
-            >
-              Escolher imagem
-            </Text>
-          </TouchableOpacity>
-          {newImageUri && (
-            <View style={{ alignItems: "center", marginBottom: 16 }}>
-              <Image
-                source={{ uri: newImageUri }}
-                style={{
-                  width: IMAGE_SIZE,
-                  height: IMAGE_SIZE,
-                  borderRadius: 8,
-                }}
-                resizeMode="cover"
-              />
+            <View>
+              <TouchableOpacity onPress={onClose}>
+                <Text>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleSave}>
+                <Text>Salvar</Text>
+              </TouchableOpacity>
             </View>
-          )}
-
-          <View style={styles.modalActions}>
-            <TouchableOpacity
-              onPress={onClose}
-              style={[
-                styles.modalBtnCancel,
-                {
-                  backgroundColor: theme === "dark" ? "#444" : "#DDD",
-                },
-                { marginBottom: 8 },
-              ]}
-            >
-              <Text style={{ color: theme === "dark" ? "#FFF" : "#000" }}>
-                Cancelar
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleSave}
-              style={[
-                styles.modalBtnSave,
-                { backgroundColor: theme === "dark" ? "#FFD700" : "#FFA500" },
-                { marginBottom: 8 },
-              ]}
-            >
-              <Text style={{ color: "#FFF" }}>Salvar</Text>
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
       </View>
     </Modal>
   );

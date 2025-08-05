@@ -23,7 +23,7 @@ export default function Perfil() {
   }, []);
 
   useEffect(() => {
-    carregarPosts();
+    // carregarPosts();
   }, [carregarPosts]);
 
   const diasSemana = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];

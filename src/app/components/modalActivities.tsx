@@ -3,351 +3,207 @@ import {
   Modal,
   View,
   Text,
-  TouchableOpacity,
-  TextInput,
-  ScrollView,
+  SafeAreaView,
   KeyboardAvoidingView,
-  FlatList,
   Platform,
+  Button,
+  Pressable,
+  TextInput,
+  TouchableOpacity,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import styles, {
-  darkStyles,
-  ITEM_HEIGHT,
-  PICKER_HEIGHT,
-} from "../events/styles";
+import { colors } from "../styles/styles";
+import { Dropdown } from "react-native-element-dropdown";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 export interface ModalActivity {
   id: string;
   sport: string;
   time: string;
+  dateString: string;
   location: string;
   category: string;
 }
 
 interface ActivityCreationModalProps {
   visible: boolean;
-  theme: "light" | "dark";
   defaultCategory: string;
   onClose: () => void;
   onSave: (activity: ModalActivity) => void;
 }
 
-export const SPORTS = ["Corrida", "Tênis", "Vôlei", "Beach Tennis", "Yoga"];
+export const ESPORTES = [
+  { label: "Corrida", value: "Corrida" },
+  { label: "Tênis", value: "Tênis" },
+  { label: "Vôlei", value: "Vôlei" },
+  { label: "Beach Tennis", value: "Beach Tennis" },
+  { label: "Yoga", value: "Yoga" },
+];
 
 const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
   visible,
-  theme,
   defaultCategory,
   onClose,
   onSave,
 }) => {
   const [sport, setSport] = useState("");
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  const [selectedHour, setSelectedHour] = useState("00");
-  const [selectedMinute, setSelectedMinute] = useState("00");
   const [location, setLocation] = useState("");
 
-  const hours = Array.from({ length: 24 }, (_, i) =>
-    i.toString().padStart(2, "0")
-  );
-  const minutes = Array.from({ length: 60 }, (_, i) =>
-    i.toString().padStart(2, "0")
-  );
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [date, setDate] = useState(new Date());
 
   useEffect(() => {
     if (visible) {
       setSport("");
-      setShowDropdown(false);
-      setShowTimePicker(false);
-      setSelectedHour("00");
-      setSelectedMinute("00");
       setLocation("");
+      setDate(new Date());
     }
   }, [visible]);
 
-  const commitTimePicker = () => setShowTimePicker(false);
-
   const handleSave = () => {
-    const time = `${selectedHour}:${selectedMinute}`;
+    const formattedDate = date.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+    });
+
+    const dayOfWeek = date
+      .toLocaleDateString("pt-BR", { weekday: "short" })
+      .replace(".", "")
+      .charAt(0)
+      .toUpperCase() +
+      date.toLocaleDateString("pt-BR", { weekday: "short" }).slice(1, 3);
+
+    const dateString = `${formattedDate} - ${dayOfWeek}`;
+    const time = `${date.getHours().toString().padStart(2, "0")}:${date
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
     if (!sport || !location.trim()) return;
     onSave({
       id: Date.now().toString(),
       sport,
       time,
+      dateString,
       location,
       category: defaultCategory,
     });
     onClose();
   };
 
+  const cancel = () => {
+    onClose();
+  }
+
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalOverlay}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={{
-            backgroundColor: theme === "dark" ? "#1F1F1F" : "#FFF",
-            padding: 16,
-            borderRadius: 8,
-            width: "90%",
-            alignSelf: "center",
-          }}
-        >
+    <Modal visible={visible} transparent animationType="slide">
+      <View
+        className={`${colors.background_modal} rounded-lg p-6  flex-1 justify-between`}
+      >
+        <SafeAreaView className="flex-1">
           <Text
-            style={[
-              styles.fieldLabel,
-              {
-                marginBottom: 10,
-                color: theme === "dark" ? "#EBEBEB" : "#1F1F1F",
-              },
-            ]}
+            className={`text-2xl font-bold text-center mt-4 mb-10 ${colors.textPrimaryButton}`}
           >
-            Esporte
+            Novo Esporte
           </Text>
-          <View style={{ position: "relative", marginBottom: 12 }}>
-            <TouchableOpacity
-              onPress={() => setShowDropdown((v) => !v)}
-              style={[
-                styles.dropdownTrigger,
-                {
-                  backgroundColor: theme === "dark" ? "#272727" : "#FFF",
-                  borderColor: theme === "dark" ? "#555" : "#CCC",
-                },
-              ]}
-            >
-              <Text
+
+
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            className="flex-1"
+          >
+            <View className="flex-1">
+              <Text className="text-gray-300 mb-1 text-xl">Esporte</Text>
+              <Dropdown
+                data={ESPORTES}
+                labelField="label"
+                valueField="value"
+                placeholder="Selecione um esporte"
+                value={sport}
+                onChange={(item) => setSport(item.value)}
                 style={{
-                  color: sport ? (theme === "dark" ? "#FFF" : "#000") : "#888",
+                  backgroundColor: "transparent",
+                  borderRadius: 12,
+                  paddingHorizontal: 12,
+                  height: 50,
+                  marginBottom: 20,
+                  borderColor: "#4b5563",
+                  borderWidth: 1,
                 }}
-              >
-                {sport || "Selecione esporte"}
-              </Text>
-              <Ionicons
-                name={showDropdown ? "chevron-up" : "chevron-down"}
-                size={20}
-                color={theme === "dark" ? "#FFF" : "#000"}
+                containerStyle={{
+                  backgroundColor: "#404040",
+                  borderCurve: "circular",
+                  borderRadius: 12,
+                }}
+                itemTextStyle={{
+                  textAlign: "center",
+                  color: "white",
+                }}
+                placeholderStyle={{ color: "#888", fontSize: 16 }}
+                selectedTextStyle={{ color: "white", fontSize: 16 }}
               />
-            </TouchableOpacity>
-            {showDropdown && (
-              <View
-                style={[
-                  styles.dropdownListAbsolute,
-                  {
-                    backgroundColor: theme === "dark" ? "#272727" : "#FFF",
-                    borderColor: theme === "dark" ? "#555" : "#CCC",
-                  },
-                ]}
-              >
-                <ScrollView
-                  contentContainerStyle={{ paddingVertical: 4 }}
-                  style={{ maxHeight: 140 }}
-                >
-                  {SPORTS.map((s) => (
-                    <TouchableOpacity
-                      key={s}
-                      onPress={() => {
-                        setSport(s);
-                        setShowDropdown(false);
-                      }}
-                      style={[
-                        styles.dropdownItem,
-                        {
-                          borderBottomWidth:
-                            s === SPORTS[SPORTS.length - 1] ? 0 : 1,
-                          borderBottomColor: theme === "dark" ? "#444" : "#EEE",
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={{ color: theme === "dark" ? "#FFF" : "#000" }}
-                      >
-                        {s}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-          </View>
+
+              <Text className="text-gray-300 mb-1 text-xl">Local</Text>
+              <TextInput
+                className="text-xl p-4 border border-neutral-600 rounded-xl text-white"
+                onChangeText={setLocation}
+                value={location}
+                placeholder="Onde será o encontro?"
+
+              />
+
+              <Text className="text-gray-300 mb-1 text-xl mt-4">Data</Text>
+              <DateTimePicker
+
+                timeZoneName="pt-br"
+                mode="date"
+                value={date}
+                onChange={(e, selected) => {
+                  setShowDatePicker(false);
+                  if (selected) setDate(selected);
+                }}
+              />
+
+
+
+              <Text className="text-gray-300 mb-1 text-xl mt-4">Hora</Text>
+              <DateTimePicker
+                timeZoneName="pt-br"
+                mode="time"
+                value={date}
+                onChange={(e, selected) => {
+                  setShowTimePicker(false);
+                  if (selected) setDate(selected);
+                }}
+                is24Hour
+              />
+
+
+            </View>
+          </KeyboardAvoidingView>
 
           <TouchableOpacity
-            onPress={() => setShowTimePicker(true)}
-            style={[
-              styles.input,
-              { justifyContent: "center", marginBottom: 12 },
-            ]}
+            className={`rounded-xl  p-4 mb-4 bg-yellow-500 border-yellow-500 mt-auto`}
+            onPress={() => { handleSave() }}
+
           >
             <Text
-              style={{ color: theme === "dark" ? "#FFF" : "#000" }}
-            >{`${selectedHour}:${selectedMinute}`}</Text>
+              className={`text-center text-xl font-semibold text-black`}
+            >
+              Continuar
+            </Text>
           </TouchableOpacity>
-          {showTimePicker && (
-            <Modal
-              visible
-              transparent
-              animationType="fade"
-              onRequestClose={commitTimePicker}
-            >
-              <View style={styles.pickerOverlay}>
-                <TouchableOpacity
-                  style={styles.overlayTouchable}
-                  activeOpacity={1}
-                  onPress={commitTimePicker}
-                />
-                <View
-                  style={[
-                    styles.pickerContainer,
-                    theme === "dark" && darkStyles.pickerContainer,
-                  ]}
-                >
-                  <View style={styles.pickerWheelRow}>
-                    <FlatList
-                      data={hours}
-                      keyExtractor={(h) => h}
-                      style={styles.pickerWheel}
-                      showsVerticalScrollIndicator={false}
-                      snapToInterval={ITEM_HEIGHT}
-                      decelerationRate="fast"
-                      getItemLayout={(_, i) => ({
-                        length: ITEM_HEIGHT,
-                        offset: ITEM_HEIGHT * i,
-                        index: i,
-                      })}
-                      contentContainerStyle={{
-                        paddingVertical: (PICKER_HEIGHT - ITEM_HEIGHT) / 2,
-                      }}
-                      onMomentumScrollEnd={(e) =>
-                        setSelectedHour(
-                          hours[
-                            Math.round(
-                              e.nativeEvent.contentOffset.y / ITEM_HEIGHT
-                            )
-                          ]
-                        )
-                      }
-                      renderItem={({ item }) => (
-                        <View style={styles.pickerItem}>
-                          <Text
-                            style={[
-                              styles.pickerText,
-                              theme === "dark" && darkStyles.pickerText,
-                              selectedHour === item &&
-                                styles.pickerTextSelected,
-                              theme === "dark" &&
-                                selectedHour === item &&
-                                darkStyles.pickerTextSelected,
-                            ]}
-                          >
-                            {item}
-                          </Text>
-                        </View>
-                      )}
-                    />
-                    <FlatList
-                      data={minutes}
-                      keyExtractor={(m) => m}
-                      style={styles.pickerWheel}
-                      showsVerticalScrollIndicator={false}
-                      snapToInterval={ITEM_HEIGHT}
-                      decelerationRate="fast"
-                      getItemLayout={(_, i) => ({
-                        length: ITEM_HEIGHT,
-                        offset: ITEM_HEIGHT * i,
-                        index: i,
-                      })}
-                      contentContainerStyle={{
-                        paddingVertical: (PICKER_HEIGHT - ITEM_HEIGHT) / 2,
-                      }}
-                      onMomentumScrollEnd={(e) =>
-                        setSelectedMinute(
-                          minutes[
-                            Math.round(
-                              e.nativeEvent.contentOffset.y / ITEM_HEIGHT
-                            )
-                          ]
-                        )
-                      }
-                      renderItem={({ item }) => (
-                        <View style={styles.pickerItem}>
-                          <Text
-                            style={[
-                              styles.pickerText,
-                              theme === "dark" && darkStyles.pickerText,
-                              selectedMinute === item &&
-                                styles.pickerTextSelected,
-                              theme === "dark" &&
-                                selectedMinute === item &&
-                                darkStyles.pickerTextSelected,
-                            ]}
-                          >
-                            {item}
-                          </Text>
-                        </View>
-                      )}
-                    />
-                    <View
-                      style={[
-                        styles.pickerHighlight,
-                        theme === "dark" && darkStyles.pickerHighlight,
-                      ]}
-                    />
-                  </View>
-                </View>
-              </View>
-            </Modal>
-          )}
+          <TouchableOpacity
+            className={`rounded-xl  p-4 mb-4  mt-auto`}
+            onPress={() => { cancel() }}
 
-          <TextInput
-            placeholder="Localização"
-            placeholderTextColor={theme === "dark" ? "#AAA" : "#888"}
-            value={location}
-            onChangeText={setLocation}
-            style={[
-              styles.input,
-              theme === "dark"
-                ? {
-                    borderColor: "#444",
-                    backgroundColor: "#333",
-                    color: "#FFF",
-                  }
-                : {
-                    borderColor: "#CCC",
-                    backgroundColor: "#FFF",
-                    color: "#000",
-                  },
-            ]}
-          />
-
-          <View style={styles.modalActions}>
-            <TouchableOpacity
-              onPress={onClose}
-              style={[
-                styles.modalBtnCancel,
-                { backgroundColor: theme === "dark" ? "#444" : "#DDD" },
-              ]}
+          >
+            <Text
+              className={`text-center text-xl font-semibold text-white`}
             >
-              <Text style={{ color: theme === "dark" ? "#FFF" : "#000" }}>
-                Cancelar
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleSave}
-              style={[
-                styles.modalBtnSave,
-                { backgroundColor: theme === "dark" ? "#FFD700" : "#FFA500" },
-              ]}
-            >
-              <Text style={{ color: "#FFF" }}>Salvar</Text>
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
+              Cancelar
+            </Text>
+          </TouchableOpacity>
+        </SafeAreaView>
       </View>
     </Modal>
   );

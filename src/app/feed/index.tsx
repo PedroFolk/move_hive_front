@@ -15,6 +15,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { CriarPost, ListaTodosPost } from "~/api/feed";
 import { Ionicons } from "@expo/vector-icons";
+import AddButton from "../components/addButton";
 
 export default function Feed() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -98,17 +99,12 @@ export default function Feed() {
       <Text className="text-white font-bold items-center justify-center text-2xl mb-4">
         Publicações
       </Text>
-      <TouchableOpacity
-        className="absolute bottom-[88px] right-4 p-4 rounded-full justify-center items-center shadow-md bg-neutral-900 z-50 "
-        onPress={async () => {
-          await abrirGaleria();
-          if (!imagem) return;
-          setModalVisible(true);
-        }}
-      >
-        <Ionicons name="add" color={"white"} size={28} />
-      </TouchableOpacity>
 
+      <AddButton onPress={async () => {
+        await abrirGaleria();
+        if (!imagem) return;
+        setModalVisible(true);
+      }} />
       <ScrollView
         className="mt-5"
         refreshControl={
@@ -214,6 +210,8 @@ export default function Feed() {
                     />
                   </TouchableOpacity>
                 </View>
+
+
 
                 {imagem ? (
                   <Image
