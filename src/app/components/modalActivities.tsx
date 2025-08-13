@@ -6,14 +6,12 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
-  Button,
-  Pressable,
   TextInput,
   TouchableOpacity,
 } from "react-native";
-import { colors } from "../styles/styles";
 import { Dropdown } from "react-native-element-dropdown";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { colors } from "../styles/styles";
 
 export interface ModalActivity {
   id: string;
@@ -47,9 +45,6 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
 }) => {
   const [sport, setSport] = useState("");
   const [location, setLocation] = useState("");
-
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
   const [date, setDate] = useState(new Date());
 
   useEffect(() => {
@@ -61,6 +56,8 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
   }, [visible]);
 
   const handleSave = () => {
+    if (!sport || !location.trim()) return;
+
     const formattedDate = date.toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
@@ -68,17 +65,16 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
 
     const dayOfWeek = date
       .toLocaleDateString("pt-BR", { weekday: "short" })
-      .replace(".", "")
-      .charAt(0)
-      .toUpperCase() +
-      date.toLocaleDateString("pt-BR", { weekday: "short" }).slice(1, 3);
+      .replace(".", "");
+    const dayFormatted =
+      dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1, 3);
 
-    const dateString = `${formattedDate} - ${dayOfWeek}`;
+    const dateString = `${formattedDate} - ${dayFormatted}`;
     const time = `${date.getHours().toString().padStart(2, "0")}:${date
       .getMinutes()
       .toString()
       .padStart(2, "0")}`;
-    if (!sport || !location.trim()) return;
+
     onSave({
       id: Date.now().toString(),
       sport,
@@ -90,14 +86,10 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
     onClose();
   };
 
-  const cancel = () => {
-    onClose();
-  }
-
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View
-        className={`${colors.background_modal} rounded-lg p-6  flex-1 justify-between`}
+        className={`${colors.background_modal} rounded-lg p-6 flex-1 justify-between`}
       >
         <SafeAreaView className="flex-1">
           <Text
@@ -105,7 +97,6 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
           >
             Novo Esporte
           </Text>
-
 
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -131,7 +122,6 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
                 }}
                 containerStyle={{
                   backgroundColor: "#404040",
-                  borderCurve: "circular",
                   borderRadius: 12,
                 }}
                 itemTextStyle={{
@@ -148,58 +138,38 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
                 onChangeText={setLocation}
                 value={location}
                 placeholder="Onde será o encontro?"
-
               />
 
               <Text className="text-gray-300 mb-1 text-xl mt-4">Data</Text>
               <DateTimePicker
-
                 timeZoneName="pt-br"
                 mode="date"
                 value={date}
-                onChange={(e, selected) => {
-                  setShowDatePicker(false);
-                  if (selected) setDate(selected);
-                }}
+                onChange={(_, selected) => selected && setDate(selected)}
               />
-
-
 
               <Text className="text-gray-300 mb-1 text-xl mt-4">Hora</Text>
               <DateTimePicker
                 timeZoneName="pt-br"
                 mode="time"
-                value={date}
-                onChange={(e, selected) => {
-                  setShowTimePicker(false);
-                  if (selected) setDate(selected);
-                }}
                 is24Hour
+                value={date}
+                onChange={(_, selected) => selected && setDate(selected)}
               />
-
-
             </View>
           </KeyboardAvoidingView>
 
           <TouchableOpacity
-            className={`rounded-xl  p-4 mb-4 bg-yellow-500 border-yellow-500 mt-auto`}
-            onPress={() => { handleSave() }}
-
+            className="rounded-xl p-4 mb-4 bg-yellow-500 border-yellow-500"
+            onPress={handleSave}
           >
-            <Text
-              className={`text-center text-xl font-semibold text-black`}
-            >
+            <Text className="text-center text-xl font-semibold text-black">
               Continuar
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            className={`rounded-xl  p-4 mb-4  mt-auto`}
-            onPress={() => { cancel() }}
 
-          >
-            <Text
-              className={`text-center text-xl font-semibold text-white`}
-            >
+          <TouchableOpacity className="rounded-xl p-4 mb-4" onPress={onClose}>
+            <Text className="text-center text-xl font-semibold text-white">
               Cancelar
             </Text>
           </TouchableOpacity>

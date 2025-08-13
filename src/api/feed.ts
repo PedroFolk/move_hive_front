@@ -1,5 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-const API_URL = "http://192.168.68.114:8000";
+import { API_URL } from "./apiURL";
+
+
 export const ListaTodosPost = async () => {
   const token = await AsyncStorage.getItem("token");
   try {

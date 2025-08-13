@@ -1,9 +1,7 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router } from "expo-router";
-
 import "../../../global.css";
 import TextField from "../components/fields"; // Ajuste o caminho conforme necessário
-
 import { useState } from "react";
 import {
   View,
@@ -16,9 +14,11 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Alert,
+  Image,
 } from "react-native";
 import { colors } from "../styles/styles.js";
 import { LogarUsuario } from "~/api/auth";
+
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -44,16 +44,13 @@ export default function Login() {
           <View
             className={`w-full max-w-md rounded-2xl ${colors.background} self-center p-6`}
           >
-            <Text
-              className={`text-center text-5xl font-bold ${colors.textPrimaryButton}`}
-            >
-              MOVE
-            </Text>
-            <Text
-              className={`text-center text-5xl font-bold ${colors.primary}`}
-            >
-              HIVE
-            </Text>
+
+
+            <Image
+              source={require("../../images/logoMoveHive_sem_fundo_cor_branco.png")}
+              resizeMode="center"
+              className="rounded-full w-48 h-48 justify-center m-auto "
+            />
 
             <TextField
               label="E-mail"
@@ -61,7 +58,7 @@ export default function Login() {
               onChangeText={setEmail}
               placeholder="E-mail"
               keyboardType="email-address"
-              marginTop={"10"}
+              marginTop={"0"}
             />
             <TextField
               label="Senha"

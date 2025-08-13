@@ -7,6 +7,7 @@ import {
   Platform,
   Keyboard,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import TextField from "../components/fields";
 import { colors } from "../styles/styles";
@@ -56,16 +57,13 @@ export default function PosRegister() {
           <View
             className={`w-full max-w-md rounded-2xl ${colors.background} self-center p-6`}
           >
-            <Text className={`text-center text-5xl font-bold text-white`}>
-              MOVE
-            </Text>
-            <Text
-              className={`text-center text-5xl font-bold ${colors.primary}`}
-            >
-              HIVE
-            </Text>
+            <Image
+              source={require("../../images/logoMoveHive_sem_fundo_cor_branco.png")}
+              resizeMode="center"
+              className="rounded-full w-48 h-48 justify-center m-auto "
+            />
             <TextField
-              marginTop="10"
+              marginTop="0"
               label="E-mail"
               value={email}
               onChangeText={setEmail}

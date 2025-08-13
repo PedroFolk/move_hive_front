@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  useColorScheme,
   SafeAreaView,
   View,
   Text,
@@ -33,7 +32,6 @@ const CATEGORIES = ["Tudo", ...new Set(ESPORTES.map((a) => a.value))];
 
 
 const ActivitiesScreen: React.FC = () => {
-  const theme = (useColorScheme() || "light") as "light" | "dark";
 
   const [selectedCategory, setSelectedCategory] = useState<string>("Tudo");
   const [activities, setActivities] = useState<Activity[]>([]);

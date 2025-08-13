@@ -1,144 +1,138 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   Modal,
   TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
-  FlatList,
-  ScrollView,
   Image,
   Platform,
   KeyboardAvoidingView,
-  Button,
   SafeAreaView,
+  ScrollView,
+  Switch,
 } from "react-native";
-import { MaterialIcons, Ionicons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { Calendar, DateData } from "react-native-calendars";
-import { colors } from "../styles/styles";
 import { Dropdown } from "react-native-element-dropdown";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { ESPORTES } from "./modalActivities";
 
-interface Event {
+export interface ModalEvent {
   id: string;
   title: string;
+  sport: string;
   description: string;
-  startTime: string;
-  location: string;
-  date: string;
+  dateString: string;
+  city: string;
+  state: string;
+  hourString: string;
+  maxParticipants: number;
+  isTournament: boolean;
+  isPrivate: boolean;
   imageUri?: string;
 }
 
-export const ITEM_HEIGHT = 36;
-export const PICKER_HEIGHT = 370;
-export const IMAGE_SIZE = 100;
-interface EventCreationModalProps {
+interface Props {
   visible: boolean;
-  theme: "light" | "dark";
+  defaultSport: string;
   onClose: () => void;
-  onSave: (event: Event) => void;
+  onSave: (event: ModalEvent) => void;
 }
-
-const SPORTS = ["Corrida", "Tênis", "Vôlei", "Beach Tennis", "Yoga"];
-
-const EventCreationModal: React.FC<EventCreationModalProps> = ({
+const InfoTooltip = ({ message }: { message: string }) => {
+  const [visible, setVisible] = useState(false);
+  return (
+    <>
+      <TouchableOpacity onPress={() => setVisible(true)} style={{ marginLeft: 6 }}>
+        <MaterialIcons name="help-outline" size={20} color="gray" />
+      </TouchableOpacity>
+      <Modal transparent visible={visible} animationType="fade" onRequestClose={() => setVisible(false)}>
+        <TouchableOpacity
+          className="flex-1  bg-opacity-30 justify-center items-center p-5"
+          activeOpacity={1}
+          onPress={() => setVisible(false)}
+        >
+          <View className="bg-neutral-800 p-4 rounded-lg max-w-[80%]">
+            <Text className="text-white text-xl">{message}</Text>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </>
+  );
+};
+const EventCreationModal: React.FC<Props> = ({
   visible,
-  theme,
+  defaultSport,
   onClose,
   onSave,
 }) => {
-  const [newSport, setNewSport] = useState("");
-  const [showSportDropdown, setShowSportDropdown] = useState(false);
-  const [newDescription, setNewDescription] = useState("");
-  const [newLocation, setNewLocation] = useState("");
-  const [newImageUri, setNewImageUri] = useState<string | undefined>();
-  const [newStartTime, setNewStartTime] = useState("");
-  const [newDate, setNewDate] = useState("");
-  const [showTimePickerModal, setShowTimePickerModal] = useState(false);
-  const [showCalendarModal, setShowCalendarModal] = useState(false);
-  const [selectedHour, setSelectedHour] = useState("00");
-  const [selectedMinute, setSelectedMinute] = useState("00");
+  const [sport, setSport] = useState(""),
+    [title, setTitle] = useState(""),
+    [city, setCity] = useState(""),
+    [state, setState] = useState(""),
+    [maxParticipants, setMaxParticipants] = useState(""),
+    [isTournament, setIsTournament] = useState(false),
+    [isPrivate, setIsPrivate] = useState(false),
+    [date, setDate] = useState(new Date()),
+    [description, setDescription] = useState(""),
+    [imageUri, setImageUri] = useState<string>();
 
-  const hours = Array.from({ length: 24 }, (_, i) =>
-    i.toString().padStart(2, "0")
-  );
-  const minutes = Array.from({ length: 60 }, (_, i) =>
-    i.toString().padStart(2, "0")
-  );
-
-  const today = (() => {
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  })();
-
-  const commitTimePicker = () => {
-    setNewStartTime(`${selectedHour}:${selectedMinute}`);
-    setShowTimePickerModal(false);
-  };
-
-  const commitCalendarPicker = () => {
-    setShowCalendarModal(false);
-  };
+  useEffect(() => {
+    if (visible) {
+      setSport("");
+      setTitle("");
+      setCity("");
+      setState("");
+      setDescription("");
+      setMaxParticipants("");
+      setIsTournament(false);
+      setIsPrivate(false);
+      setDate(new Date());
+      setImageUri(undefined);
+    }
+  }, [visible]);
 
   const openImagePickerAsync = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      alert("Permissão negada!");
-      return;
-    }
+    const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!granted) return alert("Permissão negada!");
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       aspect: [1, 1],
       quality: 0.7,
     });
-    if (!result.canceled && result.assets.length) {
-      setNewImageUri(result.assets[0].uri);
-    }
+    if (!result.canceled) setImageUri(result.assets[0]?.uri);
   };
 
+
+
   const handleSave = () => {
-    if (
-      !newSport ||
-      !newDescription.trim() ||
-      !newStartTime ||
-      !newLocation.trim() ||
-      !newDate
-    ) {
-      alert("Preencha todos os campos corretamente.");
-      return;
-    }
-    if (!/^\d{2}:\d{2}$/.test(newStartTime)) {
-      alert("Horário inválido.");
-      return;
-    }
-    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(newDate)) {
-      alert("Data inválida.");
-      return;
-    }
-    const event: Event = {
+    if (!title.trim() || !sport || !city.trim() || !state.trim()) return;
+    const dateString = `${date.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+    })} - ${date
+      .toLocaleDateString("pt-BR", { weekday: "short" })
+      .replace(".", "")
+      .slice(0, 3)}`;
+    const hourString = `${String(date.getHours()).padStart(
+      2,
+      "0"
+    )}:${String(date.getMinutes()).padStart(2, "0")}`;
+    onSave({
       id: Date.now().toString(),
-      title: newSport,
-      description: newDescription.trim(),
-      startTime: newStartTime,
-      location: newLocation.trim(),
-      date: newDate,
-      imageUri: newImageUri,
-    };
-    onSave(event);
-    setNewSport("");
-    setShowSportDropdown(false);
-    setNewDescription("");
-    setNewLocation("");
-    setNewStartTime("");
-    setNewDate("");
-    setNewImageUri(undefined);
-    setSelectedHour("00");
-    setSelectedMinute("00");
+      title,
+      sport: defaultSport,
+      description,
+      dateString,
+      city,
+      state,
+      hourString,
+      maxParticipants: Number(maxParticipants) || 0,
+      isTournament,
+      isPrivate,
+      imageUri,
+    });
+    onClose();
   };
 
   return (
@@ -148,172 +142,169 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
       transparent
       onRequestClose={onClose}
     >
-      <View
-        className={`${colors.background_modal} rounded-lg p-6  flex-1 justify-between`}
-      >
+      <View className="bg-neutral-900 rounded-lg p-6 flex-1">
         <SafeAreaView className="flex-1">
-          <Text
-            className={`text-2xl font-bold text-center mt-4 mb-10 ${colors.textPrimaryButton}`}
-          >
-            Esporte
+          <Text className="text-2xl font-bold text-center mt-4 mb-6 text-white">
+            Novo Evento
           </Text>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
-            className="flex-1"
+            style={{ flex: 1 }}
           >
-            <Text className="text-gray-300 mb-1 text-xl">Esporte</Text>
-            <Dropdown
-              data={ESPORTES}
-              labelField="label"
-              valueField="value"
-              placeholder="Selecione um esporte"
-              value={newSport}
-              onChange={(item) => setNewSport(item.value)}
-              style={{
-                backgroundColor: "transparent",
-                borderRadius: 12,
-                paddingHorizontal: 12,
-                height: 50,
-                marginBottom: 20,
-                borderColor: "#4b5563",
-                borderWidth: 1,
-              }}
-              containerStyle={{
-                backgroundColor: "#404040",
-                borderCurve: "circular",
-                borderRadius: 12,
-              }}
-              itemTextStyle={{
-                textAlign: "center",
-                color: "white",
-              }}
-              placeholderStyle={{ color: "#888", fontSize: 16 }}
-              selectedTextStyle={{ color: "white", fontSize: 16 }}
-            />
-
-
-            <TextInput
-              placeholder="Descrição"
-              multiline
-              textAlignVertical="top"
-              value={newDescription}
-              onChangeText={setNewDescription}
-            />
-
-            <TouchableOpacity onPress={() => setShowTimePickerModal(true)}>
-              <Text>{newStartTime || "HH:MM"}</Text>
-            </TouchableOpacity>
-
-            <Modal
-              visible={showTimePickerModal}
-              transparent
-              animationType="fade"
-              onRequestClose={commitTimePicker}
+            <ScrollView
+              contentContainerStyle={{ paddingBottom: 20 }}
+              showsVerticalScrollIndicator={false}
             >
-              <View>
-                <TouchableWithoutFeedback onPress={commitTimePicker}>
-                  <View />
-                </TouchableWithoutFeedback>
+              <Text className="text-gray-300 mb-1 text-xl">Título</Text>
+              <TextInput
+                className="text-xl p-4 border border-neutral-600 rounded-xl text-white mb-4"
+                value={title}
+                onChangeText={setTitle}
+                placeholder="Digite o título"
+                placeholderTextColor="#888"
+              />
+
+              <Text className="text-gray-300 mb-1 text-xl">Esporte</Text>
+              <Dropdown
+                data={ESPORTES}
+                labelField="label"
+                valueField="value"
+                placeholder="Selecione um esporte"
+                value={sport}
+                onChange={(item) => setSport(item.value)}
+                style={{
+                  backgroundColor: "transparent",
+                  borderRadius: 12,
+                  paddingHorizontal: 12,
+                  height: 50,
+                  marginBottom: 20,
+                  borderColor: "#4b5563",
+                  borderWidth: 1,
+                }}
+                containerStyle={{
+                  backgroundColor: "#404040",
+                  borderRadius: 12,
+                }}
+                itemTextStyle={{ textAlign: "center", color: "white" }}
+                placeholderStyle={{ color: "#888", fontSize: 16 }}
+                selectedTextStyle={{ color: "white", fontSize: 16 }}
+              />
+
+              <Text className="text-gray-300 mb-1 text-xl">Descrição</Text>
+              <TextInput
+                className="text-xl p-4 border border-neutral-600 rounded-xl text-white mb-4"
+                placeholder="Descrição do evento"
+                placeholderTextColor="#888"
+                multiline
+                value={description}
+                onChangeText={setDescription}
+              />
+
+              <Text className="text-gray-300 mb-1 text-xl">Cidade</Text>
+              <TextInput
+                className="text-xl p-4 border border-neutral-600 rounded-xl text-white mb-4"
+                value={city}
+                onChangeText={setCity}
+                placeholder="Cidade"
+                placeholderTextColor="#888"
+              />
+              <Text className="text-gray-300 mb-1 text-xl">Estado</Text>
+              <TextInput
+                className="text-xl p-4 border border-neutral-600 rounded-xl text-white mb-4"
+                value={state}
+                onChangeText={setState}
+                placeholder="Estado"
+                placeholderTextColor="#888"
+              />
+
+              <View className="flex flex-row justify-between">
                 <View>
-                  <View>
-                    <FlatList
-                      data={hours}
-                      keyExtractor={(h) => h}
-                      showsVerticalScrollIndicator={false}
-                      onMomentumScrollEnd={(e) =>
-                        setSelectedHour(
-                          hours[
-                          Math.round(
-                            e.nativeEvent.contentOffset.y / ITEM_HEIGHT
-                          )
-                          ]
-                        )
-                      }
-                      renderItem={({ item }) => (
-                        <View>
-                          <Text>{item}</Text>
-                        </View>
-                      )}
-                    />
-                    <FlatList
-                      data={minutes}
-                      keyExtractor={(m) => m}
-                      showsVerticalScrollIndicator={false}
-                      onMomentumScrollEnd={(e) =>
-                        setSelectedMinute(
-                          minutes[
-                          Math.round(
-                            e.nativeEvent.contentOffset.y / ITEM_HEIGHT
-                          )
-                          ]
-                        )
-                      }
-                      renderItem={({ item }) => (
-                        <View>
-                          <Text>{item}</Text>
-                        </View>
-                      )}
-                    />
-                    <View />
-                  </View>
-                  <Button title="OK" onPress={commitTimePicker} />
+                  <Text className="text-gray-300 mb-1 text-xl">Máx. Part.</Text>
+                  <TextInput
+                    className="text-xl p-4 border border-neutral-600 rounded-xl text-white mb-4"
+                    value={maxParticipants}
+                    onChangeText={setMaxParticipants}
+                    keyboardType="numeric"
+                    placeholder="Ex: 20"
+                    placeholderTextColor="#888"
+                  />
                 </View>
-              </View>
-            </Modal>
-
-            <TextInput
-              placeholder="Localização"
-              value={newLocation}
-              onChangeText={setNewLocation}
-            />
-
-            <TouchableOpacity onPress={() => setShowCalendarModal(true)}>
-              <Text>{newDate || "dd/mm/aaaa"}</Text>
-            </TouchableOpacity>
-
-            <Modal
-              visible={showCalendarModal}
-              transparent
-              animationType="fade"
-              onRequestClose={commitCalendarPicker}
-            >
-              <View>
-                <TouchableWithoutFeedback onPress={commitCalendarPicker}>
-                  <View />
-                </TouchableWithoutFeedback>
-                <View>
-                  <Calendar
-                    firstDay={1}
-                    monthFormat={"MMMM yyyy"}
-                    minDate={today}
-                    onDayPress={(day: DateData) => {
-                      setNewDate(day.dateString.split("-").reverse().join("/"));
-                      commitCalendarPicker();
-                    }}
+                <View className="items-center mb-1">
+                  <Text className="text-gray-300 text-xl mb-1">Data</Text>
+                  <DateTimePicker
+                    value={date}
+                    mode="date"
+                    onChange={(_, d) => d && setDate(d)}
+                  />
+                </View>
+                <View className="items-center mb-1">
+                  <Text className="text-gray-300 text-xl mb-1">Hora</Text>
+                  <DateTimePicker
+                    value={date}
+                    mode="time"
+                    onChange={(_, d) => d && setDate(d)}
+                    is24Hour
                   />
                 </View>
               </View>
-            </Modal>
 
-            <TouchableOpacity onPress={openImagePickerAsync}>
-              <MaterialIcons name="image" size={20} />
-              <Text>Escolher imagem</Text>
-            </TouchableOpacity>
-
-            {newImageUri && (
-              <View>
-                <Image source={{ uri: newImageUri }} resizeMode="cover" />
+              <View className=" justify-center">
+                {!imageUri ? (
+                  <TouchableOpacity
+                    className="flex-row items-center mt-6 justify-center"
+                    onPress={openImagePickerAsync}
+                  >
+                    <MaterialIcons name="image" size={24} color="white" />
+                    <Text className="text-white ml-2">Escolher imagem</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    className="mt-4 items-center border-white border-2 rounded-xl"
+                    onPress={openImagePickerAsync}
+                  >
+                    <Image
+                      source={{ uri: imageUri }}
+                      style={{ width: 100, height: 100, borderRadius: 8 }}
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                )}
               </View>
-            )}
 
-            <View>
-              <TouchableOpacity onPress={onClose}>
-                <Text>Cancelar</Text>
+              <View className="flex-row items-center justify-between mt-10">
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Text className="text-gray-300 text-xl">É Torneio?</Text>
+                  <InfoTooltip message="Torneios são eventos competitivos com chaves e um campeão. Eventos normais são para jogos casuais." />
+                </View>
+                <Switch value={isTournament} onValueChange={setIsTournament} />
+              </View>
+              <View className="flex-row items-center justify-between mt-4">
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Text className="text-gray-300 text-xl">Evento Privado?</Text>
+                  <InfoTooltip message="Evento privado só permite convidados específicos participarem." />
+                </View>
+                <Switch value={isPrivate} onValueChange={setIsPrivate} />
+              </View>
+
+
+
+              <TouchableOpacity
+                className="rounded-xl p-4 mt-6 bg-yellow-500"
+                onPress={handleSave}
+              >
+                <Text className="text-center text-xl font-semibold text-black">
+                  Salvar
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleSave}>
-                <Text>Salvar</Text>
+              <TouchableOpacity
+                className="rounded-xl p-4 mt-4"
+                onPress={onClose}
+              >
+                <Text className="text-center text-xl font-semibold text-white">
+                  Cancelar
+                </Text>
               </TouchableOpacity>
-            </View>
+            </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
       </View>

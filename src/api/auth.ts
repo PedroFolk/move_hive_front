@@ -1,6 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const API_URL = "http://192.168.68.114:8000";
+import { API_URL } from "./apiURL";
 
 const formatDateToISO = (brDate: string) => {
   const [dd, mm, yyyy] = brDate.split("/");
@@ -47,8 +46,11 @@ export const RegistrarUsuario = async (
 };
 
 export const LogarUsuario = async (email: string, senha: string) => {
+  console.log(API_URL)
   try {
+    
     const response = await fetch(`${API_URL}/usuario/LoginUsuario`, {
+      
       method: "POST",
       headers: {
         "Content-Type": "application/json",

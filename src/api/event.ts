@@ -1,7 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Timestamp } from "react-native-reanimated/lib/typescript/commonTypes";
-
-const API_URL = "http://192.168.68.114:8000";
+import { API_URL } from "./apiURL";
 
 export const AdicionarEvento = async (
   usuario_id: string,

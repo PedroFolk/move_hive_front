@@ -38,7 +38,7 @@ export default function Perfil() {
         }
       >
         <Image
-          source={require("./Perfil.png")}
+          source={require("../../images/Perfil.png")}
           resizeMode="cover"
           className="rounded-full w-24 h-24 "
         />

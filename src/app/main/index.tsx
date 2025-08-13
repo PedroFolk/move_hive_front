@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { Text, SafeAreaView } from "react-native";
+import { SafeAreaView } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import Menu from "../components/menu";
 import Events from "../events";
 import Perfil from "../perfil";
 import Activity from "../activities";
-import RankingScreen from "../ranking";
 import Feed from "../feed";
 import { colors } from "../styles/styles";
 import ModalFirstTime from "../components/modalFirstTime";
@@ -30,10 +29,12 @@ export default function Main() {
     switch (selectedIndex) {
       case 0:
         return <Feed />
+        // return <Events />;
+
       case 1:
         return <Activity />;
       case 2:
-        return <RankingScreen />;
+        // return <RankingScreen />;
       case 3:
         return <Events />;
       case 4:
