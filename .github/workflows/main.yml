@@ -3,8 +3,7 @@ name: EAS Update on Push
 on:
   push:
     branches:
-      - master  
-      
+      - master
 
 jobs:
   eas-update:
@@ -22,8 +21,8 @@ jobs:
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
-      - name: Authenticate with EAS
-        run: eas whoami || eas login --token ${{ secrets.EAS_TOKEN }}
+      - name: Set EAS token
+        run: echo "EXPO_TOKEN=${{ secrets.EAS_TOKEN }}" >> $GITHUB_ENV
 
       - name: Run EAS Update
         run: eas update --auto
