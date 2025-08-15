@@ -3,7 +3,7 @@ name: EAS Update on Push
 on:
   push:
     branches:
-      - main  
+      - master  
       
 
 jobs:
