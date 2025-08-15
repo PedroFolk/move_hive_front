@@ -59,7 +59,7 @@ export default function PostDetails() {
 
   return (
     <SafeAreaView className="h-full w-full bg-neutral-800 p-4">
-      {/* Botão de Voltar */}
+
       <TouchableOpacity onPress={() => router.back()} className="mb-4">
         <Text className="text-white text-2xl">←</Text>
       </TouchableOpacity>

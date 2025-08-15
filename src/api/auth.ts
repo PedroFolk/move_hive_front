@@ -37,7 +37,6 @@ export const RegistrarUsuario = async (
     const data = await response.json();
     const token = data.token;
 
-    // Salva localmente
     await AsyncStorage.setItem("token", token);
     return await data;
   } catch (error) {
@@ -57,7 +56,7 @@ export const LogarUsuario = async (email: string, senha: string) => {
       },
       body: JSON.stringify({ email, senha }),
     });
-
+    
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Erro ${response.status}: ${errorText}`);
@@ -66,7 +65,6 @@ export const LogarUsuario = async (email: string, senha: string) => {
     const data = await response.json();
     const token = data.token;
 
-    // Salva localmente
     await AsyncStorage.setItem("token", token);
 
     return data;

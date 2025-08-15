@@ -1,51 +1,63 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Timestamp } from "react-native-reanimated/lib/typescript/commonTypes";
 import { API_URL } from "./apiURL";
 
-export const AdicionarEvento = async (
-  usuario_id: string,
-  esporte_id: string,
-  nome: string,
-  localizacao: string,
-  data_hora:Timestamp,
+interface ImagemEvento {
+  uri: string;
+  name: string;
+  type: string;
+}
+
+export const CriarEvento = async (
+  id: string,
+  titulo: string,
   descricao: string,
-  max_participantes: bigint,
-  nivel_esporte : string,
-  tipo_evento: string,
-  link_oficial: string
+  esporte_nome: string,
+  data_hora: string,
+  localizacao: string,
+  max_participantes: string,
+  torneio: string,
+  premiacao: string,
+  privado: string,
+  observacoes: string,
+  imagem: ImagemEvento
 ) => {
   try {
+    const token = await AsyncStorage.getItem("token");
+    if (!token) throw new Error("Token não encontrado");
+
+    const formData = new FormData();
+    formData.append("id", id);
+    formData.append("titulo", titulo);
+    formData.append("descricao", descricao);
+    formData.append("esporte_nome", esporte_nome);
+    formData.append("data_hora", data_hora);
+    formData.append("localizacao", localizacao);
+    formData.append("max_participantes", max_participantes);
+    formData.append("torneio", torneio);
+    formData.append("premiacao", premiacao);
+    formData.append("privado", privado);
+    formData.append("observacoes", observacoes);
+
+    formData.append("imagem", {
+      uri: imagem.uri,
+      name: imagem.name,
+      type: imagem.type,
+    } as any);
+
     const response = await fetch(`${API_URL}/evento/AdicionarEvento`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        usuario_id,
-        esporte_id,
-        nome,
-        localizacao,
-        data_hora,
-        descricao,
-        max_participantes,
-        nivel_esporte,
-        tipo_evento,
-        link_oficial,
-      }),
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Erro ${response.status}: ${errorText}`);
     }
-    const data = await response.json();
-    const token = data.token;
 
-    // Salva localmente
-    await AsyncStorage.setItem("token", token);
-    return await data;
+    return await response.json();
   } catch (error) {
+    console.error("Erro ao criar evento:", error);
     return null;
   }
 };
-
