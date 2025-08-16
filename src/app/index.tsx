@@ -18,9 +18,10 @@ export default function Home() {
   useEffect(() => {
     const verificarToken = async () => {
       const token = await AsyncStorage.getItem("token");
-      const userId = await AsyncStorage.setItem("userId",decodeToken(token))
 
       if (token) {
+        const userId = await AsyncStorage.setItem("userId", decodeToken(token))
+
         router.replace("/main");
       } else {
         router.replace("/login");
