@@ -27,6 +27,8 @@ jobs:
       - name: Set EAS token
         run: echo "EXPO_TOKEN=${{ secrets.EAS_TOKEN }}" >> $GITHUB_ENV
 
+      - name: Build NativeWind CSS
+        run: npx nativewind-cli build
+
       - name: Run EAS Update
         run: eas update --auto --clear-cache
-
