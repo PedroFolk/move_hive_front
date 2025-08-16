@@ -4,7 +4,8 @@
     "slug": "move-hive",
     "version": "1.0.0",
     "web": {
-      "favicon": "./assets/favicon.png"
+      "bundler": "metro",
+      "favicon": "./src/app/images/logoMoveHive.jpg"
     },
     "experiments": {
       "tsconfigPaths": true
