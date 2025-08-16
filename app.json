@@ -12,11 +12,11 @@
     },
     "plugins": [],
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./src/images/logoMoveHive.jpg",
     "userInterfaceStyle": "automatic",
     "scheme": "my-expo-app",
     "splash": {
-      "image": "./assets/splash.png",
+      "image":"./src/images/logoMoveHive.jpg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -32,9 +32,10 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./src/images/logoMoveHive.jpg",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.movehive.movehiv"
     },
     "extra": {
       "eas": {

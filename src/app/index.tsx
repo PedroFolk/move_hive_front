@@ -2,9 +2,9 @@ import { useEffect } from "react";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-function decodeToken(token: any) {
+function decodeToken(token: string) {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payload = JSON.parse(atob(token.split(".")[1]));
     return payload.user_id;
   } catch (e) {
     console.error("Erro ao decodificar o token:", e);
@@ -20,9 +20,13 @@ export default function Home() {
       const token = await AsyncStorage.getItem("token");
 
       if (token) {
-        const userId = await AsyncStorage.setItem("userId", decodeToken(token))
-
-        router.replace("/main");
+        const decodedUserId = decodeToken(token);
+        if (decodedUserId) {
+          await AsyncStorage.setItem("userId", decodedUserId);
+          router.replace("/main");
+        } else {
+          router.replace("/login");
+        }
       } else {
         router.replace("/login");
       }
