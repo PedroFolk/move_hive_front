@@ -17,9 +17,10 @@ import * as ImagePicker from "expo-image-picker";
 import { Dropdown } from "react-native-element-dropdown";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { ESPORTES } from "./modalActivities";
+import { CriarEvento } from "~/api/event";
 
 export interface ModalEvent {
-  id: string;
+
   title: string;
   sport: string;
   description: string;
@@ -30,8 +31,17 @@ export interface ModalEvent {
   maxParticipants: number;
   isTournament: boolean;
   isPrivate: boolean;
+  prize: string;
+  observacoes: string;
   imageUri?: string;
 }
+
+export interface ImagemEvento {
+  uri: string;
+  name: string;
+  type: string;
+}
+
 
 interface Props {
   visible: boolean;
@@ -70,12 +80,14 @@ const EventCreationModal: React.FC<Props> = ({
     [title, setTitle] = useState(""),
     [city, setCity] = useState(""),
     [state, setState] = useState(""),
-    [maxParticipants, setMaxParticipants] = useState(""),
+    [maxParticipants, setMaxParticipants] = useState(Number),
     [isTournament, setIsTournament] = useState(false),
     [isPrivate, setIsPrivate] = useState(false),
     [date, setDate] = useState(new Date()),
     [description, setDescription] = useState(""),
-    [imageUri, setImageUri] = useState<string>();
+    [image, setImage] = useState<ImagemEvento | undefined>(undefined),
+    [observacao, setObservacao] = useState(""),
+    [premiacao, setPremiacao] = useState("");
 
   useEffect(() => {
     if (visible) {
@@ -84,11 +96,13 @@ const EventCreationModal: React.FC<Props> = ({
       setCity("");
       setState("");
       setDescription("");
-      setMaxParticipants("");
+      setMaxParticipants(Number);
       setIsTournament(false);
       setIsPrivate(false);
       setDate(new Date());
-      setImageUri(undefined);
+      setImage(undefined);
+      setObservacao("");
+      setPremiacao("");
     }
   }, [visible]);
 
@@ -100,39 +114,58 @@ const EventCreationModal: React.FC<Props> = ({
       aspect: [1, 1],
       quality: 0.7,
     });
-    if (!result.canceled) setImageUri(result.assets[0]?.uri);
+    if (!result.canceled) {
+      const asset = result.assets[0];
+      setImage({
+        uri: asset.uri,
+        name: asset.fileName || `imagem.${asset.uri.split(".").pop()}`,
+        type: `image/${asset.uri.split(".").pop()}`,
+      });
+    }
   };
 
+  const handleSave = async () => {
+    if (!title.trim() || !sport || !city.trim() || !state.trim()) {
+      alert("Preencha todos os campos obrigatórios.");
+      return;
+    }
 
-
-  const handleSave = () => {
-    if (!title.trim() || !sport || !city.trim() || !state.trim()) return;
-    const dateString = `${date.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-    })} - ${date
-      .toLocaleDateString("pt-BR", { weekday: "short" })
-      .replace(".", "")
-      .slice(0, 3)}`;
-    const hourString = `${String(date.getHours()).padStart(
-      2,
-      "0"
-    )}:${String(date.getMinutes()).padStart(2, "0")}`;
-    onSave({
-      id: Date.now().toString(),
+    const result = await CriarEvento(
+    
       title,
-      sport: defaultSport,
       description,
-      dateString,
-      city,
-      state,
-      hourString,
-      maxParticipants: Number(maxParticipants) || 0,
+      sport,
+      date,
+      `${city} - ${state}`,
+      maxParticipants,
       isTournament,
+      premiacao,
       isPrivate,
-      imageUri,
-    });
-    onClose();
+      observacao,
+      image 
+    );
+
+    if (result) {
+      onSave({
+        title,
+        sport,
+        description,
+        dateString: date.toLocaleDateString("pt-BR"),
+        city,
+        state,
+        hourString: `${String(date.getHours()).padStart(2, "0")}:${String(
+          date.getMinutes()
+        ).padStart(2, "0")}`,
+        maxParticipants,
+        isTournament,
+        isPrivate,
+        imageUri: image?.uri,
+        prize: premiacao,
+        observacoes: observacao,
+        
+      });
+      onClose();
+    }
   };
 
   return (
@@ -222,8 +255,8 @@ const EventCreationModal: React.FC<Props> = ({
                   <Text className="text-gray-300 mb-1 text-xl">Máx. Part.</Text>
                   <TextInput
                     className="text-xl p-4 border border-neutral-600 rounded-xl text-white mb-4"
-                    value={maxParticipants}
-                    onChangeText={setMaxParticipants}
+                    value={maxParticipants.toFixed(0)}
+                    onChangeText={(text) => setMaxParticipants(Number(text))}
                     keyboardType="numeric"
                     placeholder="Ex: 20"
                     placeholderTextColor="#888"
@@ -248,8 +281,28 @@ const EventCreationModal: React.FC<Props> = ({
                 </View>
               </View>
 
+              <Text className="text-gray-300 mb-1 text-xl">Premiação</Text>
+              <TextInput
+                className="text-xl p-4 border border-neutral-600 rounded-xl text-white mb-4"
+                placeholder="Descrição do evento"
+                placeholderTextColor="#888"
+                multiline
+                value={premiacao}
+                onChangeText={setPremiacao}
+              />
+
+              <Text className="text-gray-300 mb-1 text-xl">Observações</Text>
+              <TextInput
+                className="text-xl p-4 border border-neutral-600 rounded-xl text-white mb-4"
+                placeholder="Descrição do evento"
+                placeholderTextColor="#888"
+                multiline
+                value={observacao}
+                onChangeText={setObservacao}
+              />
+
               <View className=" justify-center">
-                {!imageUri ? (
+                {!image ? (
                   <TouchableOpacity
                     className="flex-row items-center mt-6 justify-center"
                     onPress={openImagePickerAsync}
@@ -263,7 +316,7 @@ const EventCreationModal: React.FC<Props> = ({
                     onPress={openImagePickerAsync}
                   >
                     <Image
-                      source={{ uri: imageUri }}
+                      source={{ uri: image.uri }}
                       style={{ width: 100, height: 100, borderRadius: 8 }}
                       resizeMode="cover"
                     />

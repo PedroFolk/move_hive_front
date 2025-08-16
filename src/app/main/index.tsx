@@ -15,6 +15,7 @@ import AddActivityModal, {
 } from "../components/modalActivities";
 
 
+
 export default function Main() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
