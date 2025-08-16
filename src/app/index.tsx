@@ -5,7 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 function decodeToken(token: string) {
   try {
     const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.user_id;
+    return String(payload.user_id);
   } catch (e) {
     console.error("Erro ao decodificar o token:", e);
     return null;
