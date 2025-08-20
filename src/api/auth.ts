@@ -45,7 +45,7 @@ export const RegistrarUsuario = async (
 };
 
 export const LogarUsuario = async (email: string, senha: string) => {
-  console.log(API_URL)
+
   try {
     
     const response = await fetch(`${API_URL}/usuario/LoginUsuario`, {

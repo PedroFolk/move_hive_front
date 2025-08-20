@@ -31,7 +31,7 @@ const STORAGE_KEY = "@my_activities";
 const CATEGORIES = ["Tudo", ...new Set(ESPORTES.map((a) => a.value))];
 
 
-const ActivitiesScreen: React.FC = () => {
+const ActivitiesScreen= () => {
 
   const [selectedCategory, setSelectedCategory] = useState<string>("Tudo");
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -87,7 +87,7 @@ const ActivitiesScreen: React.FC = () => {
     <SafeAreaView className="h-full w-full ">
       <View className="px-4 pt-4 flex-row justify-between items-center">
         <Text className="text-white text-2xl font-bold">Minhas Atividades</Text>
-        {/* <Text className="text-gray-400  text-lg font-bold">Hoje</Text> */}
+   
       </View>
 
       <ScrollView

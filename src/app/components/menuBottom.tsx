@@ -12,7 +12,7 @@ import {
   Ionicons,
 } from "@expo/vector-icons";
 
-export function BottomNav() {
+export default function BottomNav() {
   const theme = useColorScheme() || "light";
 
   return (

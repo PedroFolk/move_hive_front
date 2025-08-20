@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import "../../../global.css";
-import { colors } from "../styles/styles.js";
+import { colors } from "../../styles/styles";
 
 import { useState } from "react";
 import {

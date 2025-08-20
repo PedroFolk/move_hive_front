@@ -16,7 +16,7 @@ import {
   Alert,
   Image,
 } from "react-native";
-import { colors } from "../styles/styles.js";
+import { colors } from "../../styles/styles";
 import { LogarUsuario } from "~/api/auth";
 
 

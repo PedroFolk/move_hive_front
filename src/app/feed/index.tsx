@@ -2,20 +2,17 @@ import { useEffect, useState } from "react";
 import {
   View,
   Text,
-  Button,
-  ScrollView,
-  Modal,
-  TextInput,
-  TouchableOpacity,
   Image,
-  KeyboardAvoidingView,
-  Platform,
+  TouchableOpacity,
   RefreshControl,
+  SafeAreaView,
+  FlatList,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { CriarPost, ListaTodosPost } from "~/api/feed";
 import { Ionicons } from "@expo/vector-icons";
 import AddButton from "../components/addButton";
+import ModalNewPost from "../components/modalNewPost";
 
 export default function Feed() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -33,13 +30,11 @@ export default function Feed() {
 
   const buscarPosts = async () => {
     const data = await ListaTodosPost();
-    if (data) {
-      setPosts(data);
-    }
+    if (data) setPosts(data);
   };
 
   useEffect(() => {
-    //buscarPosts();
+    buscarPosts();
   }, []);
 
   const abrirGaleria = async () => {
@@ -78,7 +73,6 @@ export default function Feed() {
 
     try {
       const resultado = await CriarPost(descricao, imagem);
-
       if (resultado) {
         setPosts((postsAntigos) => [resultado, ...postsAntigos]);
         setDescricao("");
@@ -94,19 +88,75 @@ export default function Feed() {
     }
   };
 
-  return (
-    <View className="w-full h-full p-5 justify-center items-center">
-      <Text className="text-white font-bold items-center justify-center text-2xl mb-4">
-        Publicações
-      </Text>
+  const renderPost = ({ item }: { item: any }) => (
+    <View className="mb-4 w-full bg-neutral-800 rounded-xl overflow-hidden">
+      <View className="flex-row items-center px-3 py-2">
+        {item.usuario?.foto_perfil ? (
+          <Image
+            source={{ uri: item.usuario.foto_perfil }}
+            className="w-10 h-10 mr-3 rounded-full"
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="w-10 h-10 mr-3 bg-neutral-600 justify-center items-center rounded-full">
+            <Text className="text-white font-bold text-base">
+              {item.usuario?.username ? item.usuario.username[0].toUpperCase() : "U"}
+            </Text>
+          </View>
+        )}
+        <Text className="font-bold text-sm text-white">
+          @{item.usuario?.username || "usuario"}
+        </Text>
+      </View>
 
-      <AddButton onPress={async () => {
-        await abrirGaleria();
-        if (!imagem) return;
-        setModalVisible(true);
-      }} />
-      <ScrollView
-        className="mt-5"
+      {item.postagem?.imagem && (
+        <Image
+          source={{ uri: item.postagem.imagem }}
+          style={{ width: "100%", aspectRatio: 1 }}
+          resizeMode="cover"
+        />
+      )}
+
+      <View className="flex-row items-center px-3 py-2 justify-between">
+        <View className="flex-row">
+          <TouchableOpacity className="flex-row items-center mr-4">
+            <Ionicons name="heart-outline" size={24} color="white" />
+            <Text className="text-white ml-1 text-sm">{item.likes || 0}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity className="flex-row items-center mr-4">
+            <Ionicons name="chatbubble-outline" size={24} color="white" />
+            <Text className="text-white ml-1 text-sm">{item.comentarios || 0}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity className="flex-row items-center">
+            <Ionicons name="share-social-outline" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View className="px-3 pb-3 flex-row flex">
+        <Text className="font-bold text-sm text-white">
+          {item.usuario?.username}:
+        </Text>
+        <Text className="text-sm text-white ml-1">
+          {item.postagem?.descricao}
+        </Text>
+      </View>
+    </View>
+  );
+
+  return (
+    <SafeAreaView className="flex-1 w-full">
+      <View className="px-4 pt-4 flex-row justify-between items-center">
+        <Text className="text-white text-2xl font-bold">Publicações</Text>
+      </View>
+
+      <FlatList
+        data={posts}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={renderPost}
+        contentContainerStyle={{ paddingBottom: 120, marginTop: 20 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -114,137 +164,27 @@ export default function Feed() {
             colors={["#facc15"]}
           />
         }
-      >
-        {posts.map((post, index) => (
-          <View
-            key={index}
-            className="mb-4 w-full bg-neutral-700 rounded-lg p-2"
-          >
-            <View className="flex-row items-center pr-2 mb-2">
-              {post.usuario?.foto_perfil ? (
-                <Image
-                  source={{ uri: post.usuario.foto_perfil }}
-                  className="w-9 h-9 mr-2"
-                  style={{ borderRadius: 18 }}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View
-                  className="w-9 h-9 mr-2 bg-neutral-600 justify-center items-center"
-                  style={{ borderRadius: 18 }}
-                >
-                  <Text className="text-white font-bold text-base">
-                    {post.usuario?.username
-                      ? post.usuario.username[0].toUpperCase()
-                      : "U"}
-                  </Text>
-                </View>
-              )}
+      />
 
-              <Text className="font-bold text-sm text-white">
-                @{post.usuario?.username || "usuario"}
-              </Text>
-            </View>
+      <ModalNewPost
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSubmit={adicionarPost}
+        loading={loading}
+        imagem={imagem}
+        setImagem={setImagem}
+        descricao={descricao}
+        setDescricao={setDescricao}
+        abrirGaleria={abrirGaleria}
+      />
 
-            {post.postagem?.imagem && (
-              <Image
-                source={{ uri: post.postagem.imagem }}
-                className="w-full"
-                style={{ aspectRatio: 1, borderRadius: 12 }}
-                resizeMode="cover"
-              />
-            )}
-            <View className="flex flex-row">
-              <Text className="font-bold text-sm py-3 pl-2 text-white">
-                {post.usuario?.username}:
-              </Text>
-
-              <Text className="text-sm py-3 text-white">
-                {` ${post.postagem?.descricao}`}
-              </Text>
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-
-      <Modal animationType="fade" transparent={true} visible={modalVisible}>
-        <View className="flex-1 bg-black bg-opacity-50 justify-center items-center">
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={60}
-            className="w-full items-center"
-          >
-            <ScrollView
-              contentContainerStyle={{
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              keyboardShouldPersistTaps="handled"
-            >
-              <View className="bg-neutral-800 w-11/12 rounded-2xl p-5 shadow-2xl">
-                <View className="flex-row w-full justify-between items-center mb-4">
-                  <TouchableOpacity
-                    onPress={() => {
-                      setModalVisible(false);
-                      setDescricao("");
-                    }}
-                  >
-                    <Ionicons
-                      name="close"
-                      size={27}
-                      color="white"
-                      className="bg-transparent p-2 rounded-lg"
-                    />
-                  </TouchableOpacity>
-
-                  <Text className="text-white text-lg font-bold text-center flex-1">
-                    Nova postagem
-                  </Text>
-
-                  <TouchableOpacity onPress={adicionarPost} disabled={loading}>
-                    <Ionicons
-                      name={loading ? "time-outline" : "checkmark"}
-                      size={27}
-                      className="bg-yellow-500 p-2 rounded-lg"
-                      color="white"
-                    />
-                  </TouchableOpacity>
-                </View>
-
-
-
-                {imagem ? (
-                  <Image
-                    source={{ uri: imagem.uri }}
-                    style={{ width: "100%", height: 200, borderRadius: 12 }}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <TouchableOpacity
-                    className="bg-neutral-600 w-full h-48 rounded-xl justify-center items-center mb-4"
-                    onPress={abrirGaleria}
-                  >
-                    <Ionicons name="image" size={48} color="#ccc" />
-                    <Text className="text-gray-300 mt-2">
-                      Selecionar imagem
-                    </Text>
-                  </TouchableOpacity>
-                )}
-
-                <TextInput
-                  placeholder="Escreva uma legenda..."
-                  placeholderTextColor="#aaa"
-                  value={descricao}
-                  onChangeText={setDescricao}
-                  multiline
-                  className="text-white border border-neutral-600 rounded-md px-3 py-2 mt-4"
-                  style={{ minHeight: 60, textAlignVertical: "top" }}
-                />
-              </View>
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
-    </View>
+      <AddButton
+        onPress={async () => {
+          await abrirGaleria();
+          if (!imagem) return;
+          setModalVisible(true);
+        }}
+      />
+    </SafeAreaView>
   );
 }

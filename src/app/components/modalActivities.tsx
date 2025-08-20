@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { colors } from "../styles/styles";
+import { colors } from "../../styles/styles";
 
 export interface ModalActivity {
   id: string;

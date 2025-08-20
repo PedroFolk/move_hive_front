@@ -8,7 +8,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 
-import { colors } from "../styles/styles";
+import { colors } from "../../styles/styles";
 
 interface MenuProps {
   selectedIndex: number;

@@ -6,7 +6,7 @@ import Events from "../events";
 import Perfil from "../perfil";
 import Activity from "../activities";
 import Feed from "../feed";
-import { colors } from "../styles/styles";
+import { colors } from "../../styles/styles";
 import ModalFirstTime from "../components/modalFirstTime";
 import { PreencherDadosModal } from "~/api/user";
 import AddActivityModal, {

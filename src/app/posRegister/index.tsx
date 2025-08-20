@@ -10,7 +10,7 @@ import {
   Image,
 } from "react-native";
 import TextField from "../components/fields";
-import { colors } from "../styles/styles";
+import { colors } from "../../styles/styles";
 import "../../../global.css";
 import { router } from "expo-router";
 import { useState } from "react";
