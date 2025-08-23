@@ -72,3 +72,90 @@ export const LogarUsuario = async (email: string, senha: string) => {
     return null;
   }
 };
+
+export const EsqueciSenha = async (email: string) => {
+
+  try {
+    
+    const response = await fetch(`${API_URL}/usuario/esqueciSenha`, {
+      
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Erro ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    const token = data.token;
+
+    await AsyncStorage.setItem("token", token);
+
+    return data;
+  } catch (error) {
+    return null;
+  }
+};
+
+export const VerificarCodigo = async (email: string,codigo: string) => {
+
+  try {
+    
+    const response = await fetch(`${API_URL}/usuario/verificarCodigo`, {
+      
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, codigo }),
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Erro ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    const token = data.token;
+
+    await AsyncStorage.setItem("token", token);
+
+    return data;
+  } catch (error) {
+    return null;
+  }
+};
+
+export const ResetarSenha = async (email: string,codigo: string, nova_senha:string) => {
+
+  try {
+    
+    const response = await fetch(`${API_URL}/usuario/resetarSenha`, {
+      
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, codigo, nova_senha }),
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Erro ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    const token = data.token;
+
+    await AsyncStorage.setItem("token", token);
+
+    return data;
+  } catch (error) {
+    return null;
+  }
+};

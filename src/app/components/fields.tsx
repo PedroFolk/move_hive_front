@@ -10,6 +10,7 @@ interface TextFieldProps {
   placeholder?: string;
   label: string;
   keyboardType?: TextInputProps["keyboardType"];
+  disabled?: boolean;
 }
 
 const TextField: React.FC<TextFieldProps> = ({
@@ -20,6 +21,7 @@ const TextField: React.FC<TextFieldProps> = ({
   placeholder,
   label,
   keyboardType = "default",
+  disabled = false,
 }) => {
   return (
     <View className="w-full">
@@ -38,7 +40,9 @@ const TextField: React.FC<TextFieldProps> = ({
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor="gray"
-        className={`h-14 w-full rounded-2xl bg-white  dark:bg-neutral-600 px-2 pb-1 text-xl ${colors.textPrimaryButton}`}
+        editable={!disabled}
+        className={`h-14 w-full rounded-2xl px-4 pb-1 text-xl ${colors.textPrimaryButton} 
+          ${disabled ? "bg-neutral-900 text-gray-500" : "bg-white dark:bg-neutral-600"}`}
       />
     </View>
   );

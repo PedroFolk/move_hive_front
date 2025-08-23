@@ -3,7 +3,7 @@ import { SafeAreaView } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import Menu from "../components/menu";
 import Events from "../events";
-import Perfil from "../perfil";
+import Perfil from "../profile";
 import Activity from "../activities";
 import Feed from "../feed";
 import { colors } from "../../styles/styles";
@@ -29,13 +29,14 @@ export default function Main() {
   const renderContent = () => {
     switch (selectedIndex) {
       case 0:
-        return <Feed />
-        // return <Events />;
+        return <Perfil />;
+      // return <Feed />
+      // return <Events />;
 
       case 1:
         return <Activity />;
       case 2:
-        // return <RankingScreen />;
+      // return <RankingScreen />;
       case 3:
         return <Events />;
       case 4:
@@ -61,8 +62,9 @@ export default function Main() {
             data.cidade,
             data.estado,
             data.esportes_praticados,
+            data.arquivo_foto,
           );
-
+       
           if (result) {
           } else {
             alert("Erro ao atualizar perfil.");

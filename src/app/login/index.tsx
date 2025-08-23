@@ -71,7 +71,7 @@ export default function Login() {
             />
 
             <TouchableOpacity
-              onPress={() => Linking.openURL("https://www.google.com")}
+              onPress={() => router.replace("../forgetPassword")}
             >
               <Text className="mt-2 text-white">Esqueceu sua senha?</Text>
             </TouchableOpacity>
