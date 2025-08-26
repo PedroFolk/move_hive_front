@@ -4,8 +4,10 @@ module.exports = {
     "./App.{js,ts,tsx}",
     "./src/**/*.{js,ts,tsx}",
     "./src/app/**/*.{js,jsx,ts,tsx}",
-    "./src/app/*.{js,jsx,ts,tsx}"
-    
+    "./src/app/*.{js,jsx,ts,tsx}",
+    './app/**/*.{js,jsx,ts,tsx}',  // Covers all Expo Router routes (e.g., main.tsx, login.tsx)
+    './components/**/*.{js,jsx,ts,tsx}',  // Covers reusable components
+    './src/**/*.{js,jsx,ts,tsx}',  // If you have a src/ folder
   ],
   darkMode: "class",
   presets: [require("nativewind/preset")],

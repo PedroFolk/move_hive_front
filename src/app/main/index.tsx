@@ -9,10 +9,8 @@ import Feed from "../feed";
 import { colors } from "../../styles/styles";
 import ModalFirstTime from "../components/modalFirstTime";
 import { PreencherDadosModal } from "~/api/user";
-import AddActivityModal, {
-  ModalActivity,
+import "../../../global.css";
 
-} from "../components/modalActivities";
 
 
 
@@ -29,10 +27,10 @@ export default function Main() {
   const renderContent = () => {
     switch (selectedIndex) {
       case 0:
-        return <Perfil />;
-      // return <Feed />
+        // return <Perfil />;
+      return <Feed />
       // return <Events />;
-
+// return <Login/>;
       case 1:
         return <Activity />;
       case 2:
