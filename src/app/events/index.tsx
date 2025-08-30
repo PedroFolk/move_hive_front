@@ -9,7 +9,7 @@ import {
   RefreshControl,
   Alert,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 
 import AddButton from "../components/addButton";
 import EventCreationModal from "../components/modalEvents";
@@ -51,7 +51,7 @@ export default function Events() {
   const TYPES = ["Eventos", "Torneios", "Meus Eventos"];
 
   const fetchUserId = async () => {
-    const id = await AsyncStorage.getItem("userId");
+    const id = await SecureStore.getItemAsync("userId");
     setUserId(id);
   };
 
@@ -208,12 +208,12 @@ export default function Events() {
         </Text>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-4 max-h-14">
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-4  ">
         {TYPES.map((cat) => (
           <TouchableOpacity
             key={cat}
             onPress={() => setSelectedCategory(cat)}
-            className={`mr-2 px-6 h-10 justify-center items-center rounded-full border ${selectedCategory === cat ? "bg-white border-transparent" : "border-gray-500 border-2"
+            className={`mb-2 mr-2 px-6 h-10 justify-center items-center rounded-full border ${selectedCategory === cat ? "bg-white border-transparent" : "border-gray-500 border-2"
               }`}
           >
             <Text className={`text-sm font-medium ${selectedCategory === cat ? "text-black" : "text-gray-300"}`}>

@@ -2,7 +2,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { router } from "expo-router";
 import "../../../global.css";
 import TextField from "../components/fields"; // Ajuste o caminho conforme necessário
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -18,11 +18,13 @@ import {
 } from "react-native";
 import { colors } from "../../styles/styles";
 import { LogarUsuario } from "~/api/auth";
+import * as SecureStore from "expo-secure-store";
 
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
 
   const handleLogin = async () => {
     const result = await LogarUsuario(email, password);
@@ -33,7 +35,14 @@ export default function Login() {
       Alert.alert("Erro ao fazer login", "Usuário e/ou senha incorretos");
     }
   };
+  useEffect(() => {
+    const checkAuth = async () => {
+      await SecureStore.deleteItemAsync("token");
+      await SecureStore.deleteItemAsync("userId");
+    };
 
+    checkAuth();
+  }, []);
   return (
     <SafeAreaView className={`flex-1 ${colors.background}  `}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -109,10 +118,10 @@ export default function Login() {
             <TouchableOpacity
               className={`mt-10 flex flex-row items-center gap-5 rounded-2xl bg-neutral-600 p-2 `}
             >
-              <AntDesign name="google" size={48} color="white" />
+              {/* <AntDesign name="google" size={48} color="gray" />
               <Text className=" text-2xl font-bold text-white">
                 Entrar com Google
-              </Text>
+              </Text> */}
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>

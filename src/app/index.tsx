@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 
 function decodeToken(token: string) {
   try {
@@ -17,12 +17,12 @@ export default function Home() {
 
   useEffect(() => {
     const verificarToken = async () => {
-      const token = await AsyncStorage.getItem("token");
+      const token = await SecureStore.getItemAsync("token");
 
       if (token) {
         const decodedUserId = decodeToken(token);
         if (decodedUserId) {
-          await AsyncStorage.setItem("userId", decodedUserId);
+          await SecureStore.setItemAsync("userId", decodedUserId);
           router.replace("/main");
         } else {
           router.replace("/login");

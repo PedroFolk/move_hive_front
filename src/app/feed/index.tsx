@@ -13,6 +13,8 @@ import { CriarPost, ListaTodosPost } from "~/api/feed";
 import { Ionicons } from "@expo/vector-icons";
 import AddButton from "../components/addButton";
 import ModalNewPost from "../components/modalNewPost";
+import SugestoesPerfis from "../components/sugestoesPerfil";
+import { router } from "expo-router";
 
 export default function Feed() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -22,6 +24,8 @@ export default function Feed() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+
+
   const aoAtualizar = async () => {
     setRefreshing(true);
     await buscarPosts();
@@ -29,12 +33,35 @@ export default function Feed() {
   };
 
   const buscarPosts = async () => {
-    const data = await ListaTodosPost();
-    if (data) setPosts(data);
+    try {
+      const response = await ListaTodosPost();
+
+      if (!response || response.status === 200 || response.status === 500 ) {
+        console.log("Erro");
+        setTimeout(() => router.replace("/login"), 0);
+        return;
+      }
+
+
+      setPosts(response.data || response);
+    } catch (error) {
+      console.log("Erro de rede ou exceção:", error);
+      setTimeout(() => router.replace("/login"), 0);
+    }
   };
 
+
   useEffect(() => {
-    buscarPosts();
+    const carregarPosts = async () => {
+      try {
+        await buscarPosts();
+      } catch (error) {
+        console.log("Erro dentro do carregarPosts:", error);
+        router.replace("/login");
+      }
+    };
+
+    carregarPosts();
   }, []);
 
   const abrirGaleria = async () => {
@@ -156,14 +183,16 @@ export default function Feed() {
         data={posts}
         keyExtractor={(item, index) => index.toString()}
         renderItem={renderPost}
-        contentContainerStyle={{ paddingBottom: 120, marginTop: 20 }}
+        contentContainerStyle={{ paddingBottom: 120, marginTop: 5 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={aoAtualizar}
             colors={["#facc15"]}
           />
+
         }
+        ListHeaderComponent={<SugestoesPerfis />}
       />
 
       <ModalNewPost

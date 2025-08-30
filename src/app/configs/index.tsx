@@ -4,9 +4,9 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { ListarDadosPerfil } from "~/api/user";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AtualizarUsuario, ListarDadosPerfil } from "~/api/user";
 import TextField from "../components/fields";
+import * as SecureStore from "expo-secure-store";
 
 export default function Configuracoes() {
   const router = useRouter();
@@ -16,7 +16,8 @@ export default function Configuracoes() {
   const [editando, setEditando] = useState(false);
 
   const sair = async () => {
-    await AsyncStorage.removeItem("token");
+    await SecureStore.deleteItemAsync("token");
+    await SecureStore.deleteItemAsync("userId");
     router.replace("/login");
   };
 
@@ -25,13 +26,13 @@ export default function Configuracoes() {
     const dados = await ListarDadosPerfil();
     if (dados) {
       setUser(dados);
-      setOriginalUser(dados); 
+      setOriginalUser(dados);
     }
     setLoading(false);
   };
 
   const alterarFoto = async () => {
-    if (!editando) return; 
+    if (!editando) return;
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return;
 
@@ -74,11 +75,16 @@ export default function Configuracoes() {
     setEditando(false);
   };
 
-  const salvarEdicao = () => {
-    // Placeholder: aqui seria a API para salvar
-    setOriginalUser(user);
-    setEditando(false);
+  const salvarEdicao = async () => {
+    const resultado = await AtualizarPerfil(user);
+    if (resultado) {
+      setOriginalUser(user);
+      setEditando(false);
+    } else {
+      alert("Não foi possível atualizar o perfil.");
+    }
   };
+
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-800">
@@ -129,7 +135,6 @@ export default function Configuracoes() {
           </View>
         ))}
 
-        {/* Esportes praticados */}
         <View className="mb-10">
           <Text className="text-white font-semibold mb-2">Esportes Praticados</Text>
           {user.esportes_praticados &&
@@ -143,7 +148,6 @@ export default function Configuracoes() {
             ))}
         </View>
 
-        {/* Botões Editar / Salvar / Cancelar */}
         {!editando ? (<View>
           <TouchableOpacity
             onPress={() => setEditando(true)}
@@ -180,3 +184,20 @@ export default function Configuracoes() {
     </SafeAreaView>
   );
 }
+async function AtualizarPerfil(user: any) {
+
+  return await AtualizarUsuario({
+    username: user.username,
+    email: user.email,
+    senha: user.senha,
+    data_nascimento: user.data_nascimento,
+    esportes_praticados: user.esportes_praticados,
+    nome_completo: user.nome_completo,
+    biografia: user.biografia,
+    estado: user.estado,
+    cidade: user.cidade,
+    foto_perfil: {uri:user.foto_perfil, name:"profile_photo.jpg",type:"image/jpeg"},
+  });
+}
+
+

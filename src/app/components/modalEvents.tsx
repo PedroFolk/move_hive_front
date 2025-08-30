@@ -16,8 +16,9 @@ import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { Dropdown } from "react-native-element-dropdown";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { ESPORTES } from "./modalActivities";
+
 import { CriarEvento } from "~/api/event";
+import { ListarEsportes } from "~/api/getSports";
 
 export interface ModalEvent {
 
@@ -87,7 +88,8 @@ const EventCreationModal: React.FC<Props> = ({
     [description, setDescription] = useState(""),
     [image, setImage] = useState<ImagemEvento | undefined>(undefined),
     [observacao, setObservacao] = useState(""),
-    [premiacao, setPremiacao] = useState("");
+    [premiacao, setPremiacao] = useState(""),
+    [esportes, setEsportes] = useState<any[]>([]);
 
   useEffect(() => {
     if (visible) {
@@ -104,6 +106,12 @@ const EventCreationModal: React.FC<Props> = ({
       setObservacao("");
       setPremiacao("");
     }
+
+    const fetchEsportes = async () => {
+      const data = await ListarEsportes();
+      setEsportes(data);
+    };
+    fetchEsportes();
   }, [visible]);
 
   const openImagePickerAsync = async () => {
@@ -131,7 +139,7 @@ const EventCreationModal: React.FC<Props> = ({
     }
 
     const result = await CriarEvento(
-    
+
       title,
       description,
       sport,
@@ -142,7 +150,7 @@ const EventCreationModal: React.FC<Props> = ({
       premiacao,
       isPrivate,
       observacao,
-      image 
+      image
     );
 
     if (result) {
@@ -162,7 +170,7 @@ const EventCreationModal: React.FC<Props> = ({
         imageUri: image?.uri,
         prize: premiacao,
         observacoes: observacao,
-        
+
       });
       onClose();
     }
@@ -182,7 +190,7 @@ const EventCreationModal: React.FC<Props> = ({
           </Text>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={{ flex: 1 }}
+           className="flex-1"
           >
             <ScrollView
               contentContainerStyle={{ paddingBottom: 20 }}
@@ -199,7 +207,7 @@ const EventCreationModal: React.FC<Props> = ({
 
               <Text className="text-gray-300 mb-1 text-xl">Esporte</Text>
               <Dropdown
-                data={ESPORTES}
+                data={esportes}
                 labelField="label"
                 valueField="value"
                 placeholder="Selecione um esporte"

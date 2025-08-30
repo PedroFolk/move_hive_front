@@ -42,7 +42,7 @@ const TextField: React.FC<TextFieldProps> = ({
         placeholderTextColor="gray"
         editable={!disabled}
         className={`h-14 w-full rounded-2xl px-4 pb-1 text-xl ${colors.textPrimaryButton} 
-          ${disabled ? "bg-neutral-900 text-gray-500" : "bg-white dark:bg-neutral-600"}`}
+          ${disabled ? "bg-neutral-900 text-gray-500" : "bg-neutral-600"}`}
       />
     </View>
   );

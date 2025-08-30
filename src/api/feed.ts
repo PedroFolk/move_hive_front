@@ -1,9 +1,12 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 import { API_URL } from "./apiURL";
 
+const getToken = async () => {
+  return await SecureStore.getItemAsync("token");
+};
 
 export const ListaTodosPost = async () => {
-  const token = await AsyncStorage.getItem("token");
+  const token = await getToken();
   try {
     const response = await fetch(`${API_URL}/postagem/FeedSemFiltro`, {
       method: "GET",
@@ -17,16 +20,15 @@ export const ListaTodosPost = async () => {
       throw new Error(`Erro ${response.status}`);
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error("Erro ao listar postagens:", error);
     return null;
   }
 };
 
-export const ExcluirPost = async (postId: any) => {
-  const token = await AsyncStorage.getItem("token");
+export const ExcluirPost = async (postId: string) => {
+  const token = await getToken();
   try {
     const response = await fetch(`${API_URL}/postagem/ExcluirPostagem`, {
       method: "POST",
@@ -41,8 +43,7 @@ export const ExcluirPost = async (postId: any) => {
       throw new Error(`Erro ${response.status}`);
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error("Erro ao excluir postagem:", error);
     return null;
@@ -50,7 +51,7 @@ export const ExcluirPost = async (postId: any) => {
 };
 
 export const ListarPostProprios = async () => {
-  const token = await AsyncStorage.getItem("token");
+  const token = await getToken();
   try {
     const response = await fetch(`${API_URL}/postagem/ListarPostagens`, {
       method: "GET",
@@ -64,8 +65,7 @@ export const ListarPostProprios = async () => {
       throw new Error(`Erro ${response.status}`);
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error("Erro ao listar postagens:", error);
     return null;
@@ -77,7 +77,8 @@ export const CriarPost = async (
   imagem: { uri: string; name: string; type: string },
 ) => {
   try {
-    const token = await AsyncStorage.getItem("token");
+    const token = await getToken();
+    if (!token) throw new Error("Token não encontrado");
 
     const formData = new FormData();
     formData.append("descricao", descricao);

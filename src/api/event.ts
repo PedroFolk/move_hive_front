@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 import { API_URL } from "./apiURL";
 
 interface ImagemEvento {
@@ -11,7 +11,7 @@ const formatarDataISO = (data: Date) => {
   const pad = (n: number) => n.toString().padStart(2, "0");
 
   const ano = data.getFullYear();
-  const mes = pad(data.getMonth() + 1); // meses começam do 0
+  const mes = pad(data.getMonth() + 1);
   const dia = pad(data.getDate());
   const hora = pad(data.getHours());
   const min = pad(data.getMinutes());
@@ -20,8 +20,12 @@ const formatarDataISO = (data: Date) => {
   return `${ano}-${mes}-${dia}T${hora}:${min}:${seg}`;
 };
 
+const getToken = async () => {
+  return await SecureStore.getItemAsync("token");
+};
+
 export const ListarMeusEventos = async () => {
-  const token = await AsyncStorage.getItem("token");
+  const token = await getToken();
   try {
     const response = await fetch(`${API_URL}/evento/meusEventos`, {
       method: "GET",
@@ -39,7 +43,7 @@ export const ListarMeusEventos = async () => {
 };
 
 export const ParticiparEvento = async (evento_id: string) => {
-  const token = await AsyncStorage.getItem("token");
+  const token = await getToken();
   try {
     const response = await fetch(`${API_URL}/evento/participarEvento`, {
       method: "POST",
@@ -59,7 +63,7 @@ export const ParticiparEvento = async (evento_id: string) => {
 };
 
 export const CancelarParticipacao = async (evento_id: string) => {
-  const token = await AsyncStorage.getItem("token");
+  const token = await getToken();
   try {
     const response = await fetch(`${API_URL}/evento/cancelarParticipacao`, {
       method: "POST",
@@ -73,13 +77,13 @@ export const CancelarParticipacao = async (evento_id: string) => {
     if (!response.ok) throw new Error(`Erro ${response.status}`);
     return await response.json();
   } catch (error) {
-    console.error("Erro ao participar do evento:", error);
+    console.error("Erro ao cancelar participação:", error);
     return null;
   }
 };
 
 export const DeletarEvento = async (evento_id: string) => {
-  const token = await AsyncStorage.getItem("token");
+  const token = await getToken();
   try {
     const response = await fetch(`${API_URL}/evento/deletarEvento`, {
       method: "DELETE",
@@ -93,13 +97,13 @@ export const DeletarEvento = async (evento_id: string) => {
     if (!response.ok) throw new Error(`Erro ${response.status}`);
     return await response.json();
   } catch (error) {
-    console.error("Erro ao participar do evento:", error);
+    console.error("Erro ao deletar evento:", error);
     return null;
   }
 };
 
 export const ListarTodosEventos = async () => {
-  const token = await AsyncStorage.getItem("token");
+  const token = await getToken();
   try {
     const response = await fetch(`${API_URL}/evento/listarEventos`, {
       method: "GET",
@@ -117,7 +121,7 @@ export const ListarTodosEventos = async () => {
 };
 
 export const ListarTodosTorneios = async () => {
-  const token = await AsyncStorage.getItem("token");
+  const token = await getToken();
   try {
     const response = await fetch(`${API_URL}/evento/listarTorneios`, {
       method: "GET",
@@ -145,10 +149,10 @@ export const CriarEvento = async (
   premiacao: string,
   privado: boolean,
   observacoes: string,
-  imagem?: { uri: string; name: string; type: string }
+  imagem?: ImagemEvento
 ) => {
   try {
-    const token = await AsyncStorage.getItem("token");
+    const token = await getToken();
     if (!token) throw new Error("Token não encontrado");
 
     const formData = new FormData();

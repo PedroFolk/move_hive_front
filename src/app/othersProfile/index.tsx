@@ -9,26 +9,21 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
-import { ListarDadosPerfil } from "~/api/user";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import EventCard from "../components/eventCard";
 import { ListarTodosEventos } from "~/api/event";
 
-export default function Perfil() {
-  const [perfil, setPerfil] = useState<any>(null);
-  const [refreshing, setRefreshing] = useState(false);
+interface PerfilProps {
+  perfil: any; 
+  meuPerfil?: boolean; 
+  onSeguir?: () => void;
+}
+
+export default function Perfil({ perfil, meuPerfil = false, onSeguir }: PerfilProps) {
   const [participandoExpandido, setParticipandoExpandido] = useState(false);
   const [eventosParticipando, setEventosParticipando] = useState<any[]>([]);
   const [loadingEventos, setLoadingEventos] = useState(false);
   const [mostrarEventosButton, setMostrarEventosButton] = useState(false);
-
-  const carregarPerfil = useCallback(async () => {
-    setRefreshing(true);
-    const dados = await ListarDadosPerfil();
-    if (dados) setPerfil(dados);
-    setRefreshing(false);
-  }, []);
 
   const carregarEventosParticipando = useCallback(async () => {
     if (!perfil?.eventos_participando?.length) return;
@@ -69,18 +64,6 @@ export default function Perfil() {
 
   const toggleMostrarEventos = () => setMostrarEventosButton(!mostrarEventosButton);
 
-  useEffect(() => {
-    if (!perfil) carregarPerfil();
-  }, []);
-
-  if (!perfil) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <Text className="text-white">Carregando...</Text>
-      </View>
-    );
-  }
-
   const Header = () => (
     <View className="w-full px-6 py-4">
       <View className="flex-row items-center justify-between">
@@ -99,59 +82,64 @@ export default function Perfil() {
         )}
 
         <View className="flex-1 ml-4 justify-center">
-          <View className="flex-row flex-1 justify-around ">
-            <TouchableOpacity
-              className="items-center"
-              onPress={() => router.push("../infoAdc?tipo=seguidores")}
-            >
-              <Text className="text-yellow-500 font-bold text-lg">{perfil.seguidores_count}</Text>
-              <Text className="text-white text-sm">Seguidores</Text>
-            </TouchableOpacity>
+          <View className="flex-row flex-1 justify-around">
+            {meuPerfil && (
+              <>
+                <View className="items-center">
+                  <Text className="text-yellow-500 font-bold text-lg">{perfil.seguidores_count}</Text>
+                  <Text className="text-white text-sm">Seguidores</Text>
+                </View>
 
-            <TouchableOpacity
-              className="items-center"
-              onPress={() => router.push("../infoAdc?tipo=seguindo")}
-            >
-              <Text className="text-yellow-500 font-bold text-lg">{perfil.seguindo_count}</Text>
-              <Text className="text-white text-sm">Seguindo</Text>
-            </TouchableOpacity>
+                <View className="items-center">
+                  <Text className="text-yellow-500 font-bold text-lg">{perfil.seguindo_count}</Text>
+                  <Text className="text-white text-sm">Seguindo</Text>
+                </View>
+              </>
+            )}
             <View className="items-center">
-              <Text className="text-yellow-500 font-bold text-lg">
-                {perfil.eventos_participando.length}
-              </Text>
+              <Text className="text-yellow-500 font-bold text-lg">{perfil.eventos_participando.length}</Text>
               <Text className="text-white text-sm">Eventos</Text>
             </View>
           </View>
-          <TouchableOpacity
-            className="border-2 border-white rounded-2xl mt-4 py-2"
-            onPress={() => router.push("../configs")}
-          >
-            <Text className="text-white text-center text-lg">Editar Perfil</Text>
-          </TouchableOpacity>
+
+          {meuPerfil ? (
+            <TouchableOpacity
+              className="border-2 border-white rounded-2xl mt-4 py-2"
+            >
+              <Text className="text-white text-center text-lg">Editar Perfil</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              className="border-2 border-yellow-500 rounded-2xl mt-4 py-2"
+              onPress={onSeguir}
+            >
+              <Text className="text-yellow-500 text-center text-lg">Seguir</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
       <Text className="text-white text-lg font-bold mt-4">{perfil.nome_completo}</Text>
       <Text className="text-neutral-400 text-sm">@{perfil.username}</Text>
 
-      <View className="flex-row mt-1 items-center">
-        <MaterialCommunityIcons name="map-marker" size={16} color="gray" />
-        <Text className="text-neutral-400 ml-1">{perfil.cidade}, {perfil.estado}</Text>
-      </View>
+      {perfil.cidade && perfil.estado && (
+        <View className="flex-row mt-1 items-center">
+          <MaterialCommunityIcons name="map-marker" size={16} color="gray" />
+          <Text className="text-neutral-400 ml-1">{perfil.cidade}, {perfil.estado}</Text>
+        </View>
+      )}
 
       {perfil.biografia && (
         <Text className="text-neutral-300 mt-2">{perfil.biografia}</Text>
       )}
 
-      <View className="w-full mt-4 items-center ">
+      <View className="w-full mt-4 items-center">
         <TouchableOpacity
           className="flex-row items-center w-2/3 justify-between rounded-2xl border-2 border-yellow-500 bg-yellow-500 py-2 px-4"
           onPress={toggleMostrarEventos}
         >
           <MaterialCommunityIcons name="trophy" size={24} color="black" />
-          <Text className="text-black font-semibold text-lg mx-2">
-            {perfil.pontos.toFixed(0)}
-          </Text>
+          <Text className="text-black font-semibold text-lg mx-2">{perfil.pontos.toFixed(0)}</Text>
           <MaterialCommunityIcons name="trophy" size={24} color="black" />
         </TouchableOpacity>
       </View>
@@ -184,7 +172,6 @@ export default function Perfil() {
           </View>
         )}
         ListHeaderComponent={Header}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={carregarPerfil} />}
         contentContainerStyle={{ paddingBottom: 20 }}
         ListEmptyComponent={
           participandoExpandido ? (
