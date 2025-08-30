@@ -103,7 +103,7 @@ export const DeletarEvento = async (evento_id: string) => {
 };
 
 export const ListarTodosEventos = async () => {
-  const token = await getToken();
+  const token = await getToken(); 
   try {
     const response = await fetch(`${API_URL}/evento/listarEventos`, {
       method: "GET",

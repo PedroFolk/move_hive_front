@@ -31,8 +31,8 @@ const TextField: React.FC<TextFieldProps> = ({
         {label}
       </Text>
       <TextInput
-        autoComplete={isPassword ? "password" : "email"}
-        textContentType={isPassword ? "password" : "emailAddress"}
+        autoComplete={isPassword ? "password" : "off"} 
+        textContentType={isPassword ? "password" : "none"}
         secureTextEntry={isPassword}
         autoCapitalize="none"
         value={value}

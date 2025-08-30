@@ -89,7 +89,10 @@ const EventCreationModal: React.FC<Props> = ({
     [image, setImage] = useState<ImagemEvento | undefined>(undefined),
     [observacao, setObservacao] = useState(""),
     [premiacao, setPremiacao] = useState(""),
-    [esportes, setEsportes] = useState<any[]>([]);
+    [esportes, setEsportes] = useState<any[]>([]),
+    [showDatePicker, setShowDatePicker] = useState(false),
+    [showTimePicker, setShowTimePicker] = useState(false);
+
 
   useEffect(() => {
     if (visible) {
@@ -183,14 +186,14 @@ const EventCreationModal: React.FC<Props> = ({
       transparent
       onRequestClose={onClose}
     >
-      <View className="bg-neutral-900 rounded-lg p-6 flex-1">
+      <View className="bg-neutral-900  p-6 flex-1">
         <SafeAreaView className="flex-1">
           <Text className="text-2xl font-bold text-center mt-4 mb-6 text-white">
             Novo Evento
           </Text>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
-           className="flex-1"
+            className="flex-1"
           >
             <ScrollView
               contentContainerStyle={{ paddingBottom: 20 }}
@@ -270,23 +273,78 @@ const EventCreationModal: React.FC<Props> = ({
                     placeholderTextColor="#888"
                   />
                 </View>
-                <View className="items-center mb-1">
-                  <Text className="text-gray-300 text-xl mb-1">Data</Text>
-                  <DateTimePicker
-                    value={date}
-                    mode="date"
-                    onChange={(_, d) => d && setDate(d)}
-                  />
-                </View>
-                <View className="items-center mb-1">
-                  <Text className="text-gray-300 text-xl mb-1">Hora</Text>
-                  <DateTimePicker
-                    value={date}
-                    mode="time"
-                    onChange={(_, d) => d && setDate(d)}
-                    is24Hour
-                  />
-                </View>
+
+                {Platform.OS === "android" ? (
+                  <View className="flex-1 flex-row justify-around">
+                    <View className="items-center mb-1">
+                      <Text className="text-gray-300 text-xl mb-1">Data</Text>
+                      <TouchableOpacity
+                        className="border border-neutral-600 rounded-xl p-2"
+                        onPress={() => setShowDatePicker(true)}
+                      >
+                        <Text className="text-white">{date.toLocaleDateString("pt-BR")}</Text>
+                      </TouchableOpacity>
+                      {showDatePicker && (
+                        <DateTimePicker
+                          value={date}
+                          mode="date"
+                          display="default"
+                          onChange={(_, d) => {
+                            setShowDatePicker(false);
+                            if (d) setDate(d);
+                          }}
+                        />
+                      )}
+                    </View>
+
+                    <View className="items-center mb-1">
+                      <Text className="text-gray-300 text-xl mb-1">Hora</Text>
+                      <TouchableOpacity
+                        className="border border-neutral-600 rounded-xl p-2"
+                        onPress={() => setShowTimePicker(true)}
+                      >
+                        <Text className="text-white">{`${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`}</Text>
+                      </TouchableOpacity>
+                      {showTimePicker && (
+                        <DateTimePicker
+                          value={date}
+                          mode="time"
+                          display="default"
+                          is24Hour
+                          onChange={(_, d) => {
+                            setShowTimePicker(false);
+                            if (d) setDate(d);
+                          }}
+                        />
+                      )}
+                    </View>
+                  </View>
+                ) : (
+                 
+                  <View className="flex-1 flex-row justify-around ">
+                    <View className="items-center mb-1">
+                      <Text className="text-gray-300 text-xl mb-1">Data</Text>
+                      <DateTimePicker
+                        value={date}
+                        mode="date"
+                        onChange={(_, d) => d && setDate(d)}
+                      />
+                    </View>
+                    <View className="items-center mb-1">
+                      <Text className="text-gray-300 text-xl mb-1">Hora</Text>
+                      <DateTimePicker
+                        value={date}
+                        mode="time"
+                        onChange={(_, d) => d && setDate(d)}
+                        is24Hour
+                      />
+                    </View>
+                  </View>
+                )}
+
+
+
+
               </View>
 
               <Text className="text-gray-300 mb-1 text-xl">Premiação</Text>

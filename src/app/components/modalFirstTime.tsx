@@ -143,9 +143,9 @@ const escolherFoto = async () => {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
+    <Modal visible={visible} transparent animationType="slide" >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View className="bg-neutral-800 rounded-lg p-6 flex-1 justify-between">
+        <View className="bg-neutral-800 rounded-lg p-6 flex-1 justify-between h-full">
           <SafeAreaView className="flex-1">
   
             {step === 1 ? (

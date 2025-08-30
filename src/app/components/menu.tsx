@@ -1,5 +1,11 @@
 import React from "react";
-import { View, TouchableOpacity, SafeAreaView } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  SafeAreaView,
+  Platform,
+  StatusBar,
+} from "react-native";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Entypo from "@expo/vector-icons/Entypo";
@@ -20,7 +26,6 @@ interface Button {
   type: string;
   size: number;
 }
-
 const Menu: React.FC<MenuProps> = ({ selectedIndex, setSelectedIndex }) => {
   const buttons: Button[] = [
     { name: "home", type: "Entypo", size: 24 },
@@ -51,7 +56,7 @@ const Menu: React.FC<MenuProps> = ({ selectedIndex, setSelectedIndex }) => {
   };
 
   return (
-    <SafeAreaView className="absolute bottom-0 flex-row justify-around  bg-yellow-500 w-full  ">
+    <SafeAreaView className="absolute bottom-0 flex-row justify-around  bg-yellow-500 w-full pb-safe  ">
       {buttons.map((btn, index) => {
         const ativo = index === selectedIndex;
         const IconComponent = getIconComponent(btn.type);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { SafeAreaView } from "react-native";
+import { Platform, SafeAreaView, StatusBar } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import Menu from "../components/menu";
 import Events from "../events";
@@ -11,6 +11,7 @@ import ModalFirstTime from "../components/modalFirstTime";
 import { PreencherDadosModal } from "~/api/user";
 import "../../../global.css";
 import * as SecureStore from "expo-secure-store";
+import Ranking from "../ranking";
 
 
 export default function Main() {
@@ -19,6 +20,7 @@ export default function Main() {
   const [loading, setLoading] = useState(true);
   const params = useLocalSearchParams();
 
+ 
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -54,13 +56,13 @@ export default function Main() {
       case 1:
         return <Activity />;
       case 2:
-        return <Events />;
+        return <Ranking />;
       case 3:
         return <Events />;
       case 4:
-        return <Perfil />;
+        return <Perfil meuUserId={""} />;
       default:
-        return <Perfil />;
+        return <Perfil meuUserId={""} />;
     }
   };
 
@@ -70,7 +72,8 @@ export default function Main() {
 
   return (
     <SafeAreaView
-      className={`w-full h-full items-center justify-center ${colors.background} `}
+      className={`w-full h-full items-center justify-center pt-safe pb-safe ${colors.background} `}
+ 
     >
       {renderContent()}
       <Menu selectedIndex={selectedIndex} setSelectedIndex={setSelectedIndex} />

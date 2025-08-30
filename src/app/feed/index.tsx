@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,9 +8,10 @@ import {
   SafeAreaView,
   FlatList,
 } from "react-native";
+
 import * as ImagePicker from "expo-image-picker";
-import { CriarPost, ListaTodosPost } from "~/api/feed";
-import { Ionicons } from "@expo/vector-icons";
+import { CriarPost, ListarNofificacao, ListaTodosPost } from "~/api/feed";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import AddButton from "../components/addButton";
 import ModalNewPost from "../components/modalNewPost";
 import SugestoesPerfis from "../components/sugestoesPerfil";
@@ -23,8 +24,7 @@ export default function Feed() {
   const [imagem, setImagem] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
-
+  const [temNotificacoes, setTemNotificacoes] = useState(false);
 
   const aoAtualizar = async () => {
     setRefreshing(true);
@@ -36,12 +36,11 @@ export default function Feed() {
     try {
       const response = await ListaTodosPost();
 
-      if (!response || response.status === 200 || response.status === 500 ) {
+      if (!response || response.status === 200 || response.status === 500) {
         console.log("Erro");
         setTimeout(() => router.replace("/login"), 0);
         return;
       }
-
 
       setPosts(response.data || response);
     } catch (error) {
@@ -49,8 +48,13 @@ export default function Feed() {
       setTimeout(() => router.replace("/login"), 0);
     }
   };
-
-
+  const verificarNotificacoes = useCallback(async () => {
+    const data = await ListarNofificacao();
+    if (data) {
+      const naoLidas = data.some((n: any) => n.lida === false);
+      setTemNotificacoes(naoLidas);
+    }
+  }, []);
   useEffect(() => {
     const carregarPosts = async () => {
       try {
@@ -63,6 +67,13 @@ export default function Feed() {
 
     carregarPosts();
   }, []);
+  useEffect(() => {
+    
+    verificarNotificacoes();
+
+    const interval = setInterval(verificarNotificacoes, 15000);
+    return () => clearInterval(interval);
+  }, [verificarNotificacoes]);
 
   const abrirGaleria = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -127,7 +138,9 @@ export default function Feed() {
         ) : (
           <View className="w-10 h-10 mr-3 bg-neutral-600 justify-center items-center rounded-full">
             <Text className="text-white font-bold text-base">
-              {item.usuario?.username ? item.usuario.username[0].toUpperCase() : "U"}
+              {item.usuario?.username
+                ? item.usuario.username[0].toUpperCase()
+                : "U"}
             </Text>
           </View>
         )}
@@ -153,7 +166,9 @@ export default function Feed() {
 
           <TouchableOpacity className="flex-row items-center mr-4">
             <Ionicons name="chatbubble-outline" size={24} color="white" />
-            <Text className="text-white ml-1 text-sm">{item.comentarios || 0}</Text>
+            <Text className="text-white ml-1 text-sm">
+              {item.comentarios || 0}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity className="flex-row items-center">
@@ -174,9 +189,27 @@ export default function Feed() {
   );
 
   return (
-    <SafeAreaView className="flex-1 w-full">
+    <SafeAreaView className="flex-1 w-full" >
       <View className="px-4 pt-4 flex-row justify-between items-center">
         <Text className="text-white text-2xl font-bold">Publicações</Text>
+      <TouchableOpacity onPress={() => router.push("../notifications")}>
+        <View style={{ position: "relative" }}>
+          <MaterialCommunityIcons name="bell-outline" size={28} color="white" />
+          {temNotificacoes && (
+            <View
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: 10,
+                height: 10,
+                borderRadius: 5,
+                backgroundColor: "red",
+              }}
+            />
+          )}
+        </View>
+      </TouchableOpacity>
       </View>
 
       <FlatList
@@ -190,7 +223,6 @@ export default function Feed() {
             onRefresh={aoAtualizar}
             colors={["#facc15"]}
           />
-
         }
         ListHeaderComponent={<SugestoesPerfis />}
       />

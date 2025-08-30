@@ -64,7 +64,7 @@ export const ListarPostProprios = async () => {
     if (!response.ok) {
       throw new Error(`Erro ${response.status}`);
     }
-
+    
     return await response.json();
   } catch (error) {
     console.error("Erro ao listar postagens:", error);
@@ -104,6 +104,53 @@ export const CriarPost = async (
     return await response.json();
   } catch (error) {
     console.error("Erro ao criar post:", error);
+    return null;
+  }
+};
+
+export const ListarNofificacao = async () => {
+  const token = await getToken();
+  try {
+    const response = await fetch(`${API_URL}/notificacao/MinhaNotificacoes`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Erro ao listar postagens:", error);
+    return null;
+  }
+};
+
+
+export const MarcarNotificacaoComoLida = async (id: string) => {
+  const token = await getToken();
+
+  try {
+    const response = await fetch(`${API_URL}/notificacao/NotificacaoLida`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ notificacao_id:id }), 
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Erro ao marcar notificação como lida:", error);
     return null;
   }
 };

@@ -64,9 +64,11 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
   const [pickerVisible, setPickerVisible] = useState(false);
   const [horaSelecionada, setHoraSelecionada] = useState(0);
   const [minutoSelecionado, setMinutoSelecionado] = useState(0);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
-  const horas = Array.from({ length: 10 }, (_, i) => i); 
-  const minutos = Array.from({ length: 60 }, (_, i) => i); 
+  const horas = Array.from({ length: 10 }, (_, i) => i);
+  const minutos = Array.from({ length: 60 }, (_, i) => i);
 
   useEffect(() => {
     if (visible) {
@@ -127,10 +129,10 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
       tempo_treinado: tempoTreinadoMinutos,
       imagem: foto
         ? {
-            uri: foto.uri,
-            name: foto.name,
-            type: foto.type,
-          }
+          uri: foto.uri,
+          name: foto.name,
+          type: foto.type,
+        }
         : undefined,
     };
 
@@ -165,7 +167,7 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
 
   return (
     <Modal visible={visible} transparent animationType="slide">
-      <View className="bg-neutral-900 rounded-lg p-6 flex-1 justify-between">
+      <View className="bg-neutral-900 px-6 flex-1 py-safe justify-between">
         <SafeAreaView className="flex-1">
           <Text className={`text-2xl font-bold text-center mt-4 mb-10 ${colors.textPrimaryButton}`}>
             Nova Atividade
@@ -208,6 +210,7 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
                       placeholder="Digite algo..."
                       keyboardType="default"
                       multiline
+                      placeholderTextColor={"gray"}
                       textAlignVertical="top"
                     />
                   </View>
@@ -297,30 +300,83 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
                     onChangeText={setLocation}
                     value={location}
                     placeholder="Local"
+                    placeholderTextColor={"gray"}
                   />
 
-                  <View className="flex-row justify-around mt-4 mb-4">
-                    <View className="items-center mb-1">
-                      <Text className="text-gray-300 mb-1 text-xl ">Data</Text>
-                      <DateTimePicker
-                        timeZoneName="pt-br"
-                        mode="date"
-                        value={date}
-                        onChange={(_, selected) => selected && setDate(selected)}
-                      />
-                    </View>
+                  {Platform.OS === "android" ? (
+                    <View className="flex-row justify-around mt-4 mb-4">
+                      <View className="items-center mb-1">
+                        <Text className="text-gray-300 mb-1 text-xl ">Data</Text>
+                        <TouchableOpacity
+                          className="border border-neutral-600 rounded-xl p-2"
+                          onPress={() => setShowDatePicker(true)}
+                        >
+                          <Text className="text-white">{date.toLocaleDateString("pt-BR")}</Text>
+                        </TouchableOpacity>
+                        {showDatePicker && (
+                          <DateTimePicker
+                            value={date}
+                            mode="date"
+                            display="default"
+                            onChange={(_, selected) => {
+                              setShowDatePicker(false);
+                              if (selected) setDate(selected);
+                            }}
+                          />
+                        )}
+                      </View>
 
-                    <View className="items-center mb-1">
-                      <Text className="text-gray-300 mb-1 text-xl">Hora</Text>
-                      <DateTimePicker
-                        timeZoneName="pt-br"
-                        mode="time"
-                        is24Hour
-                        value={date}
-                        onChange={(_, selected) => selected && setDate(selected)}
-                      />
+                      <View className="items-center mb-1">
+                        <Text className="text-gray-300 mb-1 text-xl">Hora</Text>
+                        <TouchableOpacity
+                          className="border border-neutral-600 rounded-xl p-2"
+                          onPress={() => setShowTimePicker(true)}
+                        >
+                          <Text className="text-white">
+                            {`${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`}
+                          </Text>
+                        </TouchableOpacity>
+                        {showTimePicker && (
+                          <DateTimePicker
+                            value={date}
+                            mode="time"
+                            is24Hour
+                            display="default"
+                            onChange={(_, selected) => {
+                              setShowTimePicker(false);
+                              if (selected) setDate(selected);
+                            }}
+                          />
+                        )}
+                      </View>
                     </View>
-                  </View>
+                  ) : (
+             
+                    <View className="flex-row justify-around mt-4 mb-4">
+                      <View className="items-center mb-1">
+                        <Text className="text-gray-300 mb-1 text-xl ">Data</Text>
+                        <DateTimePicker
+                          timeZoneName="pt-br"
+                          mode="date"
+                          value={date}
+                          onChange={(_, selected) => selected && setDate(selected)}
+                        />
+                      </View>
+
+                      <View className="items-center mb-1">
+                        <Text className="text-gray-300 mb-1 text-xl">Hora</Text>
+                        <DateTimePicker
+                          timeZoneName="pt-br"
+                          mode="time"
+                          is24Hour
+                          value={date}
+                          onChange={(_, selected) => selected && setDate(selected)}
+                        />
+                      </View>
+                    </View>
+                  )}
+
+
                 </View>
               </TouchableWithoutFeedback>
 

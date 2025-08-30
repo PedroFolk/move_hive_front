@@ -179,10 +179,6 @@ export const UsuariosSeguidores = async () => {
   }
 };
 
-
-
-
-
 export const AtualizarUsuario = async (
   dados: {
     biografia?: string;

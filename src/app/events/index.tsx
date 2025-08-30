@@ -201,7 +201,7 @@ export default function Events() {
   const currentData = selectedCategory === "Torneios" ? tournaments : events;
 
   return (
-    <SafeAreaView className="flex-1 ">
+    <SafeAreaView className="w-full h-full ">
       <View className="px-4 pt-4 flex-row justify-between items-center">
         <Text className="text-white text-2xl font-bold">
           {selectedCategory}

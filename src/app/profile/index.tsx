@@ -6,72 +6,62 @@ import {
   TouchableOpacity,
   FlatList,
   RefreshControl,
-  ActivityIndicator,
+  Modal,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ListarDadosPerfil } from "~/api/user";
+import { ListarPostProprios } from "~/api/feed";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import EventCard from "../components/eventCard";
-import { ListarTodosEventos } from "~/api/event";
+import PostModal from "../components/modalPosts";
 
-export default function Perfil() {
+
+type PerfilProps = {
+  userId?: string;
+  meuUserId: string;
+};
+
+export default function Perfil({ userId, meuUserId }: PerfilProps) {
   const [perfil, setPerfil] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [participandoExpandido, setParticipandoExpandido] = useState(false);
-  const [eventosParticipando, setEventosParticipando] = useState<any[]>([]);
-  const [loadingEventos, setLoadingEventos] = useState(false);
-  const [mostrarEventosButton, setMostrarEventosButton] = useState(false);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [postSelecionado, setPostSelecionado] = useState<any>(null);
+  const [modalPostVisible, setModalPostVisible] = useState(false);
+  const [descricaoSelecionado, setDescricaoSelecionad] = useState("");
+  const isMeuPerfil = !userId || userId === meuUserId;
 
   const carregarPerfil = useCallback(async () => {
     setRefreshing(true);
-    const dados = await ListarDadosPerfil();
-    if (dados) setPerfil(dados);
-    setRefreshing(false);
-  }, []);
+    let dados;
+    let postsApi;
 
-  const carregarEventosParticipando = useCallback(async () => {
-    if (!perfil?.eventos_participando?.length) return;
-    setLoadingEventos(true);
-    const todosEventos = await ListarTodosEventos();
-    if (todosEventos) {
-      const participando = todosEventos
-        .filter((ev: any) => perfil.eventos_participando.includes(ev.id))
-        .map((ev: any) => {
-          const dateObj = new Date(ev.data_hora || ev.data || new Date());
-          const [city = "", state = ""] =
-            ev.localizacao?.split(",").map((s: string) => s.trim()) || [];
-          return {
-            id: ev.id,
-            title: ev.nome ?? ev.titulo ?? "Sem título",
-            sport: ev.esporte ?? ev.esporte_nome ?? "Não informado",
-            description: ev.descricao ?? "",
-            dateString: dateObj.toLocaleDateString("pt-BR"),
-            hourString: dateObj.toLocaleTimeString("pt-BR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            city,
-            state,
-            imageUri: ev.foto ?? ev.imagem ?? "",
-            participantes: ev.participantes?.map((id: string) => ({ id })) || [],
-          };
-        });
-      setEventosParticipando(participando);
+    if (isMeuPerfil) {
+      dados = await ListarDadosPerfil();
+      postsApi = await ListarPostProprios();
+    } else {
+      // dados = await ListarDadosOutroPerfil(userId!);
+      // postsApi = await ListarPostOutroUsuario(userId!);
     }
-    setLoadingEventos(false);
-  }, [perfil]);
 
-  const toggleExpandir = () => {
-    if (!participandoExpandido) carregarEventosParticipando();
-    setParticipandoExpandido(!participandoExpandido);
+    if (dados) setPerfil(dados);
+    if (postsApi) setPosts(postsApi);
+    setRefreshing(false);
+  }, [userId]);
+
+  const formatarPostsParaGrid = (posts: any[]) => {
+    const resto = posts.length % 3;
+    if (resto === 0) return posts;
+    const placeholders = Array.from({ length: 3 - resto }, (_, i) => ({
+      id: `placeholder-${i}-${posts.length}`,
+      placeholder: true,
+    }));
+    return [...posts, ...placeholders];
   };
 
-  const toggleMostrarEventos = () => setMostrarEventosButton(!mostrarEventosButton);
-
   useEffect(() => {
-    if (!perfil) carregarPerfil();
-  }, []);
+    carregarPerfil();
+  }, [userId]);
 
   if (!perfil) {
     return (
@@ -82,9 +72,9 @@ export default function Perfil() {
   }
 
   const Header = () => (
-    <View className="w-full px-6 py-4">
+    <View className="w-full py-4 px-6">
       <View className="flex-row items-center justify-between">
-        {perfil?.foto_perfil ? (
+        {perfil.foto_perfil ? (
           <Image
             source={{ uri: perfil.foto_perfil }}
             resizeMode="cover"
@@ -93,18 +83,20 @@ export default function Perfil() {
         ) : (
           <View className="rounded-full w-28 h-28 border-2 border-yellow-500 items-center justify-center">
             <Text className="text-yellow-500 font-bold text-4xl">
-              {perfil?.username ? perfil.username[0].toUpperCase() : "U"}
+              {perfil.username?.[0]?.toUpperCase() || "U"}
             </Text>
           </View>
         )}
 
         <View className="flex-1 ml-4 justify-center">
-          <View className="flex-row flex-1 justify-around ">
+          <View className="flex-row flex-1 justify-around">
             <TouchableOpacity
               className="items-center"
               onPress={() => router.push("../infoAdc?tipo=seguidores")}
             >
-              <Text className="text-yellow-500 font-bold text-lg">{perfil.seguidores_count}</Text>
+              <Text className="text-yellow-500 font-bold text-lg">
+                {perfil.seguidores_count}
+              </Text>
               <Text className="text-white text-sm">Seguidores</Text>
             </TouchableOpacity>
 
@@ -112,22 +104,28 @@ export default function Perfil() {
               className="items-center"
               onPress={() => router.push("../infoAdc?tipo=seguindo")}
             >
-              <Text className="text-yellow-500 font-bold text-lg">{perfil.seguindo_count}</Text>
+              <Text className="text-yellow-500 font-bold text-lg">
+                {perfil.seguindo_count}
+              </Text>
               <Text className="text-white text-sm">Seguindo</Text>
             </TouchableOpacity>
-            <View className="items-center">
-              <Text className="text-yellow-500 font-bold text-lg">
-                {perfil.eventos_participando.length}
-              </Text>
-              <Text className="text-white text-sm">Eventos</Text>
-            </View>
           </View>
-          <TouchableOpacity
-            className="border-2 border-white rounded-2xl mt-4 py-2"
-            onPress={() => router.push("../configs")}
-          >
-            <Text className="text-white text-center text-lg">Editar Perfil</Text>
-          </TouchableOpacity>
+
+          {isMeuPerfil ? (
+            <TouchableOpacity
+              className="border-2 border-white rounded-2xl mt-4 py-2"
+              onPress={() => router.push("../configs")}
+            >
+              <Text className="text-white text-center text-lg">Editar Perfil</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              className="border-2 border-yellow-500 rounded-2xl mt-4 py-2 bg-yellow-500"
+              onPress={() => console.log("Seguir usuário")}
+            >
+              <Text className="text-black text-center text-lg">Seguir</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -136,18 +134,18 @@ export default function Perfil() {
 
       <View className="flex-row mt-1 items-center">
         <MaterialCommunityIcons name="map-marker" size={16} color="gray" />
-        <Text className="text-neutral-400 ml-1">{perfil.cidade}, {perfil.estado}</Text>
+        <Text className="text-neutral-400 ml-1">
+          {perfil.cidade}, {perfil.estado}
+        </Text>
       </View>
 
       {perfil.biografia && (
         <Text className="text-neutral-300 mt-2">{perfil.biografia}</Text>
       )}
 
-      <View className="w-full mt-4 items-center ">
-        <TouchableOpacity
-          className="flex-row items-center w-2/3 justify-between rounded-2xl border-2 border-yellow-500 bg-yellow-500 py-2 px-4"
-          onPress={toggleMostrarEventos}
-        >
+      {/* Pontuação */}
+      <View className="w-full mt-4 items-center">
+        <TouchableOpacity className="flex-row items-center w-2/3 justify-between rounded-2xl border-2 border-yellow-500 bg-yellow-500 py-2 px-4">
           <MaterialCommunityIcons name="trophy" size={24} color="black" />
           <Text className="text-black font-semibold text-lg mx-2">
             {perfil.pontos.toFixed(0)}
@@ -156,46 +154,72 @@ export default function Perfil() {
         </TouchableOpacity>
       </View>
 
-      {mostrarEventosButton && (
-        <TouchableOpacity
-          className="border-2 border-white rounded-2xl mt-4 py-2"
-          onPress={toggleExpandir}
-        >
-          <Text className="text-white text-center text-lg">
-            {participandoExpandido
-              ? "Ocultar Eventos Participados"
-              : `Eventos Participados (${perfil.eventos_participando.length})`}
-          </Text>
-        </TouchableOpacity>
-      )}
+      <View className="mt-6 mb-2 h-1 w-full rounded-full bg-neutral-700" />
     </View>
   );
+
+  const renderPostItem = ({ item }: { item: any }) =>
+    item.placeholder ? (
+      <View className="flex-1" />
+    ) : (
+      <TouchableOpacity
+        className="flex-1 m-1"
+        onPress={() => {
+          setPostSelecionado(item);
+          setDescricaoSelecionad(item.descricao);
+          setModalPostVisible(true);
+        }}
+      >
+        <Image
+          source={{ uri: item.imagem }}
+          style={{ width: "100%", aspectRatio: 1, borderRadius: 8 }}
+          resizeMode="cover"
+        />
+      </TouchableOpacity>
+    );
+
 
   return (
     <SafeAreaView className="w-full h-full">
       <FlatList
-        data={participandoExpandido ? eventosParticipando : []}
-        keyExtractor={(item, index) => item.id?.toString() ?? `event-${index}`}
-        renderItem={({ item }) => (
-          <View className="px-6 py-2">
-            <View className="bg-neutral-800 p-2 rounded-2xl">
-              <EventCard event={item} userId={perfil.id} />
-            </View>
-          </View>
-        )}
+        data={formatarPostsParaGrid(posts)}
+        keyExtractor={(item) => item.id}
+        renderItem={renderPostItem}
+        numColumns={3}
         ListHeaderComponent={Header}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={carregarPerfil} />}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        ListEmptyComponent={
-          participandoExpandido ? (
-            loadingEventos ? (
-              <ActivityIndicator size="large" color="#facc15" className="mt-4" />
-            ) : (
-              <Text className="text-white text-center mt-4">Nenhum evento encontrado</Text>
-            )
-          ) : null
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={carregarPerfil} />
         }
+        contentContainerStyle={{ paddingBottom: 20 }}
       />
+      {postSelecionado && (
+        <PostModal
+          visible={modalPostVisible}
+          onClose={() => setModalPostVisible(false)}
+          post={postSelecionado}
+          onDelete={(postId) => {
+            Alert.alert(
+              "Apagar publicação",
+              "Deseja realmente apagar sua publicação?",
+              [
+                { text: "Não", style: "cancel" },
+                {
+                  text: "Sim",
+                  style: "destructive",
+                  onPress: async () => {
+
+                  },
+                },
+              ]
+            );
+            // setModalPostVisible(false);
+          }}
+          nome={perfil.username}
+          foto_perfil={perfil.foto_perfil}
+          comentario={descricaoSelecionado}
+        />
+      )}
     </SafeAreaView>
+
   );
 }

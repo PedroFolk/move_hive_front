@@ -38,7 +38,7 @@ export default function PosRegister() {
       email,
       senha,
     );
-
+    
     if (result) {
       //alert("Usuário registrado com sucesso!");
       router.push({ pathname: "../main", params: { novoCadastro: "true" } });
@@ -51,7 +51,6 @@ export default function PosRegister() {
     <SafeAreaView className={`flex-1  ${colors.background}`}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
           className="flex-1 justify-center px-6"
         >
           <View
@@ -78,7 +77,7 @@ export default function PosRegister() {
               onChangeText={setSenha}
               placeholder="Digite sua senha"
               isPassword={true}
-              keyboardType="visible-password"
+              keyboardType="default"
             />
             <TextField
               marginTop="5"
@@ -87,7 +86,7 @@ export default function PosRegister() {
               onChangeText={setConfirmarSenha}
               isPassword={true}
               placeholder="Cofirme sua senha"
-              keyboardType="visible-password"
+              keyboardType="default"
             />
 
             <TouchableOpacity
