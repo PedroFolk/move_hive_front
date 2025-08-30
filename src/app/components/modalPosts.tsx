@@ -1,3 +1,4 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import {
   Modal,
@@ -15,7 +16,7 @@ interface PostModalProps {
   onDelete?: (postId: string) => void;
   nome: string;
   foto_perfil: string;
-  comentario:string;
+  comentario: string;
 }
 
 const PostModal: React.FC<PostModalProps> = ({
@@ -37,12 +38,15 @@ const PostModal: React.FC<PostModalProps> = ({
       onRequestClose={onClose}
     >
       <SafeAreaView className="flex-1 bg-neutral-900 py-safe">
-        <View className="ml-4">
-          <Text className="text-white my-4 ">
-            MOVE HIVE
+        <View className="flex-row space-between ml-4 mb-4 items-center">
+          <TouchableOpacity onPress={onClose}>
+            <MaterialCommunityIcons name="arrow-left" size={28} color="white" />
+          </TouchableOpacity>
+          <Text className="text-white  text-2xl font-bold ml-2">
+            Publicação
           </Text>
         </View>
-        {/* Header do post */}
+    
         <View className="flex-row items-center justify-between px-4 py-2">
           <View className="flex-row items-center">
 
@@ -71,16 +75,11 @@ const PostModal: React.FC<PostModalProps> = ({
             </TouchableOpacity>
           )}
         </View>
-
-        {/* Imagem do post */}
         <Image
           source={{ uri: post.imagem }}
           style={{ width: "100%", height: 400 }}
           resizeMode="cover"
         />
-
-
-        {/* Legenda */}
         {comentario && (
           <View className="px-4 pb-2 flex-row mt-2">
             <Text className="font-bold text-white">{nome}:</Text>

@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ListarDadosPerfil } from "~/api/user";
-import { ListarPostProprios } from "~/api/feed";
+import { ExcluirPost, ListarPostProprios } from "~/api/feed";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import PostModal from "../components/modalPosts";
 
@@ -62,6 +62,11 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
   useEffect(() => {
     carregarPerfil();
   }, [userId]);
+
+  const handleDelete = async () => {
+    await ExcluirPost(postSelecionado.id);
+    carregarPerfil();
+  }
 
   if (!perfil) {
     return (
@@ -143,7 +148,7 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
         <Text className="text-neutral-300 mt-2">{perfil.biografia}</Text>
       )}
 
-      {/* Pontuação */}
+  
       <View className="w-full mt-4 items-center">
         <TouchableOpacity className="flex-row items-center w-2/3 justify-between rounded-2xl border-2 border-yellow-500 bg-yellow-500 py-2 px-4">
           <MaterialCommunityIcons name="trophy" size={24} color="black" />
@@ -163,7 +168,7 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
       <View className="flex-1" />
     ) : (
       <TouchableOpacity
-        className="flex-1 m-1"
+        className="flex-1 mx-1 "
         onPress={() => {
           setPostSelecionado(item);
           setDescricaoSelecionad(item.descricao);
@@ -172,7 +177,8 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
       >
         <Image
           source={{ uri: item.imagem }}
-          style={{ width: "100%", aspectRatio: 1, borderRadius: 8 }}
+          className="rounded "
+          style={{ width: "100%", aspectRatio: 1}}
           resizeMode="cover"
         />
       </TouchableOpacity>
@@ -207,12 +213,13 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
                   text: "Sim",
                   style: "destructive",
                   onPress: async () => {
-
+                    await handleDelete()
+                    setModalPostVisible(false);
                   },
                 },
               ]
             );
-            // setModalPostVisible(false);
+
           }}
           nome={perfil.username}
           foto_perfil={perfil.foto_perfil}

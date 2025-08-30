@@ -16,6 +16,7 @@ import AddButton from "../components/addButton";
 import ModalNewPost from "../components/modalNewPost";
 import SugestoesPerfis from "../components/sugestoesPerfil";
 import { router } from "expo-router";
+import ModalSearchUser from "../components/modalSearchUser";
 
 export default function Feed() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -25,6 +26,8 @@ export default function Feed() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [temNotificacoes, setTemNotificacoes] = useState(false);
+  const [modalSearchVisible, setModalSearchVisible] = useState(false);
+
 
   const aoAtualizar = async () => {
     setRefreshing(true);
@@ -68,7 +71,7 @@ export default function Feed() {
     carregarPosts();
   }, []);
   useEffect(() => {
-    
+
     verificarNotificacoes();
 
     const interval = setInterval(verificarNotificacoes, 15000);
@@ -190,26 +193,35 @@ export default function Feed() {
 
   return (
     <SafeAreaView className="flex-1 w-full" >
+      <ModalSearchUser
+        visible={modalSearchVisible}
+        onClose={() => setModalSearchVisible(false)}
+      />
+
       <View className="px-4 pt-4 flex-row justify-between items-center">
         <Text className="text-white text-2xl font-bold">Publicações</Text>
-      <TouchableOpacity onPress={() => router.push("../notifications")}>
-        <View style={{ position: "relative" }}>
-          <MaterialCommunityIcons name="bell-outline" size={28} color="white" />
-          {temNotificacoes && (
-            <View
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: 10,
-                height: 10,
-                borderRadius: 5,
-                backgroundColor: "red",
-              }}
-            />
-          )}
+
+        <View className="flex-row">
+
+          <TouchableOpacity onPress={() => setModalSearchVisible(true)}>
+            <Ionicons className="mr-4" name="search" size={28} color="white" />
+          </TouchableOpacity>
+
+
+          <TouchableOpacity onPress={() => router.push("../notifications")}>
+            <View className="relative ">
+
+              <MaterialCommunityIcons name="bell-outline" size={28} color="white" />
+              {temNotificacoes && (
+                <View
+                  className=" absolute top-0 left-0 w-2 h-2 rounded-full bg-red-500"
+
+                />
+              )}
+            </View>
+          </TouchableOpacity>
+
         </View>
-      </TouchableOpacity>
       </View>
 
       <FlatList

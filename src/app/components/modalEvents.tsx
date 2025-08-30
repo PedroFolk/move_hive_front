@@ -21,7 +21,6 @@ import { CriarEvento } from "~/api/event";
 import { ListarEsportes } from "~/api/getSports";
 
 export interface ModalEvent {
-
   title: string;
   sport: string;
   description: string;
@@ -43,7 +42,6 @@ export interface ImagemEvento {
   type: string;
 }
 
-
 interface Props {
   visible: boolean;
   defaultSport: string;
@@ -54,10 +52,18 @@ const InfoTooltip = ({ message }: { message: string }) => {
   const [visible, setVisible] = useState(false);
   return (
     <>
-      <TouchableOpacity onPress={() => setVisible(true)} style={{ marginLeft: 6 }}>
+      <TouchableOpacity
+        onPress={() => setVisible(true)}
+        style={{ marginLeft: 6 }}
+      >
         <MaterialIcons name="help-outline" size={20} color="gray" />
       </TouchableOpacity>
-      <Modal transparent visible={visible} animationType="fade" onRequestClose={() => setVisible(false)}>
+      <Modal
+        transparent
+        visible={visible}
+        animationType="fade"
+        onRequestClose={() => setVisible(false)}
+      >
         <TouchableOpacity
           className="flex-1  bg-opacity-30 justify-center items-center p-5"
           activeOpacity={1}
@@ -92,7 +98,6 @@ const EventCreationModal: React.FC<Props> = ({
     [esportes, setEsportes] = useState<any[]>([]),
     [showDatePicker, setShowDatePicker] = useState(false),
     [showTimePicker, setShowTimePicker] = useState(false);
-
 
   useEffect(() => {
     if (visible) {
@@ -142,7 +147,6 @@ const EventCreationModal: React.FC<Props> = ({
     }
 
     const result = await CriarEvento(
-
       title,
       description,
       sport,
@@ -173,7 +177,6 @@ const EventCreationModal: React.FC<Props> = ({
         imageUri: image?.uri,
         prize: premiacao,
         observacoes: observacao,
-
       });
       onClose();
     }
@@ -282,7 +285,9 @@ const EventCreationModal: React.FC<Props> = ({
                         className="border border-neutral-600 rounded-xl p-2"
                         onPress={() => setShowDatePicker(true)}
                       >
-                        <Text className="text-white">{date.toLocaleDateString("pt-BR")}</Text>
+                        <Text className="text-white">
+                          {date.toLocaleDateString("pt-BR")}
+                        </Text>
                       </TouchableOpacity>
                       {showDatePicker && (
                         <DateTimePicker
@@ -320,7 +325,6 @@ const EventCreationModal: React.FC<Props> = ({
                     </View>
                   </View>
                 ) : (
-                 
                   <View className="flex-1 flex-row justify-around ">
                     <View className="items-center mb-1">
                       <Text className="text-gray-300 text-xl mb-1">Data</Text>
@@ -341,10 +345,6 @@ const EventCreationModal: React.FC<Props> = ({
                     </View>
                   </View>
                 )}
-
-
-
-
               </View>
 
               <Text className="text-gray-300 mb-1 text-xl">Premiação</Text>
@@ -404,8 +404,6 @@ const EventCreationModal: React.FC<Props> = ({
                 </View>
                 <Switch value={isPrivate} onValueChange={setIsPrivate} />
               </View>
-
-
 
               <TouchableOpacity
                 className="rounded-xl p-4 mt-6 bg-yellow-500"

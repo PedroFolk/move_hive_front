@@ -234,3 +234,23 @@ export const AtualizarUsuario = async (
     return { erro: error.message ?? "Erro desconhecido ao editar usuário." };
   }
 };
+
+export const TodosPerfis = async () => {
+  const token = await getToken();
+  try {
+    const response = await fetch(`${API_URL}/usuario/usuariosSemFiltro`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) throw new Error(`Erro ${response.status}`);
+    const data = await response.json();
+    return data.usuarios || [];
+  } catch (error) {
+    console.error("Erro ao buscar sugestões de perfis:", error);
+    return [];
+  }
+};

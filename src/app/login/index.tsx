@@ -1,7 +1,7 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router } from "expo-router";
 import "../../../global.css";
-import TextField from "../components/fields"; 
+import TextField from "../components/fields";
 import { useEffect, useState } from "react";
 import {
   View,

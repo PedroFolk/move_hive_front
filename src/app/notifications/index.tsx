@@ -46,9 +46,9 @@ export default function Notifications() {
         <View
             className={`p-4 mb-2 rounded-lg flex-row items-start`}
             style={{
-                backgroundColor: item.lida ? "#2c2c2c" : "#4c1d95", // roxo escuro para não lidas, cinza para lidas
-                borderLeftWidth: item.lida ? 0 : 4, // borda lateral para não lidas
-                borderLeftColor: item.lida ? "transparent" : "#f87171", // vermelho para destaque
+                backgroundColor: item.lida ? "#2c2c2c" : "#4c1d95", 
+                borderLeftWidth: item.lida ? 0 : 4, 
+                borderLeftColor: item.lida ? "transparent" : "#f87171", 
             }}
         >
             <MaterialCommunityIcons
@@ -60,7 +60,7 @@ export default function Notifications() {
             <View className="flex-1">
                 <Text
                     style={{
-                        fontWeight: item.lida ? "normal" : "bold", // negrito se não lida
+                        fontWeight: item.lida ? "normal" : "bold", 
                         color: "white",
                     }}
                 >

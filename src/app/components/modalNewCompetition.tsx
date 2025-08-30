@@ -45,38 +45,24 @@ export default function ModalNewCompetition({
       onRequestClose={onCancel}
     >
       <View >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-         
-        >
-          <Text
-            
-       
-          >
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+          <Text>
             Nova Competição
           </Text>
-
           <TextInput
             placeholder="Nome da competição"
             placeholderTextColor={"#888"}
             value={name}
             onChangeText={setName}
-           
           />
 
           <View >
-            <TouchableOpacity
-              onPress={onCancel}
-              
-            >
+            <TouchableOpacity onPress={onCancel}>
               <Text>
                 Cancelar
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleSave}
-             
-            >
+            <TouchableOpacity onPress={handleSave}>
               <Text >Salvar</Text>
             </TouchableOpacity>
           </View>

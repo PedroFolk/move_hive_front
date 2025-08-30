@@ -83,7 +83,7 @@ const ModalNewPost: React.FC<ModalNewPostProps> = ({
 
                             {imagem ? (
                                 <TouchableOpacity
-                                    onPress={abrirGaleria} 
+                                    onPress={abrirGaleria}
                                     style={{ width: "100%", height: 200, borderRadius: 12 }}
                                 >
                                     <Image

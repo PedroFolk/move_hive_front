@@ -251,7 +251,6 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
                     </Text>
                   </TouchableOpacity>
 
-                  {/* Picker Modal */}
                   <Modal visible={pickerVisible} transparent animationType="slide">
                     <View className="flex-1 justify-center bg-black/60">
                       <View className="bg-neutral-900 mx-4 rounded-xl p-4">
