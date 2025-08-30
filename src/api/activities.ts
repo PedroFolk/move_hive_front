@@ -49,7 +49,6 @@ export const PostarTreino = async (treino: {
         type: treino.imagem.type,
       } as any);
     }
-    console.log(formData);
     const response = await fetch(`${API_URL}/treino/AdicionarTreino`, {
       method: "POST",
       headers: {

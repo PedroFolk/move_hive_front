@@ -106,7 +106,7 @@ const EventCreationModal: React.FC<Props> = ({
       setCity("");
       setState("");
       setDescription("");
-      setMaxParticipants(Number);
+      setMaxParticipants(0);
       setIsTournament(false);
       setIsPrivate(false);
       setDate(new Date());
@@ -140,27 +140,37 @@ const EventCreationModal: React.FC<Props> = ({
     }
   };
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const handleSave = async () => {
+    if (isSaving) return;
     if (!title.trim() || !sport || !city.trim() || !state.trim()) {
       alert("Preencha todos os campos obrigatórios.");
       return;
     }
 
-    const result = await CriarEvento(
-      title,
-      description,
-      sport,
-      date,
-      `${city} - ${state}`,
-      maxParticipants,
-      isTournament,
-      premiacao,
-      isPrivate,
-      observacao,
-      image
-    );
+    setIsSaving(true);
 
-    if (result) {
+    try {
+      const result = await CriarEvento(
+        title,
+        description,
+        sport,
+        date,
+        `${city} - ${state}`,
+        maxParticipants,
+        isTournament,
+        premiacao,
+        isPrivate,
+        observacao,
+        image
+      );
+
+      if (!result) {
+        alert("Não foi possível criar seu evento. Tente novamente.");
+        return;
+      }
+
       onSave({
         title,
         sport,
@@ -178,9 +188,16 @@ const EventCreationModal: React.FC<Props> = ({
         prize: premiacao,
         observacoes: observacao,
       });
+
       onClose();
+    } catch (error) {
+      alert("Não foi possível criar seu evento. Tente novamente.");
+    } finally {
+      setIsSaving(false);
     }
   };
+
+
 
   return (
     <Modal
@@ -406,11 +423,12 @@ const EventCreationModal: React.FC<Props> = ({
               </View>
 
               <TouchableOpacity
-                className="rounded-xl p-4 mt-6 bg-yellow-500"
+                className={`rounded-xl p-4 mt-6 ${isSaving ? "bg-gray-500" : "bg-yellow-500"}`}
                 onPress={handleSave}
+                disabled={isSaving}
               >
                 <Text className="text-center text-xl font-semibold text-black">
-                  Salvar
+                  {isSaving ? "Salvando..." : "Salvar"}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity

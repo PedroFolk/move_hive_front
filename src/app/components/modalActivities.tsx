@@ -66,6 +66,7 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
   const [minutoSelecionado, setMinutoSelecionado] = useState(0);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const horas = Array.from({ length: 10 }, (_, i) => i);
   const minutos = Array.from({ length: 60 }, (_, i) => i);
@@ -118,6 +119,7 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
       alert("Preencha todos os campos obrigatórios.");
       return;
     }
+    setIsSaving(true);
 
     const treino = {
       id: Date.now().toString(),
@@ -162,6 +164,8 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
     } catch (error) {
       console.error(error);
       alert("Ocorreu um erro ao salvar o treino.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -350,7 +354,7 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
                       </View>
                     </View>
                   ) : (
-             
+
                     <View className="flex-row justify-around mt-4 mb-4">
                       <View className="items-center mb-1">
                         <Text className="text-gray-300 mb-1 text-xl ">Data</Text>
@@ -380,13 +384,17 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
               </TouchableWithoutFeedback>
 
               <TouchableOpacity
-                className="rounded-xl p-4 mb-4 bg-yellow-500 border-yellow-500 mt-10"
+                className={`rounded-xl p-4 mb-4 mt-10 ${isSaving ? "bg-gray-600" : "bg-yellow-500 border-yellow-500"
+                  }`}
                 onPress={handleSave}
+                disabled={isSaving}
               >
-                <Text className="text-center text-xl font-semibold text-black">Continuar</Text>
+                <Text className="text-center text-xl font-semibold text-black">
+                  {isSaving ? "Salvando..." : "Continuar"}
+                </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity className="rounded-xl p-4 mb-4" onPress={onClose}>
+              <TouchableOpacity className="rounded-xl p-4 mb-4" onPress={onClose} disabled={isSaving}>
                 <Text className="text-center text-xl font-semibold text-white">Cancelar</Text>
               </TouchableOpacity>
             </ScrollView>

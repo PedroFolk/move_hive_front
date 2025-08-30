@@ -96,74 +96,6 @@ export default function Events() {
     fetchData();
   }, [selectedCategory]);
 
-  const handleParticipation = async (event: Event) => {
-    if (!event.id || !userId) return;
-    const isParticipated = event.participantes?.some((p) => p.id === userId);
-
-    if (!isParticipated) {
-      const result = await ParticiparEvento(event.id);
-      if (result) {
-        Alert.alert("Sucesso", "Inscrição realizada!");
-        updateParticipants(event.id, true);
-      } else Alert.alert("Erro", "Não foi possível se inscrever.");
-    } else {
-      Alert.alert(
-        "Cancelar participação",
-        "Deseja realmente cancelar sua participação?",
-        [
-          { text: "Não", style: "cancel" },
-          {
-            text: "Sim",
-            style: "destructive",
-            onPress: async () => {
-              const result = await CancelarParticipacao(event.id!);
-              if (result) {
-                Alert.alert("Sucesso", "Participação cancelada!");
-                updateParticipants(event.id, false);
-              } else Alert.alert("Erro", "Não foi possível cancelar.");
-            },
-          },
-        ]
-      );
-    }
-  };
-
-  const updateParticipants = (eventId: string, add: boolean) => {
-    const update = (list: Event[]) =>
-      list.map((ev) =>
-        ev.id === eventId
-          ? {
-            ...ev,
-            participantes: add
-              ? [...(ev.participantes || []), { id: userId! }]
-              : ev.participantes?.filter((p) => p.id !== userId) || [],
-          }
-          : ev
-      );
-
-    setEvents((prev) => update(prev));
-    setTournaments((prev) => update(prev));
-  };
-
-  const handleDelete = (id: string) => {
-    Alert.alert("Confirmar exclusão", "Deseja realmente excluir este evento?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Excluir",
-        style: "destructive",
-        onPress: async () => {
-          const result = await DeletarEvento(id);
-          if (result) {
-            setEvents((prev) => prev.filter((ev) => ev.id !== id));
-            setTournaments((prev) => prev.filter((t) => t.id !== id));
-            Alert.alert("Sucesso", "Evento deletado com sucesso!");
-          } else {
-            Alert.alert("Erro", "Não foi possível deletar o evento.");
-          }
-        },
-      },
-    ]);
-  };
   const handleParticipate = async (item: Event) => {
     if (!item.id || !userId) return;
 
@@ -186,6 +118,25 @@ export default function Events() {
     }
   };
 
+  const handleDelete = (id: string) => {
+    Alert.alert("Confirmar exclusão", "Deseja realmente excluir este evento?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Excluir",
+        style: "destructive",
+        onPress: async () => {
+          const result = await DeletarEvento(id);
+          if (result) {
+            setEvents(prev => prev.filter(ev => ev.id !== id));
+            setTournaments(prev => prev.filter(t => t.id !== id));
+            Alert.alert("Sucesso", "Evento deletado com sucesso!");
+          } else {
+            Alert.alert("Erro", "Não foi possível deletar o evento.");
+          }
+        },
+      },
+    ]);
+  };
 
   const renderItem = ({ item }: { item: Event }) => (
     <EventCard
@@ -195,40 +146,48 @@ export default function Events() {
       onDelete={() => handleDelete(item.id!)}
       onParticipate={() => handleParticipate(item)}
     />
-
   );
 
   const currentData = selectedCategory === "Torneios" ? tournaments : events;
 
   return (
     <SafeAreaView className="w-full h-full ">
+ 
       <View className="px-4 pt-4 flex-row justify-between items-center">
-        <Text className="text-white text-2xl font-bold">
-          {selectedCategory}
-        </Text>
+        <Text className="text-white text-2xl font-bold">{selectedCategory}</Text>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-4  ">
+  
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-4">
         {TYPES.map((cat) => (
           <TouchableOpacity
             key={cat}
             onPress={() => setSelectedCategory(cat)}
-            className={`mb-2 mr-2 px-6 h-10 justify-center items-center rounded-full border ${selectedCategory === cat ? "bg-white border-transparent" : "border-gray-500 border-2"
-              }`}
+            className={`mb-2 mr-2 px-6 h-10 justify-center items-center rounded-full border ${
+              selectedCategory === cat
+                ? "bg-white border-transparent"
+                : "border-gray-500 border-2"
+            }`}
           >
-            <Text className={`text-sm font-medium ${selectedCategory === cat ? "text-black" : "text-gray-300"}`}>
+            <Text
+              className={`text-sm font-medium ${
+                selectedCategory === cat ? "text-black" : "text-gray-300"
+              }`}
+            >
               {cat}
             </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
+
       <FlatList
         data={currentData}
         keyExtractor={(item) => item.id!}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
+        className="flex-1 mt-4"
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120, paddingTop: 0 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchData} />}
         ListEmptyComponent={() => (
           <View className="flex-1 items-center mt-10">
@@ -239,8 +198,16 @@ export default function Events() {
         )}
       />
 
+
       <AddButton onPress={() => setShowModal(true)} />
-      <EventCreationModal visible={showModal} onClose={() => setShowModal(false)} onSave={fetchData} defaultSport="" />
+
+ 
+      <EventCreationModal
+        visible={showModal}
+        onClose={() => setShowModal(false)}
+        onSave={fetchData}
+        defaultSport=""
+      />
     </SafeAreaView>
   );
 }

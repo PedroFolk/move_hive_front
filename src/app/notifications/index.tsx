@@ -28,6 +28,7 @@ export default function Notifications() {
     const fetchData = useCallback(async () => {
         setRefreshing(true);
         const data = await ListarNofificacao();
+        console.log(data)
         if (data) setNotificacoes(data);
 
         if (data) {
@@ -44,23 +45,18 @@ export default function Notifications() {
 
     const renderItem = ({ item }: { item: Notificacao }) => (
         <View
-            className={`p-4 mb-2 rounded-lg flex-row items-start`}
+            className={`p-4 mb-2 rounded-lg flex-row items-center`}
             style={{
-                backgroundColor: item.lida ? "#2c2c2c" : "#4c1d95", 
-                borderLeftWidth: item.lida ? 0 : 4, 
-                borderLeftColor: item.lida ? "transparent" : "#f87171", 
+                backgroundColor: item.lida ? "#2c2c2c" : "#4c1d95",
+                borderLeftWidth: item.lida ? 0 : 4,
+                borderLeftColor: item.lida ? "transparent" : "#f87171",
             }}
         >
-            <MaterialCommunityIcons
-                name="bell-ring-outline"
-                size={24}
-                color="white"
-                style={{ marginRight: 12 }}
-            />
+
             <View className="flex-1">
                 <Text
                     style={{
-                        fontWeight: item.lida ? "normal" : "bold", 
+                        fontWeight: item.lida ? "normal" : "bold",
                         color: "white",
                     }}
                 >
@@ -69,9 +65,18 @@ export default function Notifications() {
                 <Text className="text-gray-400 text-sm mt-1">
                     {new Date(item.data_criacao).toLocaleString("pt-BR")}
                 </Text>
+
             </View>
+            <MaterialCommunityIcons
+                name={item.tipo === "seguindo" ? "account-outline" : "bell-ring-outline"}
+                size={32}
+                color="white"
+                style={{ marginLeft: 12 }}
+                className="items-center justify-center "
+            />
         </View>
     );
+
 
 
     return (

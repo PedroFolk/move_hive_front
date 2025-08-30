@@ -106,7 +106,7 @@ export default function Login() {
                 Cadastrar-se
               </Text>
             </TouchableOpacity>
-
+{/* 
             <View className="mt-10 flex flex-row items-center gap-5">
               <View
                 className={`h-1 flex-1 rounded-full ${colors.separator} `}
@@ -118,11 +118,11 @@ export default function Login() {
             <TouchableOpacity
               className={`mt-10 flex flex-row items-center gap-5 rounded-2xl bg-neutral-600 p-2 `}
             >
-              {/* <AntDesign name="google" size={48} color="gray" />
+              <AntDesign name="google" size={48} color="gray" />
               <Text className=" text-2xl font-bold text-white">
                 Entrar com Google
-              </Text> */}
-            </TouchableOpacity>
+              </Text>
+            </TouchableOpacity> */}
           </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>

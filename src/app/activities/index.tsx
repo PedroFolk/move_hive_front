@@ -8,6 +8,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  RefreshControl, // 👈 importar aqui
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AddActivityModal, { ModalActivity } from "../components/modalActivities";
@@ -32,31 +33,40 @@ const ActivitiesScreen = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [categories, setCategories] = useState<{ label: string; value: string }[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false); 
+
+  const carregarTreinos = async () => {
+    const treinos = await ListarTreinos();
+    const formatted: Activity[] = (treinos || []).map((t: any) => ({
+      id: t.id,
+      titulo: t.titulo,
+      descricao: t.descricao,
+      nome_esporte: t.esporte.nome,
+      data_hora: t.data_hora,
+      lugar: t.lugar,
+      tempo_treinado: t.tempo_treinado,
+      arquivo_imagem: t.arquivo_imagem || "",
+      pontos: t.pontos,
+    }));
+    setActivities(formatted);
+
+    const esportes = await ListarEsportes();
+    const categoriasAtivas = esportes
+      .filter((e: any) => formatted.some((a) => a.nome_esporte === e.value))
+      .map((e: any) => ({ label: e.label, value: e.value }));
+
+    setCategories([{ label: "Tudo", value: "Tudo" }, ...categoriasAtivas]);
+  };
 
   useEffect(() => {
-    (async () => {
-      const treinos = await ListarTreinos();
-      const formatted: Activity[] = (treinos || []).map((t: any) => ({
-        id: t.id,
-        titulo: t.titulo,
-        descricao: t.descricao,
-        nome_esporte: t.esporte.nome,
-        data_hora: t.data_hora,
-        lugar: t.lugar,
-        tempo_treinado: t.tempo_treinado,
-        arquivo_imagem: t.arquivo_imagem || "",
-        pontos: t.pontos
-      }));
-      setActivities(formatted);
-
-      const esportes = await ListarEsportes();
-      const categoriasAtivas = esportes
-        .filter((e: any) => formatted.some((a) => a.nome_esporte === e.value))
-        .map((e: any) => ({ label: e.label, value: e.value }));
-
-      setCategories([{ label: "Tudo", value: "Tudo" }, ...categoriasAtivas]);
-    })();
+    carregarTreinos();
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await carregarTreinos();
+    setRefreshing(false);
+  };
 
   const handleDelete = (id: string) => {
     Alert.alert(
@@ -91,7 +101,7 @@ const ActivitiesScreen = () => {
       lugar: m.location,
       tempo_treinado: m.tempoTreinado,
       arquivo_imagem: m.fotoUri || "",
-      pontos: m.pontos
+      pontos: m.pontos,
     };
     setActivities((prev) => [newAct, ...prev]);
     setModalVisible(false);
@@ -108,8 +118,11 @@ const ActivitiesScreen = () => {
     }, {});
 
   const sortedDates = Object.keys(groupedActivities).sort(
-    (a, b) => new Date(b.split("/").reverse().join("-")).getTime() - new Date(a.split("/").reverse().join("-")).getTime()
+    (a, b) =>
+      new Date(b.split("/").reverse().join("-")).getTime() -
+      new Date(a.split("/").reverse().join("-")).getTime()
   );
+
   const formatTempoTreinado = (minutos: number) => {
     const h = Math.floor(minutos / 60);
     const m = minutos % 60;
@@ -119,22 +132,32 @@ const ActivitiesScreen = () => {
     return result || "0min";
   };
 
-
   return (
     <SafeAreaView className="h-full w-full">
       <View className="px-4 pt-4 flex-row justify-between items-center">
         <Text className="text-white text-2xl font-bold">Minhas Atividades</Text>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-4 max-h-14">
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        className="px-4 mt-4 max-h-14"
+      >
         {categories.map((cat, index) => (
           <TouchableOpacity
             key={`${cat.value}-${index}`}
             onPress={() => setSelectedCategory(cat.value)}
-            className={`mr-2 px-6 h-10 justify-center items-center rounded-full border ${selectedCategory === cat.value ? "bg-white border-transparent" : "border-gray-500 border-2"
-              }`}
+            className={`mr-2 px-6 h-10 justify-center items-center rounded-full border ${
+              selectedCategory === cat.value
+                ? "bg-white border-transparent"
+                : "border-gray-500 border-2"
+            }`}
           >
-            <Text className={`text-sm font-medium ${selectedCategory === cat.value ? "text-black" : "text-gray-300"}`}>
+            <Text
+              className={`text-sm font-medium ${
+                selectedCategory === cat.value ? "text-black" : "text-gray-300"
+              }`}
+            >
               {cat.label}
             </Text>
           </TouchableOpacity>
@@ -146,13 +169,24 @@ const ActivitiesScreen = () => {
         keyExtractor={(date) => date}
         showsVerticalScrollIndicator={false}
         className="mt-0 flex-1 mb-20"
+        refreshControl={ 
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         renderItem={({ item: date }) => (
           <View className="mb-6">
-            <Text className="text-white text-lg font-bold px-4 py-2 rounded-lg mb-2">{date}</Text>
+            <Text className="text-white text-lg font-bold px-4 py-2 rounded-lg mb-2">
+              {date}
+            </Text>
             {groupedActivities[date].map((act) => {
-              const time = new Date(act.data_hora).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+              const time = new Date(act.data_hora).toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
               return (
-                <View key={act.id} className="mx-4 mb-4 p-4 border-2 border-neutral-600 rounded-2xl bg-neutral-900 flex flex-row">
+                <View
+                  key={act.id}
+                  className="mx-4 mb-4 p-4 border-2 border-neutral-600 rounded-2xl bg-neutral-900 flex flex-row"
+                >
                   {act.arquivo_imagem ? (
                     <Image
                       source={{ uri: act.arquivo_imagem }}
@@ -161,19 +195,28 @@ const ActivitiesScreen = () => {
                     />
                   ) : (
                     <View className="w-40 h-40 mr-3 bg-neutral-600 justify-center items-center rounded-2xl">
-                      <Text className="text-white font-bold text-2xl">{act.titulo[0].toUpperCase()}</Text>
+                      <Text className="text-white font-bold text-2xl">
+                        {act.titulo[0].toUpperCase()}
+                      </Text>
                     </View>
                   )}
 
                   <View className="flex-1 justify-between">
-                    <Text className="text-white text-lg font-semibold mb-1">{act.titulo}</Text>
-                    <TouchableOpacity onPress={() => handleDelete(act.id)} className="absolute top-2 right-2 p-1">
+                    <Text className="text-white text-lg font-semibold mb-1">
+                      {act.titulo}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => handleDelete(act.id)}
+                      className="absolute top-2 right-2 p-1"
+                    >
                       <Ionicons name="trash-outline" size={20} color="#FF4D4F" />
                     </TouchableOpacity>
 
                     <View className="flex-row mb-2">
                       <Text className="text-gray-400 ">{time}</Text>
-                      <Text className="text-gray-400 ml-10">{formatTempoTreinado(act.tempo_treinado)}</Text>
+                      <Text className="text-gray-400 ml-10">
+                        {formatTempoTreinado(act.tempo_treinado)}
+                      </Text>
                     </View>
 
                     <View className="flex-row mb-2 justify-between">
@@ -184,13 +227,11 @@ const ActivitiesScreen = () => {
                       </View>
                     </View>
 
-
-                    <View className=" border-2 border-yellow-500 p-2 rounded-2xl justify-center items-center text-center ">
+                    <View className="border-2 border-yellow-500 p-2 rounded-2xl justify-center items-center text-center ">
                       <Text className="text-yellow-500 font-semibold">
                         {act.pontos.toFixed(0)}
                       </Text>
                     </View>
-
                   </View>
                 </View>
               );
@@ -203,9 +244,16 @@ const ActivitiesScreen = () => {
 
       <AddActivityModal
         visible={modalVisible}
-        defaultCategory={selectedCategory === "Tudo" && categories.length > 1 ? categories[1].value : selectedCategory}
+        defaultCategory={
+          selectedCategory === "Tudo" && categories.length > 1
+            ? categories[1].value
+            : selectedCategory
+        }
         onSave={handleSaveActivity}
-        onClose={() => setModalVisible(false)}
+        onClose={async () => {
+          setModalVisible(false);
+          await carregarTreinos();
+        }}
       />
     </SafeAreaView>
   );

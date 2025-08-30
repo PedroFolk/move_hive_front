@@ -75,7 +75,7 @@ const ModalNewPost: React.FC<ModalNewPostProps> = ({
                                     <Ionicons
                                         name={loading ? "time-outline" : "checkmark"}
                                         size={27}
-                                        className="bg-yellow-500 p-2 rounded-lg"
+                                        className="bg-yellow-500 p-2 rounded-lg mb-4"
                                         color="white"
                                     />
                                 </TouchableOpacity>
@@ -84,12 +84,18 @@ const ModalNewPost: React.FC<ModalNewPostProps> = ({
                             {imagem ? (
                                 <TouchableOpacity
                                     onPress={abrirGaleria}
-                                    style={{ width: "100%", height: 200, borderRadius: 12 }}
+                                    style={{
+                                        width: "100%",
+                                        height: 300,
+                                        borderRadius: 12,
+                                        marginBottom: 16,
+                                        overflow: "hidden",
+                                    }}
                                 >
                                     <Image
                                         source={{ uri: imagem.uri }}
-                                        style={{ width: "100%", height: "100%", borderRadius: 12 }}
-                                        resizeMode="cover"
+                                        style={{ width: "100%", height: "100%" }}
+                                        resizeMode="contain"
                                     />
                                 </TouchableOpacity>
                             ) : (
@@ -102,13 +108,14 @@ const ModalNewPost: React.FC<ModalNewPostProps> = ({
                                 </TouchableOpacity>
                             )}
 
+
                             <TextInput
                                 placeholder="Escreva uma legenda..."
                                 placeholderTextColor="#aaa"
                                 value={descricao}
                                 onChangeText={setDescricao}
                                 multiline
-                                className="text-white border border-neutral-600 rounded-md px-3 py-2 mt-4"
+                                className="text-white border border-neutral-600 rounded-2xl px-3 py-4 mt-4"
                                 style={{ minHeight: 60, textAlignVertical: "top" }}
                             />
                         </View>
