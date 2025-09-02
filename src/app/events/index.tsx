@@ -153,12 +153,12 @@ export default function Events() {
   return (
     <SafeAreaView className="w-full h-full ">
  
-      <View className="px-4 pt-4 flex-row justify-between items-center">
+      <View className="px-4 pt-4 flex-row ">
         <Text className="text-white text-2xl font-bold">{selectedCategory}</Text>
       </View>
 
   
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-4">
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-4 max-h-14">
         {TYPES.map((cat) => (
           <TouchableOpacity
             key={cat}
@@ -187,7 +187,7 @@ export default function Events() {
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
         className="flex-1 mt-4"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120, paddingTop: 0 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 0 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchData} />}
         ListEmptyComponent={() => (
           <View className="flex-1 items-center mt-10">

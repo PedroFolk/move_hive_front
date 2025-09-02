@@ -131,10 +131,10 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
       tempo_treinado: tempoTreinadoMinutos,
       imagem: foto
         ? {
-          uri: foto.uri,
-          name: foto.name,
-          type: foto.type,
-        }
+            uri: foto.uri,
+            name: foto.name,
+            type: foto.type,
+          }
         : undefined,
     };
 
@@ -155,7 +155,7 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
           fotoUri: foto?.uri,
           tempoTreinado: tempoTreinadoMinutos,
           descricao: "",
-          pontos: 0
+          pontos: 0,
         });
         onClose();
       } else {
@@ -173,7 +173,9 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
     <Modal visible={visible} transparent animationType="slide">
       <View className="bg-neutral-900 px-6 flex-1 py-safe justify-between">
         <SafeAreaView className="flex-1">
-          <Text className={`text-2xl font-bold text-center mt-4 mb-10 ${colors.textPrimaryButton}`}>
+          <Text
+            className={`text-2xl font-bold text-center mt-4 mb-10 ${colors.textPrimaryButton}`}
+          >
             Nova Atividade
           </Text>
 
@@ -181,11 +183,17 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             className="flex-1 h-full w-full"
           >
-            <ScrollView contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              contentContainerStyle={{ paddingBottom: 20 }}
+              showsVerticalScrollIndicator={false}
+            >
               <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <View className="flex-1">
                   <View className="flex-row mb-10 ">
-                    <View className="justify-center border-2 border-neutral-600 rounded-2xl h-32 w-32 ">
+                    <TouchableOpacity
+                      className="justify-center border-2 border-neutral-600 rounded-2xl h-32 w-32 "
+                      onPress={abrirGaleria}
+                    >
                       {!foto ? (
                         <TouchableOpacity
                           className="flex-row items-center justify-center mx-10 my-4"
@@ -205,7 +213,7 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
                           />
                         </TouchableOpacity>
                       )}
-                    </View>
+                    </TouchableOpacity>
 
                     <TextInput
                       className="flex-1 text-start items-start border-2 rounded-2xl border-neutral-600 p-2 text-lg text-white ml-3"
@@ -245,7 +253,9 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
                     selectedTextStyle={{ color: "white", fontSize: 16 }}
                   />
 
-                  <Text className="text-gray-300 mb-1 text-xl">Tempo da atividade</Text>
+                  <Text className="text-gray-300 mb-1 text-xl">
+                    Tempo da atividade
+                  </Text>
                   <TouchableOpacity
                     className="border border-neutral-600 rounded-xl p-4 mb-4"
                     onPress={() => setPickerVisible(true)}
@@ -255,10 +265,16 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
                     </Text>
                   </TouchableOpacity>
 
-                  <Modal visible={pickerVisible} transparent animationType="slide">
+                  <Modal
+                    visible={pickerVisible}
+                    transparent
+                    animationType="slide"
+                  >
                     <View className="flex-1 justify-center bg-black/60">
                       <View className="bg-neutral-900 mx-4 rounded-xl p-4">
-                        <Text className="text-white text-xl mb-2">Selecione o tempo</Text>
+                        <Text className="text-white text-xl mb-2">
+                          Selecione o tempo
+                        </Text>
                         <View className="flex-row justify-between">
                           <Picker
                             selectedValue={horaSelecionada}
@@ -284,14 +300,18 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
                           className="bg-yellow-500 p-3 rounded-xl mt-4"
                           onPress={confirmarTempo}
                         >
-                          <Text className="text-center text-black font-semibold text-lg">Confirmar</Text>
+                          <Text className="text-center text-black font-semibold text-lg">
+                            Confirmar
+                          </Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
                           className="mt-2 p-3"
                           onPress={() => setPickerVisible(false)}
                         >
-                          <Text className="text-center text-white text-lg">Cancelar</Text>
+                          <Text className="text-center text-white text-lg">
+                            Cancelar
+                          </Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -309,12 +329,16 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
                   {Platform.OS === "android" ? (
                     <View className="flex-row justify-around mt-4 mb-4">
                       <View className="items-center mb-1">
-                        <Text className="text-gray-300 mb-1 text-xl ">Data</Text>
+                        <Text className="text-gray-300 mb-1 text-xl ">
+                          Data
+                        </Text>
                         <TouchableOpacity
                           className="border border-neutral-600 rounded-xl p-2"
                           onPress={() => setShowDatePicker(true)}
                         >
-                          <Text className="text-white">{date.toLocaleDateString("pt-BR")}</Text>
+                          <Text className="text-white">
+                            {date.toLocaleDateString("pt-BR")}
+                          </Text>
                         </TouchableOpacity>
                         {showDatePicker && (
                           <DateTimePicker
@@ -354,15 +378,18 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
                       </View>
                     </View>
                   ) : (
-
                     <View className="flex-row justify-around mt-4 mb-4">
                       <View className="items-center mb-1">
-                        <Text className="text-gray-300 mb-1 text-xl ">Data</Text>
+                        <Text className="text-gray-300 mb-1 text-xl ">
+                          Data
+                        </Text>
                         <DateTimePicker
                           timeZoneName="pt-br"
                           mode="date"
                           value={date}
-                          onChange={(_, selected) => selected && setDate(selected)}
+                          onChange={(_, selected) =>
+                            selected && setDate(selected)
+                          }
                         />
                       </View>
 
@@ -373,19 +400,20 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
                           mode="time"
                           is24Hour
                           value={date}
-                          onChange={(_, selected) => selected && setDate(selected)}
+                          onChange={(_, selected) =>
+                            selected && setDate(selected)
+                          }
                         />
                       </View>
                     </View>
                   )}
-
-
                 </View>
               </TouchableWithoutFeedback>
 
               <TouchableOpacity
-                className={`rounded-xl p-4 mb-4 mt-10 ${isSaving ? "bg-gray-600" : "bg-yellow-500 border-yellow-500"
-                  }`}
+                className={`rounded-xl p-4 mb-4 mt-10 ${
+                  isSaving ? "bg-gray-600" : "bg-yellow-500 border-yellow-500"
+                }`}
                 onPress={handleSave}
                 disabled={isSaving}
               >
@@ -394,8 +422,14 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity className="rounded-xl p-4 mb-4" onPress={onClose} disabled={isSaving}>
-                <Text className="text-center text-xl font-semibold text-white">Cancelar</Text>
+              <TouchableOpacity
+                className="rounded-xl p-4 mb-4"
+                onPress={onClose}
+                disabled={isSaving}
+              >
+                <Text className="text-center text-xl font-semibold text-white">
+                  Cancelar
+                </Text>
               </TouchableOpacity>
             </ScrollView>
           </KeyboardAvoidingView>

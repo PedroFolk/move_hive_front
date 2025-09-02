@@ -28,7 +28,7 @@ export default function Notifications() {
     const fetchData = useCallback(async () => {
         setRefreshing(true);
         const data = await ListarNofificacao();
-        console.log(data)
+        
         if (data) setNotificacoes(data);
 
         if (data) {
