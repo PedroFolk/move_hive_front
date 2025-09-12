@@ -6,16 +6,21 @@ import {
   TouchableOpacity,
   FlatList,
   RefreshControl,
-  Modal,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
-import { ListarDadosPerfil } from "~/api/user";
-import { ExcluirPost, ListarPostProprios } from "~/api/feed";
+import { router, useLocalSearchParams } from "expo-router";
+import {
+  ListarDadosPerfil,
+  PararDeSeguirUsuario,
+  SeguirUsuario,
+  UsuarioAlheio,
+  UsuariosSeguidos,
+} from "~/api/user";
+import { ExcluirPost, ListarPostProprios, PostUsuarioAlheio } from "~/api/feed";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import PostModal from "../components/modalPosts";
-
 
 type PerfilProps = {
   userId?: string;
@@ -23,31 +28,145 @@ type PerfilProps = {
 };
 
 export default function Perfil({ userId, meuUserId }: PerfilProps) {
+  const params = useLocalSearchParams();
+  const userIdString = userId || (params.userId as string | undefined);
+  const isMeuPerfil = !userIdString || userIdString === meuUserId;
+
   const [perfil, setPerfil] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [posts, setPosts] = useState<any[]>([]);
   const [postSelecionado, setPostSelecionado] = useState<any>(null);
   const [modalPostVisible, setModalPostVisible] = useState(false);
   const [descricaoSelecionado, setDescricaoSelecionad] = useState("");
-  const isMeuPerfil = !userId || userId === meuUserId;
+  const [jaSegue, setJaSegue] = useState<boolean>(false);
+  const [segLoading, setSegLoading] = useState<boolean>(false);
 
   const carregarPerfil = useCallback(async () => {
     setRefreshing(true);
-    let dados;
-    let postsApi;
+    try {
+      let dados: any = null;
+      let postsApi: any[] = [];
 
-    if (isMeuPerfil) {
-      dados = await ListarDadosPerfil();
-      postsApi = await ListarPostProprios();
-    } else {
-      // dados = await ListarDadosOutroPerfil(userId!);
-      // postsApi = await ListarPostOutroUsuario(userId!);
+      if (isMeuPerfil) {
+        dados = await ListarDadosPerfil();
+        const postsRaw = await ListarPostProprios();
+        postsApi = postsRaw.map(
+          (p: {
+            id: any;
+            imagem: any;
+            imagem_url: any;
+            conteudo: any;
+            descricao: any;
+          }, i: any) => ({
+            id: p.id || `post-${i}`,
+            imagem: p.imagem || p.imagem_url,
+            descricao: p.conteudo || p.descricao,
+          })
+        );
+      } else if (userIdString) {
+        const raw = await UsuarioAlheio(userIdString);
+        const postsRaw = await PostUsuarioAlheio(userIdString);
+        postsApi = postsRaw.map(
+          (p: {
+            id: any;
+            imagem: any;
+            imagem_url: any;
+            conteudo: any;
+            descricao: any;
+          }, i: any) => ({
+            id: p.id || `post-${i}`,
+            imagem: p.imagem || p.imagem_url || "",
+            descricao: p.conteudo || p.descricao || "",
+          })
+        );
+        dados = {
+          nome_completo: raw?.nome_completo || raw?.nome || "",
+          username:
+            raw?.username ||
+            raw?.nome?.split(" ")[0]?.toLowerCase() ||
+            "usuario",
+          foto_perfil: raw?.foto_perfil || null,
+          seguidores_count: raw?.seguidores_count || 0,
+          seguindo_count: raw?.seguindo_count || 0,
+          biografia: raw?.bio || raw?.biografia || "",
+          pontos: raw?.pontos || 0,
+          cidade: raw?.cidade || "",
+          estado: raw?.estado || "",
+        };
+
+        // Verifica se já segue chamando UsuariosSeguidos (proteção para userIdString)
+        try {
+          const seguidos = await UsuariosSeguidos(); // aqui vem um array de usuários
+
+          // confere se o id que você quer está dentro desse array
+          const usuarioJaSegue = Array.isArray(seguidos)
+            ? seguidos.some((u: any) => String(u.id) === String(userIdString))
+            : false;
+
+          setJaSegue(usuarioJaSegue);
+
+          setJaSegue(usuarioJaSegue);
+        } catch (e) {
+          // se der erro, mantém jaSegue = false e não bloqueia load
+          console.error("Erro ao verificar usuarios seguidos:", e);
+        }
+      }
+
+      setPerfil(dados);
+      setPosts(postsApi);
+    } catch (err) {
+      console.error("Erro ao carregar perfil:", err);
+    } finally {
+      setRefreshing(false);
     }
+  }, [isMeuPerfil, userIdString]);
 
-    if (dados) setPerfil(dados);
-    if (postsApi) setPosts(postsApi);
-    setRefreshing(false);
-  }, [userId]);
+  useEffect(() => {
+    carregarPerfil();
+  }, [carregarPerfil]);
+
+  const handleDelete = async () => {
+    if (!postSelecionado?.id) return;
+    await ExcluirPost(postSelecionado.id);
+    carregarPerfil();
+  };
+
+  const handleToggleSeguir = async () => {
+    if (!userIdString) return;
+    if (segLoading) return;
+
+    setSegLoading(true);
+    try {
+      if (jaSegue) {
+        await PararDeSeguirUsuario(userIdString);
+      } else {
+        await SeguirUsuario(userIdString);
+      }
+
+      const seguidos = await UsuariosSeguidos();
+      const usuarioJaSegue = Array.isArray(seguidos)
+        ? seguidos.some((u: any) => String(u.id) === String(userIdString))
+        : false;
+
+      setJaSegue(usuarioJaSegue);
+      setPerfil((prev: any) => {
+        if (!prev) return prev;
+        const prevCount = Number(prev.seguidores_count) || 0;
+        return {
+          ...prev,
+          seguidores_count: usuarioJaSegue
+            ? prevCount + (jaSegue ? 0 : 1) 
+            : prevCount - (jaSegue ? 1 : 0), 
+        };
+      });
+    } catch (err) {
+      console.error("Erro ao seguir/desseguir:", err);
+    } finally {
+      setSegLoading(false);
+    }
+  };
+
+
 
   const formatarPostsParaGrid = (posts: any[]) => {
     const resto = posts.length % 3;
@@ -59,25 +178,22 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
     return [...posts, ...placeholders];
   };
 
-  useEffect(() => {
-    carregarPerfil();
-  }, [userId]);
-
-  const handleDelete = async () => {
-    await ExcluirPost(postSelecionado.id);
-    carregarPerfil();
-  }
-
   if (!perfil) {
     return (
-      <View className="flex-1 items-center justify-center">
+      <View className="flex-1 items-center justify-center bg-neutral-800">
         <Text className="text-white">Carregando...</Text>
       </View>
     );
   }
 
   const Header = () => (
-    <View className="w-full py-4 px-6">
+    <View className="w-full py-4 px-6 bg-neutral-800">
+      {!isMeuPerfil && (
+        <TouchableOpacity className="mb-4" onPress={() => router.back()}>
+          <MaterialCommunityIcons name="arrow-left" size={28} color="white" />
+        </TouchableOpacity>
+      )}
+
       <View className="flex-row items-center justify-between">
         {perfil.foto_perfil ? (
           <Image
@@ -125,10 +241,26 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
-              className="border-2 border-yellow-500 rounded-2xl mt-4 py-2 bg-yellow-500"
-              onPress={() => console.log("Seguir usuário")}
+              className={`border-2 rounded-2xl mt-4 py-2 ${jaSegue ? "border-red-500 bg-red-500" : "border-yellow-500 bg-yellow-500"
+                }`}
+              onPress={handleToggleSeguir}
+              disabled={segLoading}
             >
-              <Text className="text-black text-center text-lg">Seguir</Text>
+              {segLoading ? (
+                <View className="flex-row items-center justify-center py-1 px-6">
+                  <ActivityIndicator />
+                  <Text className={`ml-2 ${jaSegue ? "text-white" : "text-black"}`}>
+                    {jaSegue ? "Deixar de seguir" : "Seguir"}
+                  </Text>
+                </View>
+              ) : (
+                <Text
+                  className={`text-center text-lg ${jaSegue ? "text-white" : "text-black"
+                    }`}
+                >
+                  {jaSegue ? "Deixar de seguir" : "Seguir"}
+                </Text>
+              )}
             </TouchableOpacity>
           )}
         </View>
@@ -137,27 +269,30 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
       <Text className="text-white text-lg font-bold mt-4">{perfil.nome_completo}</Text>
       <Text className="text-neutral-400 text-sm">@{perfil.username}</Text>
 
-      <View className="flex-row mt-1 items-center">
-        <MaterialCommunityIcons name="map-marker" size={16} color="gray" />
-        <Text className="text-neutral-400 ml-1">
-          {perfil.cidade}, {perfil.estado}
-        </Text>
-      </View>
+      {perfil.cidade && perfil.estado && (
+        <View className="flex-row mt-1 items-center">
+          <MaterialCommunityIcons name="map-marker" size={16} color="gray" />
+          <Text className="text-neutral-400 ml-1">
+            {perfil.cidade}, {perfil.estado}
+          </Text>
+        </View>
+      )}
 
       {perfil.biografia && (
         <Text className="text-neutral-300 mt-2">{perfil.biografia}</Text>
       )}
 
-  
-      <View className="w-full mt-4 items-center">
-        <TouchableOpacity className="flex-row items-center w-2/3 justify-between rounded-2xl border-2 border-yellow-500 bg-yellow-500 py-2 px-4">
-          <MaterialCommunityIcons name="trophy" size={24} color="black" />
-          <Text className="text-black font-semibold text-lg mx-2">
-            {perfil.pontos.toFixed(0)}
-          </Text>
-          <MaterialCommunityIcons name="trophy" size={24} color="black" />
-        </TouchableOpacity>
-      </View>
+      {perfil.pontos !== undefined && (
+        <View className="w-full mt-4 items-center">
+          <TouchableOpacity className="flex-row items-center w-2/3 justify-between rounded-2xl border-2 border-yellow-500 bg-yellow-500 py-2 px-4">
+            <MaterialCommunityIcons name="trophy" size={24} color="black" />
+            <Text className="text-black font-semibold text-lg mx-2">
+              {perfil.pontos.toFixed(0)}
+            </Text>
+            <MaterialCommunityIcons name="trophy" size={24} color="black" />
+          </TouchableOpacity>
+        </View>
+      )}
 
       <View className="mt-6 mb-2 h-1 w-full rounded-full bg-neutral-700" />
     </View>
@@ -168,7 +303,7 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
       <View className="flex-1" />
     ) : (
       <TouchableOpacity
-        className="flex-1 mx-1 "
+        className="flex-1 mx-1"
         onPress={() => {
           setPostSelecionado(item);
           setDescricaoSelecionad(item.descricao);
@@ -177,16 +312,15 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
       >
         <Image
           source={{ uri: item.imagem }}
-          className="rounded "
-          style={{ width: "100%", aspectRatio: 1}}
+          className="rounded"
+          style={{ width: "100%", aspectRatio: 1 }}
           resizeMode="cover"
         />
       </TouchableOpacity>
     );
 
-
   return (
-    <SafeAreaView className="w-full h-full">
+    <SafeAreaView className="w-full h-full bg-neutral-800">
       <FlatList
         data={formatarPostsParaGrid(posts)}
         keyExtractor={(item) => item.id}
@@ -198,28 +332,24 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
         }
         contentContainerStyle={{ paddingBottom: 20 }}
       />
+
       {postSelecionado && (
         <PostModal
           visible={modalPostVisible}
           onClose={() => setModalPostVisible(false)}
           post={postSelecionado}
-          onDelete={(postId) => {
-            Alert.alert(
-              "Apagar publicação",
-              "Deseja realmente apagar sua publicação?",
-              [
-                { text: "Não", style: "cancel" },
-                {
-                  text: "Sim",
-                  style: "destructive",
-                  onPress: async () => {
-                    await handleDelete()
-                    setModalPostVisible(false);
-                  },
+          onDelete={() => {
+            Alert.alert("Apagar publicação", "Deseja realmente apagar sua publicação?", [
+              { text: "Não", style: "cancel" },
+              {
+                text: "Sim",
+                style: "destructive",
+                onPress: async () => {
+                  await handleDelete();
+                  setModalPostVisible(false);
                 },
-              ]
-            );
-
+              },
+            ]);
           }}
           nome={perfil.username}
           foto_perfil={perfil.foto_perfil}
@@ -227,6 +357,5 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
         />
       )}
     </SafeAreaView>
-
   );
 }

@@ -254,3 +254,23 @@ export const TodosPerfis = async () => {
     return [];
   }
 };
+
+export const UsuarioAlheio = async (usuario_id: string) => {
+  const token = await getToken();
+  try {
+    const response = await fetch(`${API_URL}/usuario/${usuario_id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) throw new Error(`Erro ${response.status}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Erro ao buscar perfil alheio:", error);
+    return null;
+  }
+};

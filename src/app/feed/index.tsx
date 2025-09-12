@@ -129,9 +129,24 @@ export default function Feed() {
     }
   };
 
+
+  const irParaPerfil = (usuario_id: string) => {
+    router.push({
+      pathname: "/profile", // certifique-se que o arquivo é pages/perfil.tsx
+      params: { userId: usuario_id },
+    });
+
+  }
+
   const renderPost = ({ item }: { item: any }) => (
     <View className="mb-4 w-full bg-neutral-800 rounded-xl overflow-hidden">
-      <View className="flex-row items-center px-3 py-2">
+      <TouchableOpacity className="flex-row items-center px-3 py-2"
+        onPress={() => {
+          if (item.usuario?.id) {
+            irParaPerfil(item.usuario.id);
+          }
+        }}
+      >
         {item.usuario?.foto_perfil ? (
           <Image
             source={{ uri: item.usuario.foto_perfil }}
@@ -150,7 +165,7 @@ export default function Feed() {
         <Text className="font-bold text-sm text-white">
           @{item.usuario?.username || "usuario"}
         </Text>
-      </View>
+      </TouchableOpacity>
 
       {item.postagem?.imagem && (
         <Image

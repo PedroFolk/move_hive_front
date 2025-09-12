@@ -33,7 +33,7 @@ const ActivitiesScreen = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [categories, setCategories] = useState<{ label: string; value: string }[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [refreshing, setRefreshing] = useState(false); 
+  const [refreshing, setRefreshing] = useState(false);
 
   const carregarTreinos = async () => {
     const treinos = await ListarTreinos();
@@ -147,16 +147,14 @@ const ActivitiesScreen = () => {
           <TouchableOpacity
             key={`${cat.value}-${index}`}
             onPress={() => setSelectedCategory(cat.value)}
-            className={`mr-2 px-6 h-10 justify-center items-center rounded-full border ${
-              selectedCategory === cat.value
+            className={`mr-2 px-6 h-10 justify-center items-center rounded-full border ${selectedCategory === cat.value
                 ? "bg-white border-transparent"
                 : "border-gray-500 border-2"
-            }`}
+              }`}
           >
             <Text
-              className={`text-sm font-medium ${
-                selectedCategory === cat.value ? "text-black" : "text-gray-300"
-              }`}
+              className={`text-sm font-medium ${selectedCategory === cat.value ? "text-black" : "text-gray-300"
+                }`}
             >
               {cat.label}
             </Text>
@@ -169,7 +167,7 @@ const ActivitiesScreen = () => {
         keyExtractor={(date) => date}
         showsVerticalScrollIndicator={false}
         className="mt-0 flex-1 mb-20"
-        refreshControl={ 
+        refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         renderItem={({ item: date }) => (
@@ -221,12 +219,12 @@ const ActivitiesScreen = () => {
 
                     <View className="flex-row mb-2 justify-between">
                       <Text className="text-gray-400 ">{act.nome_esporte}</Text>
-                      <View className="flex-row items-center ">
-                        <Ionicons name="location-outline" size={14} color="#888" />
-                        <Text className="text-gray-400 ml-1">{act.lugar}</Text>
-                      </View>
-                    </View>
 
+                    </View>
+                    <View className="mb-4 flex-row items-center ">
+                      <Ionicons name="location-outline" size={14} color="#888" />
+                      <Text className="text-gray-400 ml-1">{act.lugar}</Text>
+                    </View>
                     <View className="border-2 border-yellow-500 p-2 rounded-2xl justify-center items-center text-center ">
                       <Text className="text-yellow-500 font-semibold">
                         {act.pontos.toFixed(0)}

@@ -23,6 +23,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Dropdown } from "react-native-element-dropdown";
 import ufCidadeJson from "../uf_cidade.json";
 import * as ImagePicker from "expo-image-picker";
+import { ListarEsportes } from "~/api/getSports";
 
 type ModalFirstTimeProps = {
   visible: boolean;
@@ -61,6 +62,11 @@ function getIconComponent(type: string) {
   return map[type] || AntDesign;
 }
 
+type EsporteAPI = {
+  label: string;
+  value: string;
+};
+
 export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirstTimeProps) {
   const [step, setStep] = useState(1);
   const [estado, setEstado] = useState("");
@@ -70,6 +76,7 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
   const [descricao, setDescricao] = useState("");
   const [esportes, setEsportes] = useState<Record<string, "iniciante" | "amador" | "profissional">>({});
   const [foto, setFoto] = useState<any | null>(null);
+  const [esportesAPI, setEsportesAPI] = useState<EsporteAPI[]>([]);
 
   useEffect(() => {
     if (ufCidadeJson?.estados) {
@@ -82,22 +89,30 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
     }
   }, []);
 
-const escolherFoto = async () => {
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: true,
-    quality: 0.7,
-  });
+  useEffect(() => {
+    const carregarEsportes = async () => {
+      const data = await ListarEsportes();
+      setEsportesAPI(data);
+    };
+    if (visible) carregarEsportes();
+  }, [visible]);
 
-  if (!result.canceled) {
-    const asset = result.assets[0];
-    setFoto({
-      uri: asset.uri,
-      type: asset.type === "image" ? "image/jpeg" : asset.type,
-      name: asset.fileName || "foto.jpg",
+  const escolherFoto = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.7,
     });
-  }
-};
+
+    if (!result.canceled) {
+      const asset = result.assets[0];
+      setFoto({
+        uri: asset.uri,
+        type: asset.type === "image" ? "image/jpeg" : asset.type,
+        name: asset.fileName || "foto.jpg",
+      });
+    }
+  };
 
 
   const handleEstadoChange = (ufSigla: string) => {
@@ -125,7 +140,7 @@ const escolherFoto = async () => {
 
   const handleFinalSubmit = async () => {
     console.log(foto);
-    Keyboard.dismiss(); 
+    Keyboard.dismiss();
     await onSubmit({
       biografia: descricao,
       cidade,
@@ -147,64 +162,70 @@ const escolherFoto = async () => {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View className="bg-neutral-800 rounded-lg p-6 flex-1 justify-between h-full">
           <SafeAreaView className="flex-1">
-  
+
             {step === 1 ? (
               <>
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
                   <Text className="text-white text-2xl text-center font-bold mb-20 mt-10">
                     Selecione seus esportes
                   </Text>
-                  <ScrollView style={{ maxHeight: 300 }}>
+                  <ScrollView className="mb-4" >
                     <View className="flex flex-row flex-wrap justify-between">
-                      {esportesList.map(({ key, label, iconType, iconName }) => {
-                        const IconComponent = getIconComponent(iconType);
+                      {esportesAPI.map(({ value, label }) => {
+                        const nivel = esportes[value];
                         return (
                           <TouchableOpacity
-                            key={key}
-                            className={`w-[30%] mb-4 border rounded p-2 items-center ${
-                              esportes[key] ? "border-blue-500 bg-blue-900" : "border-gray-700"
-                            }`}
-                            onPress={() => toggleEsporte(key)}
+                            key={value}
+                            className={`basis-[48%] mb-4 border rounded-2xl p-3 items-center ${nivel ? "border-blue-500 bg-blue-900" : "border-gray-700"
+                              }`}
+                            onPress={() => toggleEsporte(value)}
+                            activeOpacity={0.8}
                           >
-                            <View className="w-16 h-16 bg-gray-700 mb-2 justify-center items-center rounded">
-                              <IconComponent name={iconName as any} size={28} color="white" />
+                            <View className="w-16 h-16 bg-gray-700 mb-2 justify-center items-center rounded-xl">
+                              <Text className="text-white font-bold text-lg">{label[0]}</Text>
                             </View>
-                            <Text className="text-white">{label}</Text>
-                            {esportes[key] && (
+                            <Text className="text-white text-lg font-semibold">{label}</Text>
+
+                            {nivel && (
                               <TouchableOpacity
-                                onPress={() => changeNivel(key)}
-                                className="mt-1 bg-blue-600 px-2 rounded"
+                                onPress={() => changeNivel(value)}
+                                className={`mt-2 px-6 py-2 rounded-lg ${nivel === "iniciante"
+                                    ? "bg-green-600"
+                                    : nivel === "amador"
+                                      ? "bg-yellow-500"
+                                      : "bg-red-600"
+                                  }`}
+                                activeOpacity={0.7}
                               >
-                                <Text className="text-white text-xs">{esportes[key]}</Text>
+                                <Text className="text-white font-bold capitalize">{nivel}</Text>
                               </TouchableOpacity>
                             )}
                           </TouchableOpacity>
                         );
                       })}
                     </View>
+
                   </ScrollView>
                 </KeyboardAvoidingView>
 
                 <TouchableOpacity
-                  className={`rounded-xl p-4 mb-4 ${
-                    Object.keys(esportes).length === 0
-                      ? "bg-transparent border-white border-2"
-                      : "bg-yellow-500 border-yellow-500"
-                  } mt-auto`}
+                  className={`rounded-xl p-4 mb-4 ${Object.keys(esportes).length === 0
+                    ? "bg-transparent border-white border-2"
+                    : "bg-yellow-500 border-yellow-500"
+                    } mt-auto`}
                   onPress={() => setStep(2)}
                   disabled={Object.keys(esportes).length === 0}
                 >
                   <Text
-                    className={`text-center text-xl font-semibold ${
-                      Object.keys(esportes).length === 0 ? "text-white" : "text-black"
-                    }`}
+                    className={`text-center text-xl font-semibold ${Object.keys(esportes).length === 0 ? "text-white" : "text-black"
+                      }`}
                   >
                     Continuar
                   </Text>
                 </TouchableOpacity>
               </>
             ) : step === 2 ? (
-      
+
               <>
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
                   <View className="flex-1">
@@ -274,15 +295,13 @@ const escolherFoto = async () => {
 
                   <TouchableOpacity
                     onPress={() => setStep(3)}
-                    className={`py-3 px-5 rounded-xl border-2 mb-4 ${
-                      !cidade || !estado ? "bg-transparent border-white" : "bg-yellow-500"
-                    }`}
+                    className={`py-3 px-5 rounded-xl border-2 mb-4 ${!cidade || !estado ? "bg-transparent border-white" : "bg-yellow-500"
+                      }`}
                     disabled={!cidade || !estado}
                   >
                     <Text
-                      className={`text-xl text-center ${
-                        !cidade || !estado ? "text-white" : "text-black"
-                      }`}
+                      className={`text-xl text-center ${!cidade || !estado ? "text-white" : "text-black"
+                        }`}
                     >
                       Continuar
                     </Text>
@@ -290,7 +309,7 @@ const escolherFoto = async () => {
                 </View>
               </>
             ) : (
-        
+
               <>
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
                   <Text className="text-white text-2xl text-center mt-10 font-bold mb-6">

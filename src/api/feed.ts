@@ -154,3 +154,24 @@ export const MarcarNotificacaoComoLida = async (id: string) => {
     return null;
   }
 };
+
+
+export const PostUsuarioAlheio = async (usuario_id: string) => {
+  const token = await getToken();
+  try {
+    const response = await fetch(`${API_URL}/postagem/usuario/${usuario_id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) throw new Error(`Erro ${response.status}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Erro ao buscar sugestões de perfis:", error);
+    return [];
+  }
+};
