@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -14,6 +15,13 @@ export default function SugestoesPerfis() {
   const [perfis, setPerfis] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const irParaPerfil = (usuario_id: string) => {
+    router.push({
+      pathname: "/profile",
+      params: { userId: usuario_id },
+    });
+
+  }
   useEffect(() => {
     const fetchPerfis = async () => {
       try {
@@ -67,7 +75,9 @@ export default function SugestoesPerfis() {
         data={perfis}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View className="items-center mr-4 bg-neutral-900 p-3 rounded-xl w-40">
+          <TouchableOpacity className="items-center mr-4 bg-neutral-900 p-3 rounded-xl w-40"
+          onPress={()=>{irParaPerfil(item.id)}}
+          >
             <Image
               source={{ uri: item.foto_perfil }}
               className="w-16 h-16 rounded-full mb-2 bg-white"
@@ -91,7 +101,7 @@ export default function SugestoesPerfis() {
                 {item.seguido ? "Seguindo" : "Seguir"}
               </Text>
             </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         )}
       />
     </View>

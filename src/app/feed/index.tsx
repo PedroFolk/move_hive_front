@@ -132,7 +132,7 @@ export default function Feed() {
 
   const irParaPerfil = (usuario_id: string) => {
     router.push({
-      pathname: "/profile", // certifique-se que o arquivo é pages/perfil.tsx
+      pathname: "/profile", 
       params: { userId: usuario_id },
     });
 
