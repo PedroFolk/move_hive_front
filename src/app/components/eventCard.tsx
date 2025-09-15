@@ -60,7 +60,7 @@ export default function EventCard({ event, userId, onDelete, onParticipate }: Ev
                             )}
                         </View>
                         <TouchableOpacity
-                            className={`mt-2 py-2 rounded-2xl ${isParticipated ? "bg-white" : "bg-yellow-500"}`}
+                            className={`mt-2 py-2 rounded-lg ${isParticipated ? "bg-red-500 text-white" : "bg-yellow-500 text-black"}`}
                             onPress={() => {
                                 if (isParticipated) {
                                     Alert.alert(
@@ -77,7 +77,7 @@ export default function EventCard({ event, userId, onDelete, onParticipate }: Ev
                             }}
                         >
                             <Text className={`text-center font-semibold ${isParticipated ? "text-black" : "text-black"}`}>
-                                {isParticipated ? "Já inscrito" : "Inscreva-se"}
+                                {isParticipated ? "Cancelar Inscrição" : "Inscreva-se"}
                             </Text>
                         </TouchableOpacity>
 

@@ -92,7 +92,12 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
   useEffect(() => {
     const carregarEsportes = async () => {
       const data = await ListarEsportes();
-      setEsportesAPI(data);
+      const sorted = data.sort((a: EsporteAPI, b: EsporteAPI) =>
+        a.label.localeCompare(b.label, "pt", { sensitivity: "base" })
+      );
+
+      setEsportesAPI(sorted);
+
     };
     if (visible) carregarEsportes();
   }, [visible]);
@@ -190,10 +195,10 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
                               <TouchableOpacity
                                 onPress={() => changeNivel(value)}
                                 className={`mt-2 px-6 py-2 rounded-lg ${nivel === "iniciante"
-                                    ? "bg-green-600"
-                                    : nivel === "amador"
-                                      ? "bg-yellow-500"
-                                      : "bg-red-600"
+                                  ? "bg-green-600"
+                                  : nivel === "amador"
+                                    ? "bg-yellow-500"
+                                    : "bg-red-600"
                                   }`}
                                 activeOpacity={0.7}
                               >

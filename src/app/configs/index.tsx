@@ -93,9 +93,9 @@ export default function Configuracoes() {
           <TouchableOpacity onPress={() => router.back()}>
             <Text className="text-white text-2xl">←</Text>
           </TouchableOpacity>
-          <Text className="text-3xl font-bold text-white">Configurações de Perfil</Text>
-        </View>
 
+        </View>
+        <Text className="text-3xl font-bold text-white w-full text-center mb-10">Configurações de Perfil</Text>
         <View className="mb-6 items-center relative">
           {user.foto_perfil ? (
             <TouchableOpacity onPress={alterarFoto}>
@@ -135,7 +135,7 @@ export default function Configuracoes() {
           </View>
         ))}
 
-        <View className="mb-10">
+        {/* <View className="mb-10">
           <Text className="text-white font-semibold mb-2">Esportes Praticados</Text>
           {user.esportes_praticados &&
             Object.entries(user.esportes_praticados).map(([esporte, nivel]) => (
@@ -146,7 +146,7 @@ export default function Configuracoes() {
                 {editando && <MaterialCommunityIcons name="pencil" size={20} color="white" />}
               </View>
             ))}
-        </View>
+        </View> */}
 
         {!editando ? (<View>
           <TouchableOpacity
@@ -196,7 +196,7 @@ async function AtualizarPerfil(user: any) {
     biografia: user.biografia,
     estado: user.estado,
     cidade: user.cidade,
-    foto_perfil: {uri:user.foto_perfil, name:"profile_photo.jpg",type:"image/jpeg"},
+    foto_perfil: { uri: user.foto_perfil, name: "profile_photo.jpg", type: "image/jpeg" },
   });
 }
 

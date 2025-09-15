@@ -7,9 +7,9 @@ import {
   FlatList,
   RefreshControl,
   Alert,
+  SafeAreaView,
   ActivityIndicator,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   ListarDadosPerfil,
@@ -94,11 +94,9 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
           estado: raw?.estado || "",
         };
 
-        // Verifica se já segue chamando UsuariosSeguidos (proteção para userIdString)
         try {
-          const seguidos = await UsuariosSeguidos(); // aqui vem um array de usuários
+          const seguidos = await UsuariosSeguidos();
 
-          // confere se o id que você quer está dentro desse array
           const usuarioJaSegue = Array.isArray(seguidos)
             ? seguidos.some((u: any) => String(u.id) === String(userIdString))
             : false;
@@ -107,7 +105,6 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
 
           setJaSegue(usuarioJaSegue);
         } catch (e) {
-          // se der erro, mantém jaSegue = false e não bloqueia load
           console.error("Erro ao verificar usuarios seguidos:", e);
         }
       }
@@ -155,8 +152,8 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
         return {
           ...prev,
           seguidores_count: usuarioJaSegue
-            ? prevCount + (jaSegue ? 0 : 1) 
-            : prevCount - (jaSegue ? 1 : 0), 
+            ? prevCount + (jaSegue ? 0 : 1)
+            : prevCount - (jaSegue ? 1 : 0),
         };
       });
     } catch (err) {
@@ -188,6 +185,7 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
 
   const Header = () => (
     <View className="w-full py-4 px-6 bg-neutral-800">
+
       {!isMeuPerfil && (
         <TouchableOpacity className="mb-4" onPress={() => router.back()}>
           <MaterialCommunityIcons name="arrow-left" size={28} color="white" />
@@ -321,7 +319,20 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
 
   return (
     <SafeAreaView className="w-full h-full bg-neutral-800">
+
+      {isMeuPerfil ? 
+      <View className="px-4 pt-4 flex-row justify-between items-center">
+        <Text className="text-white text-2xl font-bold">
+           "Meu Perfil"
+        </Text>
+      </View>
+    :
+    <></>  
+    }
+
+
       <FlatList
+
         data={formatarPostsParaGrid(posts)}
         keyExtractor={(item) => item.id}
         renderItem={renderPostItem}
@@ -358,4 +369,5 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
       )}
     </SafeAreaView>
   );
+
 }

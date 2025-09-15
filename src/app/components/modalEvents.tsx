@@ -363,16 +363,19 @@ const EventCreationModal: React.FC<Props> = ({
                   </View>
                 )}
               </View>
-
-              <Text className="text-gray-300 mb-1 text-xl">Premiação</Text>
-              <TextInput
-                className="text-xl p-4 border border-neutral-600 rounded-xl text-white mb-4"
-                placeholder="Descrição do evento"
-                placeholderTextColor="#888"
-                multiline
-                value={premiacao}
-                onChangeText={setPremiacao}
-              />
+              {isTournament && (
+                <>
+                  <Text className="text-gray-300 mb-1 text-xl">Premiação</Text>
+                  <TextInput
+                    className="text-xl p-4 border border-neutral-600 rounded-xl text-white mb-4"
+                    placeholder="Descrição do evento"
+                    placeholderTextColor="#888"
+                    multiline
+                    value={premiacao}
+                    onChangeText={setPremiacao}
+                  />
+                </>
+              )}
 
               <Text className="text-gray-300 mb-1 text-xl">Observações</Text>
               <TextInput
