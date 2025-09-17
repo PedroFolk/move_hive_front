@@ -184,9 +184,9 @@ export default function Configuracoes() {
     </SafeAreaView>
   );
 }
-async function AtualizarPerfil(user: any) {
 
-  return await AtualizarUsuario({
+async function AtualizarPerfil(user: any) {
+  const payload: any = {
     username: user.username,
     email: user.email,
     senha: user.senha,
@@ -196,8 +196,28 @@ async function AtualizarPerfil(user: any) {
     biografia: user.biografia,
     estado: user.estado,
     cidade: user.cidade,
-    foto_perfil: { uri: user.foto_perfil, name: "profile_photo.jpg", type: "image/jpeg" },
-  });
-}
+  };
 
+  if (user.foto_perfil) {
+    if (typeof user.foto_perfil === "string") {
+      if (user.foto_perfil.startsWith("file:")) {
+        payload.foto_perfil = {
+          uri: user.foto_perfil,
+          name: "profile_photo.jpg",
+          type: "image/jpeg",
+        };
+      } else {
+        payload.foto_perfil = user.foto_perfil; 
+      }
+    } else if (typeof user.foto_perfil === "object" && user.foto_perfil.uri) {
+      payload.foto_perfil = {
+        uri: user.foto_perfil.uri,
+        name: "profile_photo.jpg",
+        type: "image/jpeg",
+      };
+    }
+  }
+
+  return await AtualizarUsuario(payload);
+}
 
