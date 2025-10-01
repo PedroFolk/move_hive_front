@@ -11,9 +11,6 @@ import {
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
 
-import AddButton from "../components/addButton";
-import EventCreationModal from "../components/modalEvents";
-
 import {
   ListarTodosEventos,
   ListarTodosTorneios,
@@ -40,13 +37,18 @@ interface Event {
   participantes?: { id: string }[];
 }
 
-export default function Events() {
+// NOVO: Adicione as props de callback
+interface EventsProps {
+  onShowEventModal: () => void;
+  onFetchDataAvailable: (fetcher: () => Promise<void>) => void;
+}
+
+export default function Events({ onShowEventModal, onFetchDataAvailable }: EventsProps) {
   const [events, setEvents] = useState<Event[]>([]);
   const [tournaments, setTournaments] = useState<Event[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("Eventos");
   const [userId, setUserId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [showModal, setShowModal] = useState(false);
 
   const TYPES = ["Eventos", "Torneios", "Meus Eventos"];
 
@@ -58,14 +60,15 @@ export default function Events() {
   const mapEventData = (data: any[]): Event[] =>
     data.map((ev) => {
       const [city = "", state = ""] = ev.localizacao?.split(",").map((s: string) => s.trim()) || [];
-      const dateObj = new Date(ev.data_hora);
+      const dateString = ev.data_hora.split("T")[0];
+      const hourString = ev.data_hora.split("T")[1]?.slice(0, 5);
       return {
         id: ev.id,
         title: ev.titulo,
         sport: ev.esporte_nome,
         description: ev.descricao,
-        dateString: dateObj.toLocaleDateString("pt-BR"),
-        hourString: dateObj.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+        dateString,
+        hourString,
         city,
         state,
         maxParticipants: ev.max_participantes,
@@ -75,6 +78,7 @@ export default function Events() {
         participantes: ev.participantes?.map((id: string) => ({ id })) || [],
       };
     });
+
 
   const fetchData = useCallback(async () => {
     setRefreshing(true);
@@ -89,12 +93,18 @@ export default function Events() {
       if (data) setEvents(mapEventData(data));
     }
     setRefreshing(false);
-  }, [selectedCategory]);
+  }, [selectedCategory]); // fetchData é recriado apenas quando selectedCategory muda
 
+  // 💥 CORREÇÃO 2: Exporta fetchData APENAS NA MONTAGEM
+  useEffect(() => {
+    onFetchDataAvailable(fetchData);
+  }, []); // Array de dependências vazio: executa somente na montagem
+
+  // Recarga inicial e quando a categoria muda
   useEffect(() => {
     fetchUserId();
     fetchData();
-  }, [selectedCategory]);
+  }, [selectedCategory, fetchData]);
 
   const handleParticipate = async (item: Event) => {
     if (!item.id || !userId) return;
@@ -152,27 +162,25 @@ export default function Events() {
 
   return (
     <SafeAreaView className="w-full h-full ">
- 
+
       <View className="px-4 pt-4 flex-row ">
         <Text className="text-white text-2xl font-bold">{selectedCategory}</Text>
       </View>
 
-  
+
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-4 max-h-14">
         {TYPES.map((cat) => (
           <TouchableOpacity
             key={cat}
             onPress={() => setSelectedCategory(cat)}
-            className={`mb-2 mr-2 px-6 h-10 justify-center items-center rounded-full border ${
-              selectedCategory === cat
-                ? "bg-white border-transparent"
-                : "border-gray-500 border-2"
-            }`}
+            className={`mb-2 mr-2 px-6 h-10 justify-center items-center rounded-full border ${selectedCategory === cat
+              ? "bg-white border-transparent"
+              : "border-gray-500 border-2"
+              }`}
           >
             <Text
-              className={`text-sm font-medium ${
-                selectedCategory === cat ? "text-black" : "text-gray-300"
-              }`}
+              className={`text-sm font-medium ${selectedCategory === cat ? "text-black" : "text-gray-300"
+                }`}
             >
               {cat}
             </Text>
@@ -198,16 +206,6 @@ export default function Events() {
         )}
       />
 
-
-      <AddButton onPress={() => setShowModal(true)} />
-
- 
-      <EventCreationModal
-        visible={showModal}
-        onClose={() => setShowModal(false)}
-        onSave={fetchData}
-        defaultSport=""
-      />
     </SafeAreaView>
   );
 }

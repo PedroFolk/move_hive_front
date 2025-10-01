@@ -144,6 +144,7 @@ export const CriarEvento = async (
   esporte_nome: string,
   data_hora: Date,
   localizacao: string,
+  endereco: string,
   max_participantes: number,
   torneio: boolean,
   premiacao: string,
@@ -162,6 +163,7 @@ export const CriarEvento = async (
     formData.append("esporte_nome", esporte_nome);
     formData.append("data_hora_str", formatarDataISO(data_hora));
     formData.append("localizacao", localizacao);
+    formData.append("endereco",endereco);
     formData.append("max_participantes", max_participantes.toString());
     formData.append("torneio", torneio ? "true" : "false");
     formData.append("premiacao", premiacao);

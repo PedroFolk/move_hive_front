@@ -39,15 +39,6 @@ type SubmitData = {
   arquivo_foto?: any | null;
 };
 
-const esportesList = [
-  { key: "futebol", label: "Futebol", iconType: "FontAwesome5", iconName: "football-ball" },
-  { key: "basquete", label: "Basquete", iconType: "FontAwesome5", iconName: "basketball-ball" },
-  { key: "volei", label: "Vôlei", iconType: "MaterialCommunityIcons", iconName: "volleyball" },
-  { key: "tenis", label: "Tênis", iconType: "FontAwesome5", iconName: "table-tennis" },
-  { key: "natacao", label: "Natação", iconType: "FontAwesome5", iconName: "swimmer" },
-  { key: "corrida", label: "Corrida", iconType: "FontAwesome5", iconName: "running" },
-];
-
 const niveis = ["iniciante", "amador", "profissional"] as const;
 
 function getIconComponent(type: string) {
@@ -65,6 +56,7 @@ function getIconComponent(type: string) {
 type EsporteAPI = {
   label: string;
   value: string;
+  foto?: string | null;
 };
 
 export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirstTimeProps) {
@@ -95,9 +87,8 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
       const sorted = data.sort((a: EsporteAPI, b: EsporteAPI) =>
         a.label.localeCompare(b.label, "pt", { sensitivity: "base" })
       );
-
       setEsportesAPI(sorted);
-
+      console.log("Esportes da API:", sorted); // debug
     };
     if (visible) carregarEsportes();
   }, [visible]);
@@ -118,7 +109,6 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
       });
     }
   };
-
 
   const handleEstadoChange = (ufSigla: string) => {
     setEstado(ufSigla);
@@ -144,7 +134,6 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
   };
 
   const handleFinalSubmit = async () => {
-    console.log(foto);
     Keyboard.dismiss();
     await onSubmit({
       biografia: descricao,
@@ -161,7 +150,6 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
     setEstado("");
     setFoto(null);
   };
-
   return (
     <Modal visible={visible} transparent animationType="slide" >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -171,12 +159,15 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
             {step === 1 ? (
               <>
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
-                  <Text className="text-white text-2xl text-center font-bold mb-20 mt-10">
-                    Selecione seus esportes
+                  <Text className="text-white text-2xl text-center font-bold mt-10">
+                    Selecione 
+                  </Text>
+                   <Text className="text-white text-2xl text-center font-bold mb-20 mt-4">
+                    esportes e níveis
                   </Text>
                   <ScrollView className="mb-4" >
                     <View className="flex flex-row flex-wrap justify-between">
-                      {esportesAPI.map(({ value, label }) => {
+                      {esportesAPI.map(({ value, label, foto: esporteFoto }) => {
                         const nivel = esportes[value];
                         return (
                           <TouchableOpacity
@@ -186,9 +177,18 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
                             onPress={() => toggleEsporte(value)}
                             activeOpacity={0.8}
                           >
-                            <View className="w-16 h-16 bg-gray-700 mb-2 justify-center items-center rounded-xl">
-                              <Text className="text-white font-bold text-lg">{label[0]}</Text>
+                            <View className="w-16 h-16 bg-gray-700 mb-2 justify-center items-center rounded-xl overflow-hidden">
+                              {esporteFoto ? (
+                                <Image
+                                  source={{ uri: esporteFoto }}
+                                  style={{ width: 64, height: 64 }}
+                                  resizeMode="cover"
+                                />
+                              ) : (
+                                <Text className="text-white font-bold text-lg">{label[0]}</Text>
+                              )}
                             </View>
+
                             <Text className="text-white text-lg font-semibold">{label}</Text>
 
                             {nivel && (
@@ -245,6 +245,9 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
                       valueField="value"
                       placeholder="Selecione um estado"
                       value={estado}
+                      search
+                      searchPlaceholder="Buscar cidade..."
+                      inputSearchStyle={{ borderRadius: 12, color: "white" }}
                       onChange={(item) => handleEstadoChange(item.value)}
                       style={{
                         backgroundColor: "transparent",

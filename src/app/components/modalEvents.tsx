@@ -27,6 +27,7 @@ export interface ModalEvent {
   dateString: string;
   city: string;
   state: string;
+  endereco: string;
   hourString: string;
   maxParticipants: number;
   isTournament: boolean;
@@ -94,6 +95,7 @@ const EventCreationModal: React.FC<Props> = ({
     [description, setDescription] = useState(""),
     [image, setImage] = useState<ImagemEvento | undefined>(undefined),
     [observacao, setObservacao] = useState(""),
+    [Endereco, setEndereco] = useState(""),
     [premiacao, setPremiacao] = useState(""),
     [esportes, setEsportes] = useState<any[]>([]),
     [showDatePicker, setShowDatePicker] = useState(false),
@@ -105,6 +107,7 @@ const EventCreationModal: React.FC<Props> = ({
       setTitle("");
       setCity("");
       setState("");
+      setEndereco("");
       setDescription("");
       setMaxParticipants(0);
       setIsTournament(false);
@@ -144,6 +147,8 @@ const EventCreationModal: React.FC<Props> = ({
 
   const handleSave = async () => {
     if (isSaving) return;
+
+    // validação básica
     if (!title.trim() || !sport || !city.trim() || !state.trim()) {
       alert("Preencha todos os campos obrigatórios.");
       return;
@@ -152,12 +157,15 @@ const EventCreationModal: React.FC<Props> = ({
     setIsSaving(true);
 
     try {
+      const localizacao = `${city} - ${state}`;
+
       const result = await CriarEvento(
         title,
         description,
         sport,
-        date,
-        `${city} - ${state}`,
+        date,           // data_hora
+        localizacao,    // localizacao
+        Endereco || localizacao, // endereco (se não preencher, usa localizacao)
         maxParticipants,
         isTournament,
         premiacao,
@@ -178,9 +186,8 @@ const EventCreationModal: React.FC<Props> = ({
         dateString: date.toLocaleDateString("pt-BR"),
         city,
         state,
-        hourString: `${String(date.getHours()).padStart(2, "0")}:${String(
-          date.getMinutes()
-        ).padStart(2, "0")}`,
+        endereco: Endereco || localizacao,
+        hourString: `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`,
         maxParticipants,
         isTournament,
         isPrivate,
@@ -190,12 +197,14 @@ const EventCreationModal: React.FC<Props> = ({
       });
 
       onClose();
+
     } catch (error) {
       alert("Não foi possível criar seu evento. Tente novamente.");
     } finally {
       setIsSaving(false);
     }
   };
+
 
 
 
@@ -235,7 +244,7 @@ const EventCreationModal: React.FC<Props> = ({
                 valueField="value"
                 placeholder="Selecione um esporte"
                 value={sport}
-                onChange={(item) => setSport(item.value)}
+                onChange={(item) => setSport(item.label)}
                 style={{
                   backgroundColor: "transparent",
                   borderRadius: 12,
@@ -410,14 +419,14 @@ const EventCreationModal: React.FC<Props> = ({
                 )}
               </View>
 
-              <View className="flex-row items-center justify-between mt-10">
+              <View className="flex-row items-center justify-between mt-10 mr-4">
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                   <Text className="text-gray-300 text-xl">É Torneio?</Text>
                   <InfoTooltip message="Torneios são eventos competitivos com chaves e um campeão. Eventos normais são para jogos casuais." />
                 </View>
                 <Switch value={isTournament} onValueChange={setIsTournament} />
               </View>
-              <View className="flex-row items-center justify-between mt-4">
+              <View className="flex-row items-center justify-between mt-4 mr-4">
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                   <Text className="text-gray-300 text-xl">Evento Privado?</Text>
                   <InfoTooltip message="Evento privado só permite convidados específicos participarem." />

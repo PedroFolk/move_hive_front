@@ -323,7 +323,7 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
       {isMeuPerfil ? 
       <View className="px-4 pt-4 flex-row justify-between items-center">
         <Text className="text-white text-2xl font-bold">
-           "Meu Perfil"
+           Meu Perfil
         </Text>
       </View>
     :

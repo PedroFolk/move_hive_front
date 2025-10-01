@@ -17,13 +17,12 @@ export const ListarEsportes = async () => {
     });
     if (!response.ok) throw new Error(`Erro ${response.status}`);
     const data = await response.json();
-    
-    const esportesFormatados = data.map((item: { nome: any; }) => ({
-      label: item.nome,
-      value: item.nome,
-    }));
 
-    return esportesFormatados;
+    return data.map((item: any) => ({
+      label: item.nome,
+      value: item.id, 
+      foto: item.Foto || item.foto || null,
+    }));
   } catch (error) {
     console.error("Erro ao listar esportes:", error);
     return [];

@@ -91,7 +91,7 @@ export default function RegisterPage() {
             />
             <TextField
               marginTop="0"
-              label="Nome"
+              label="Nome Completo"
               value={nome}
               onChangeText={setNome}
               placeholder="Digite seu nome completo"
@@ -99,7 +99,7 @@ export default function RegisterPage() {
             />
             <TextField
               marginTop="10"
-              label="Usuario (@)"
+              label="Usuario"
               value={apelido}
               onChangeText={setApelido}
               placeholder="Digite seu apelido "

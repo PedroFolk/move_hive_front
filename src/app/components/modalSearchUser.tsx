@@ -58,12 +58,16 @@ export default function ModalSearchUser({
 
     const filtrar = () => {
         if (!query.trim()) return usuarios;
-        return usuarios.filter(
-            (u) =>
-                u.username.toLowerCase().includes(query.toLowerCase()) ||
-                u.nome_completo.toLowerCase().includes(query.toLowerCase())
-        );
+        return usuarios.filter((u) => {
+            const username = u?.username ? String(u.username).toLowerCase() : "";
+            const nome = u?.nome_completo ? String(u.nome_completo).toLowerCase() : "";
+            return (
+                username.includes(query.toLowerCase()) ||
+                nome.includes(query.toLowerCase())
+            );
+        });
     };
+
 
     const renderItem = ({ item }: { item: any }) => (
         <View className="flex-row items-center px-4 py-4 justify-between ">
@@ -124,7 +128,8 @@ export default function ModalSearchUser({
                     ) : (
                         <FlatList
                             data={filtrar()}
-                            keyExtractor={(item) => item.id}
+                            keyExtractor={(item, index) => String(item.id ?? index)}
+
                             renderItem={renderItem}
                             ListEmptyComponent={
                                 <Text className="text-neutral-400 text-center mt-4 ">
