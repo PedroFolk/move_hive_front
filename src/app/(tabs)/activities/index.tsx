@@ -11,8 +11,8 @@ import {
   RefreshControl, // 👈 importar aqui
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import AddActivityModal, { ModalActivity } from "../modals/modalActivities";
-import AddButton from "../../components/addButton";
+import AddActivityModal, { ModalActivity } from "../../../components/modals/modalActivities";
+import AddButton from "../../../components/addButton";
 import { DeletarTreino, ListarTreinos } from "~/api/activities";
 import { ListarEsportes } from "~/api/getSports";
 

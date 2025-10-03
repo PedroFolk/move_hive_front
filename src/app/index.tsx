@@ -23,7 +23,7 @@ export default function Home() {
         const decodedUserId = decodeToken(token);
         if (decodedUserId) {
           await SecureStore.setItemAsync("userId", decodedUserId);
-          router.replace("/main");
+          router.push("/main");
         } else {
           router.replace("/login");
         }

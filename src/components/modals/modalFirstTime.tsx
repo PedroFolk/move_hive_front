@@ -21,7 +21,7 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Dropdown } from "react-native-element-dropdown";
-import ufCidadeJson from "../uf_cidade.json";
+import ufCidadeJson from "../../app/uf_cidade.json";
 import * as ImagePicker from "expo-image-picker";
 import { ListarEsportes } from "~/api/getSports";
 

@@ -19,8 +19,10 @@ import {
 } from "~/api/user";
 import { ExcluirPost, ListarPostProprios, PostUsuarioAlheio } from "~/api/feed";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import PostModal from "../modals/modalPosts";
-import UsuariosModal from "../modals/modalUsuarios";
+import PostModal from "~/components/modals/modalPosts";
+import UsuariosModal from "~/components/modals/modalUsuarios";
+import ModalConfiguracoes from "~/components/modals/modalConfigs";
+
 // IMPORTAÇÃO DO NOVO MODAL DE USUÁRIOS
 
 type PerfilProps = {
@@ -32,6 +34,7 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
   const params = useLocalSearchParams();
   const userIdString = userId || (params.userId as string | undefined);
   const isMeuPerfil = !userIdString || userIdString === meuUserId;
+  const [modalConfiguracoesVisible, setModalConfiguracoesVisible] = useState(false);
 
   const [perfil, setPerfil] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -246,10 +249,8 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
             <TouchableOpacity
               className="border-2 border-white rounded-2xl mt-4 py-2"
               onPress={() => {
-                router.push("/configs")
-                console.log("TOquei")
-
-              }} // Usando rota absoluta, mais seguro
+                setModalConfiguracoesVisible(true)
+              }}
             >
               <Text className="text-white text-center text-lg">Editar Perfil</Text>
             </TouchableOpacity>
@@ -383,7 +384,10 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
           comentario={descricaoSelecionado}
         />
       )}
-
+      <ModalConfiguracoes
+        visible={modalConfiguracoesVisible}
+        onClose={() => setModalConfiguracoesVisible(false)}
+      />
       {/* NOVO COMPONENTE MODAL DE USUÁRIOS */}
       <UsuariosModal
         isVisible={modalUsuariosVisible}

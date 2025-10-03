@@ -10,7 +10,7 @@ import {
   Alert,
 } from "react-native";
 import { SeguirUsuario, SugerirPerfis } from "~/api/user";
-import ProfileModal from "../app/modals/profile"; // Ajuste o caminho real do seu ProfileModal
+import ProfileModal from "./modals/profile"; // Ajuste o caminho real do seu ProfileModal
 
 // IMPORTANTE: Substitua este valor pela sua lógica real para obter o ID do usuário logado!
 const MEU_USER_ID = "ID_DO_USUARIO_LOGADO"; 

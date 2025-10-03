@@ -7,12 +7,11 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  Alert,
+  Alert, Image
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
 
-import AddButton from "../../components/addButton";
-import EventCreationModal from "../modals/modalEvents";
+import AddButton from "../../../components/addButton";
 
 import {
   ListarTodosEventos,
@@ -22,7 +21,10 @@ import {
   CancelarParticipacao,
   DeletarEvento,
 } from "~/api/event";
-import EventCard from "../../components/eventCard";
+import EventCard from "../../../components/eventCard";
+import EventCreationModal from "~/components/modals/modalEvents";
+import { Ionicons } from "@expo/vector-icons";
+import ModalEventInfos from "~/components/modals/modalEventInfos";
 
 interface Event {
   id?: any;
@@ -47,6 +49,9 @@ export default function Events() {
   const [userId, setUserId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+const [modalCardVisible, setModalCardVisible] = useState(false);
+
 
   const TYPES = ["Eventos", "Torneios", "Meus Eventos"];
 
@@ -142,37 +147,69 @@ export default function Events() {
     <EventCard
       key={item.id}
       event={item}
-      userId={userId}
-      onDelete={() => handleDelete(item.id!)}
-      onParticipate={() => handleParticipate(item)}
+
     />
   );
 
   const currentData = selectedCategory === "Torneios" ? tournaments : events;
 
   return (
-    <SafeAreaView className="w-full h-full bg-neutral-800 ">
- 
-      <View className="px-4 pt-4 flex-row ">
-        <Text className="text-white text-2xl font-bold">{selectedCategory}</Text>
-      </View>
+    <View className="flex-1 bg-neutral-800 py-safe">
+      {/* Destaque acima */}
+      {currentData.length > 0 && (
+        <View className="pt-4">
+          <View className=" flex-row justify-between px-4 mb-2 items-center">
 
-  
+            <Text className="text-white text-2xl font-bold ">Eventos</Text>
+            <TouchableOpacity
+              onPress={() => setShowModal(true)}
+              className="z-50 bg-neutral-900 p-2 rounded-full shadow-md"
+            >
+              <Ionicons name="add" size={28} color="#eab308" />
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            className="mt-6 shadow-lg shadow-black "
+            data={currentData}
+            keyExtractor={(item) => item.id!}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            pagingEnabled
+            renderItem={({ item }) => (
+              <TouchableOpacity onPress={() => { }} className="mr-0 w-screen h-64">
+                {item.imageUri ? (
+                  <View className="flex-1">
+                    <Image
+                      source={{ uri: item.imageUri }}
+                      className="w-full h-full"
+                      resizeMode="cover"
+                    />
+
+                  </View>
+                ) : (
+                  <View className="flex-1 justify-center items-center bg-gray-600">
+                    <Text className="text-white text-xl font-bold">{item.title}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      )}
+
+
+      {/* Filtros horizontais */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-4 max-h-14">
         {TYPES.map((cat) => (
           <TouchableOpacity
             key={cat}
             onPress={() => setSelectedCategory(cat)}
-            className={`mb-2 mr-2 px-6 h-10 justify-center items-center rounded-full border ${
-              selectedCategory === cat
-                ? "bg-white border-transparent"
-                : "border-gray-500 border-2"
-            }`}
+            className={`mb-2 mr-2 px-6 h-10 justify-center items-center rounded-full border ${selectedCategory === cat ? "bg-white border-transparent" : "border-gray-500 border-2"
+              }`}
           >
             <Text
-              className={`text-sm font-medium ${
-                selectedCategory === cat ? "text-black" : "text-gray-300"
-              }`}
+              className={`text-sm font-medium ${selectedCategory === cat ? "text-black" : "text-gray-300"
+                }`}
             >
               {cat}
             </Text>
@@ -180,34 +217,45 @@ export default function Events() {
         ))}
       </ScrollView>
 
-
+      {/* Lista de eventos abaixo */}
       <FlatList
-        data={currentData}
+        data={currentData} // omitindo o destaque
         keyExtractor={(item) => item.id!}
-        renderItem={renderItem}
-        showsVerticalScrollIndicator={false}
-        className="flex-1 mt-4"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 0 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchData} />}
-        ListEmptyComponent={() => (
-          <View className="flex-1 items-center mt-10">
-            <Text className="text-white text-lg">
-              Nenhum {selectedCategory === "Torneios" ? "torneio" : "evento"} disponível
-            </Text>
-          </View>
-        )}
+        renderItem={
+          ({ item }) => <EventCard event={item} isPrivate={item.isPrivate} onPress={() => {
+            setSelectedEvent(item);
+            setModalCardVisible(true);
+          }}
+          />
+        }
+        horizontal
+
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8 }}
+      />
+
+      {/* <AddButton onPress={() => setShowModal(true)} /> */}
+      <ModalEventInfos
+        visible={modalCardVisible}
+        onClose={() => setModalCardVisible(false)}
+        title={selectedEvent?.title || ""}
+        description={selectedEvent?.description || ""}
+        dateString={selectedEvent?.dateString || ""}
+        hourString={selectedEvent?.hourString || ""}
+        city={selectedEvent?.city || ""}
+        state={selectedEvent?.state || ""}
+         imageUri={selectedEvent?.imageUri || ""}
       />
 
 
-      <AddButton onPress={() => setShowModal(true)} />
 
- 
       <EventCreationModal
         visible={showModal}
         onClose={() => setShowModal(false)}
         onSave={fetchData}
         defaultSport=""
+
       />
-    </SafeAreaView>
+    </View>
   );
 }

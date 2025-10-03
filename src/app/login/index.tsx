@@ -15,36 +15,46 @@ import {
   TouchableWithoutFeedback,
   Alert,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { colors } from "../../styles/styles";
 import { LogarUsuario } from "~/api/auth";
 import * as SecureStore from "expo-secure-store";
 
-
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  const [loading, setLoading] = useState(false); // estado de bloqueio
 
   const handleLogin = async () => {
-    const result = await LogarUsuario(email, password);
+    if (loading) return; // previne múltiplos cliques
 
-    if (result) {
-      router.push({ pathname: "../main", params: { novoCadastro: "false" } });
-    } else {
-      Alert.alert("Erro ao fazer login", "Usuário e/ou senha incorretos");
+    setLoading(true); // bloqueia o botão
+    try {
+      const result = await LogarUsuario(email, password);
+
+      if (result) {
+        router.push({ pathname: "../main", params: { novoCadastro: "false" } });
+      } else {
+        Alert.alert("Erro ao fazer login", "Usuário e/ou senha incorretos");
+      }
+    } catch (error) {
+      Alert.alert("Erro", "Ocorreu um erro ao tentar logar.");
+    } finally {
+      setLoading(false); // libera o botão após a resposta
     }
   };
+
   useEffect(() => {
     const checkAuth = async () => {
       await SecureStore.deleteItemAsync("token");
       await SecureStore.deleteItemAsync("userId");
     };
-
     checkAuth();
   }, []);
+
   return (
-    <SafeAreaView className={`flex-1 ${colors.background}  `}>
+    <SafeAreaView className={`flex-1 ${colors.background}`}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -53,12 +63,10 @@ export default function Login() {
           <View
             className={`w-full max-w-md rounded-2xl ${colors.background} self-center p-6`}
           >
-
-
             <Image
               source={require("../../images/logoMoveHive_sem_fundo_cor_branco.png")}
               resizeMode="center"
-              className="rounded-full w-48 h-48 justify-center m-auto "
+              className="rounded-full w-48 h-48 justify-center m-auto"
             />
 
             <TextField
@@ -87,13 +95,27 @@ export default function Login() {
 
             <TouchableOpacity
               onPress={handleLogin}
-              className={`mt-10 rounded-2xl ${colors.button} p-3`}
+              disabled={loading} // bloqueia o botão enquanto loading = true
+              className={`mt-10 rounded-2xl ${colors.button} p-3 ${
+                loading ? "opacity-50" : ""
+              }`}
             >
-              <Text
-                className={`text-center text-xl font-bold ${colors.textSecondaryButton}`}
-              >
-                Entrar
-              </Text>
+              {loading ? (
+                <View className="flex-row justify-center items-center">
+                  <ActivityIndicator size="small" color="#fff" className="mr-2" />
+                  <Text
+                    className={`text-center text-xl font-bold ${colors.textSecondaryButton}`}
+                  >
+                    Entrando...
+                  </Text>
+                </View>
+              ) : (
+                <Text
+                  className={`text-center text-xl font-bold ${colors.textSecondaryButton}`}
+                >
+                  Entrar
+                </Text>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -101,28 +123,11 @@ export default function Login() {
               className={`mt-5 rounded-2xl border-2 ${colors.border} p-3`}
             >
               <Text
-                className={`text-center text-xl font-bold ${colors.textPrimaryButton} `}
+                className={`text-center text-xl font-bold ${colors.textPrimaryButton}`}
               >
                 Cadastrar-se
               </Text>
             </TouchableOpacity>
-{/* 
-            <View className="mt-10 flex flex-row items-center gap-5">
-              <View
-                className={`h-1 flex-1 rounded-full ${colors.separator} `}
-              />
-              <Text className="text-2xl text-white ">ou</Text>
-              <View className={`h-1 flex-1 rounded-full ${colors.separator}`} />
-            </View>
-
-            <TouchableOpacity
-              className={`mt-10 flex flex-row items-center gap-5 rounded-2xl bg-neutral-600 p-2 `}
-            >
-              <AntDesign name="google" size={48} color="gray" />
-              <Text className=" text-2xl font-bold text-white">
-                Entrar com Google
-              </Text>
-            </TouchableOpacity> */}
           </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>

@@ -6,9 +6,9 @@ import Events from "../events";
 import Perfil from "../profile";
 import Activity from "../activities";
 import Ranking from "../ranking";
-import ModalFirstTime from "../modals/modalFirstTime";
 import { PreencherDadosModal } from "~/api/user";
-import "../../../global.css";
+import "../../../../global.css";
+import ModalFirstTime from "~/components/modals/modalFirstTime";
 
 
 export default function Main() {
@@ -18,14 +18,13 @@ export default function Main() {
   const params = useLocalSearchParams();
 
 
-  // Verifica autenticação
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const token = await SecureStore.getItemAsync("token");
         const id = await SecureStore.getItemAsync("userId");
 
-        if (!token || !id) {
+        if (!token) {
           await SecureStore.deleteItemAsync("token");
           await SecureStore.deleteItemAsync("userId");
           router.replace("/login");
@@ -40,14 +39,12 @@ export default function Main() {
     checkAuth();
   }, []);
 
-  // Abre modal de primeiro cadastro
   useEffect(() => {
     if (params.novoCadastro === "true") {
       setModalVisible(true);
     }
   }, [params.novoCadastro]);
 
-  // Renderiza o conteúdo de acordo com a aba selecionada
   const renderContent = () => {
     switch (selectedIndex) {
       case 0:
@@ -68,7 +65,6 @@ export default function Main() {
     }
   };
 
-  // Loading screen
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-black">
@@ -83,9 +79,6 @@ export default function Main() {
       className={`w-full h-full items-center justify-center flex pt-safe pb-safe bg-neutral-800`}
     >
       {renderContent()}
-
-
-
       <ModalFirstTime
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
@@ -102,8 +95,6 @@ export default function Main() {
           }
         }}
       />
-
-
     </View>
   );
 }

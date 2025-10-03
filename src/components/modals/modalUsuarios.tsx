@@ -19,6 +19,7 @@ import {
 } from "~/api/user";
 // Removida a importação 'router'
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import ProfileModal from "./profile";
 
 // Definição das Props para o Modal
 interface UsuariosModalProps {
@@ -28,7 +29,7 @@ interface UsuariosModalProps {
     userId?: string; // ID do usuário cujo perfil está sendo exibido
     onUpdate?: () => void; // Função para chamar na tela pai (Perfil) ao seguir/deixar de seguir
     // NOVA PROP: Função para notificar a tela pai que um usuário foi selecionado
-  
+
 }
 
 export default function UsuariosModal({
@@ -37,13 +38,14 @@ export default function UsuariosModal({
     tipo,
     userId,
     onUpdate,
-   
+
 }: UsuariosModalProps) {
     const [usuarios, setUsuarios] = useState<any[]>([]);
     const [filtro, setFiltro] = useState("");
     const [loading, setLoading] = useState(false);
     const [usuariosFiltrados, setUsuariosFiltrados] = useState<any[]>([]);
-
+    const [modalVisible, setModalVisible] = useState(false);
+    const [perfilModalId, setPerfilModalId] = useState<string | null>(null);
     // Função para carregar os usuários (mantida)
     const carregarUsuarios = useCallback(async () => {
         setLoading(true);
@@ -64,6 +66,10 @@ export default function UsuariosModal({
         }
         setLoading(false);
     }, [tipo, userId]);
+    const fecharPerfil = () => {
+        setModalVisible(false);
+        setPerfilModalId(null);
+    }
 
     // Função para deixar de seguir (mantida)
     const handlePararDeSeguir = (id: string) => {
@@ -83,12 +89,16 @@ export default function UsuariosModal({
             ]
         );
     };
+    const irParaPerfil = (usuario_id: string) => {
+        setPerfilModalId(usuario_id);
+        setModalVisible(true);
+    };
 
     // Efeitos (mantidos)
     useEffect(() => {
         if (isVisible) {
             // Limpa o filtro e recarrega a lista ao abrir
-            setFiltro(""); 
+            setFiltro("");
             carregarUsuarios();
         }
     }, [isVisible, carregarUsuarios]);
@@ -113,10 +123,8 @@ export default function UsuariosModal({
         <View className="flex-row items-center justify-between p-4 border-b border-gray-700 ">
             <TouchableOpacity
                 className="flex-row items-center flex-1 "
-                onPress={() => {
-                    onClose(); // 1. Fecha o modal de lista de usuários
-                  
-                }}
+                onPress={() => { irParaPerfil(item.id) }}
+
             >
                 {item.foto_perfil ? (
                     <Image
@@ -186,7 +194,14 @@ export default function UsuariosModal({
                         }
                     />
                 )}
+                <ProfileModal
+                    visible={modalVisible}
+                    onClose={fecharPerfil} // Função para fechar o modal
+                    userId={perfilModalId} // ID do perfil a ser exibido
+                    meuUserId={""} // ID do usuário logado
+                />
             </View>
+
         </Modal>
     );
 }

@@ -13,10 +13,10 @@ import * as ImagePicker from "expo-image-picker";
 import { CriarPost, ListarNofificacao, ListaTodosPost } from "~/api/feed";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import AddButton from "../../components/addButton";
-import ModalNewPost from "../modals/modalNewPost";
 import SugestoesPerfis from "../../components/sugestoesPerfil";
 import { router } from "expo-router";
-import ModalSearchUser from "../modals/modalSearchUser";
+import ModalSearchUser from "~/components/modals/modalSearchUser";
+import ModalNewPost from "~/components/modals/modalNewPost";
 
 export default function Feed() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -207,7 +207,7 @@ export default function Feed() {
   );
 
   return (
-    <SafeAreaView className="flex-1 w-full" >
+    <View className="flex-1 w-full py-safe" >
       <ModalSearchUser
         visible={modalSearchVisible}
         onClose={() => setModalSearchVisible(false)}
@@ -273,6 +273,6 @@ export default function Feed() {
           setModalVisible(true);
         }}
       />
-    </SafeAreaView>
+    </View>
   );
 }

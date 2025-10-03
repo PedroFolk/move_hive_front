@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
-import SugestoesPerfis from "../../components/sugestoesPerfil";
+import SugestoesPerfis from "../../../components/sugestoesPerfil";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useState } from "react";
 
