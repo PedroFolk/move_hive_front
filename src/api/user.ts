@@ -139,7 +139,7 @@ export const PararDeSeguirUsuario = async (id_seguido: string) => {
   }
 };
 
-export const UsuariosSeguidos = async () => {
+export const UsuariosSeguidos = async (userId?: string | undefined) => {
   const token = await getToken();
   try {
     const response = await fetch(`${API_URL}/usuario/usuariosSeguidos`, {
@@ -159,7 +159,7 @@ export const UsuariosSeguidos = async () => {
   }
 };
 
-export const UsuariosSeguidores = async () => {
+export const UsuariosSeguidores = async (userId?: string | undefined) => {
   const token = await getToken();
   try {
     const response = await fetch(`${API_URL}/usuario/usuariosSeguidores`, {

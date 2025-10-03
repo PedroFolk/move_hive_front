@@ -12,11 +12,11 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { CriarPost, ListarNofificacao, ListaTodosPost } from "~/api/feed";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import AddButton from "../components/addButton";
-import ModalNewPost from "../components/modalNewPost";
-import SugestoesPerfis from "../components/sugestoesPerfil";
+import AddButton from "../../components/addButton";
+import ModalNewPost from "../modals/modalNewPost";
+import SugestoesPerfis from "../../components/sugestoesPerfil";
 import { router } from "expo-router";
-import ModalSearchUser from "../components/modalSearchUser";
+import ModalSearchUser from "../modals/modalSearchUser";
 
 export default function Feed() {
   const [posts, setPosts] = useState<any[]>([]);

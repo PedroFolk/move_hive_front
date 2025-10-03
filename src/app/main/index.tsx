@@ -1,45 +1,30 @@
-import { useState, useEffect, useCallback } from "react";
-import { Platform, SafeAreaView, Text, ActivityIndicator } from "react-native";
+import { useState, useEffect } from "react";
+import { Text, ActivityIndicator, View } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
-import Menu from "../components/menu";
+import * as SecureStore from "expo-secure-store";
 import Events from "../events";
 import Perfil from "../profile";
 import Activity from "../activities";
 import Ranking from "../ranking";
-import ModalFirstTime from "../components/modalFirstTime";
-import EventCreationModal from "../components/modalEvents";
-
+import ModalFirstTime from "../modals/modalFirstTime";
 import { PreencherDadosModal } from "~/api/user";
-import { colors } from "../../styles/styles";
 import "../../../global.css";
-import * as SecureStore from "expo-secure-store";
 
-type EventsFetcher = (() => Promise<void>) | null;
 
 export default function Main() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
-  const [eventCreationModalVisible, setEventCreationModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [eventsFetcher, setEventsFetcher] = useState<EventsFetcher>(null);
   const params = useLocalSearchParams();
 
-  const handleSetEventsFetcher = useCallback((fetcher: () => Promise<void>) => {
-    setEventsFetcher(() => fetcher);
-  }, []);
 
-  const handleEventSave = async (eventData: any) => {
-    setEventCreationModalVisible(false);
-    if (selectedIndex === 0 && eventsFetcher) {
-      await eventsFetcher();
-    }
-  };
-
+  // Verifica autenticação
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const token = await SecureStore.getItemAsync("token");
         const id = await SecureStore.getItemAsync("userId");
+
         if (!token || !id) {
           await SecureStore.deleteItemAsync("token");
           await SecureStore.deleteItemAsync("userId");
@@ -55,52 +40,51 @@ export default function Main() {
     checkAuth();
   }, []);
 
+  // Abre modal de primeiro cadastro
   useEffect(() => {
     if (params.novoCadastro === "true") {
       setModalVisible(true);
     }
-  }, []);
+  }, [params.novoCadastro]);
 
+  // Renderiza o conteúdo de acordo com a aba selecionada
   const renderContent = () => {
     switch (selectedIndex) {
       case 0:
         return (
-          <Events
-            onShowEventModal={() => setEventCreationModalVisible(true)}
-            onFetchDataAvailable={handleSetEventsFetcher}
-          />
+          <View className="bg-neutral-800">
+
+            <Events />
+
+          </View>
         );
       case 1:
         return <Activity />;
       case 2:
         return <Ranking />;
       case 3:
-        return <Perfil meuUserId={""} />;
       default:
         return <Perfil meuUserId={""} />;
     }
   };
 
+  // Loading screen
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-black">
+      <View className="flex-1 items-center justify-center bg-black">
         <ActivityIndicator size="large" color="#FFD700" />
         <Text className="text-white mt-4">Verificando autenticação...</Text>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView
-      className={`w-full h-full items-center justify-center pt-safe pb-safe ${colors.background} `}
+    <View
+      className={`w-full h-full items-center justify-center flex pt-safe pb-safe bg-neutral-800`}
     >
       {renderContent()}
 
-      <Menu
-        selectedIndex={selectedIndex}
-        setSelectedIndex={setSelectedIndex}
-        onShowEventModal={() => setEventCreationModalVisible(true)}
-      />
+
 
       <ModalFirstTime
         visible={modalVisible}
@@ -111,7 +95,7 @@ export default function Main() {
             data.cidade,
             data.estado,
             data.esportes_praticados,
-            data.arquivo_foto,
+            data.arquivo_foto
           );
           if (!result) {
             alert("Erro ao atualizar perfil.");
@@ -119,12 +103,7 @@ export default function Main() {
         }}
       />
 
-      <EventCreationModal
-        visible={eventCreationModalVisible}
-        onClose={() => setEventCreationModalVisible(false)}
-        onSave={handleEventSave}
-        defaultSport=""
-      />
-    </SafeAreaView>
+
+    </View>
   );
 }

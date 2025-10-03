@@ -6,7 +6,7 @@ import {
   TextInputProps,
   TouchableOpacity,
 } from "react-native";
-import { colors } from "../../styles/styles";
+import { colors } from "../styles/styles";
 import { Ionicons } from "@expo/vector-icons";
 
 interface TextFieldProps {

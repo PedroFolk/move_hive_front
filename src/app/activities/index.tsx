@@ -11,8 +11,8 @@ import {
   RefreshControl, // 👈 importar aqui
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import AddActivityModal, { ModalActivity } from "../components/modalActivities";
-import AddButton from "../components/addButton";
+import AddActivityModal, { ModalActivity } from "../modals/modalActivities";
+import AddButton from "../../components/addButton";
 import { DeletarTreino, ListarTreinos } from "~/api/activities";
 import { ListarEsportes } from "~/api/getSports";
 
@@ -37,7 +37,7 @@ const ActivitiesScreen = () => {
 
   const carregarTreinos = async () => {
     const treinos = await ListarTreinos();
-    const formatted: Activity[] = (treinos || []).map((t: any) => ({
+    const formatted: Activity[] = (Array.isArray(treinos) ? treinos : []).map((t: any) => ({
       id: t.id,
       titulo: t.titulo,
       descricao: t.descricao,
@@ -133,7 +133,7 @@ const ActivitiesScreen = () => {
   };
 
   return (
-    <SafeAreaView className="h-full w-full">
+    <SafeAreaView className="h-full w-full bg-neutral-800">
       <View className="px-4 pt-4 flex-row justify-between items-center">
         <Text className="text-white text-2xl font-bold">Minhas Atividades</Text>
       </View>
@@ -148,8 +148,8 @@ const ActivitiesScreen = () => {
             key={`${cat.value}-${index}`}
             onPress={() => setSelectedCategory(cat.value)}
             className={`mr-2 px-6 h-10 justify-center items-center rounded-full border ${selectedCategory === cat.value
-                ? "bg-white border-transparent"
-                : "border-gray-500 border-2"
+              ? "bg-white border-transparent"
+              : "border-gray-500 border-2"
               }`}
           >
             <Text

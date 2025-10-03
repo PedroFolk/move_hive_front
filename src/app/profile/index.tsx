@@ -7,7 +7,6 @@ import {
   FlatList,
   RefreshControl,
   Alert,
-  SafeAreaView,
   ActivityIndicator,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -20,7 +19,9 @@ import {
 } from "~/api/user";
 import { ExcluirPost, ListarPostProprios, PostUsuarioAlheio } from "~/api/feed";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import PostModal from "../components/modalPosts";
+import PostModal from "../modals/modalPosts";
+import UsuariosModal from "../modals/modalUsuarios";
+// IMPORTAÇÃO DO NOVO MODAL DE USUÁRIOS
 
 type PerfilProps = {
   userId?: string;
@@ -40,6 +41,13 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
   const [descricaoSelecionado, setDescricaoSelecionad] = useState("");
   const [jaSegue, setJaSegue] = useState<boolean>(false);
   const [segLoading, setSegLoading] = useState<boolean>(false);
+
+  // NOVOS ESTADOS PARA O MODAL DE USUÁRIOS
+  const [modalUsuariosVisible, setModalUsuariosVisible] = useState(false);
+  const [modalUsuariosTipo, setModalUsuariosTipo] = useState<"seguindo" | "seguidores">(
+    "seguindo"
+  );
+
 
   const carregarPerfil = useCallback(async () => {
     setRefreshing(true);
@@ -186,11 +194,7 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
   const Header = () => (
     <View className="w-full py-4 px-6 bg-neutral-800">
 
-      {!isMeuPerfil && (
-        <TouchableOpacity className="mb-4" onPress={() => router.back()}>
-          <MaterialCommunityIcons name="arrow-left" size={28} color="white" />
-        </TouchableOpacity>
-      )}
+
 
       <View className="flex-row items-center justify-between">
         {perfil.foto_perfil ? (
@@ -209,9 +213,13 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
 
         <View className="flex-1 ml-4 justify-center">
           <View className="flex-row flex-1 justify-around">
+            {/* NOVO ONPRESS: ABRE O MODAL PARA SEGUIDORES */}
             <TouchableOpacity
               className="items-center"
-              onPress={() => router.push("../infoAdc?tipo=seguidores")}
+              onPress={() => {
+                setModalUsuariosTipo("seguidores");
+                setModalUsuariosVisible(true);
+              }}
             >
               <Text className="text-yellow-500 font-bold text-lg">
                 {perfil.seguidores_count}
@@ -219,9 +227,13 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
               <Text className="text-white text-sm">Seguidores</Text>
             </TouchableOpacity>
 
+            {/* NOVO ONPRESS: ABRE O MODAL PARA SEGUINDO */}
             <TouchableOpacity
               className="items-center"
-              onPress={() => router.push("../infoAdc?tipo=seguindo")}
+              onPress={() => {
+                setModalUsuariosTipo("seguindo");
+                setModalUsuariosVisible(true);
+              }}
             >
               <Text className="text-yellow-500 font-bold text-lg">
                 {perfil.seguindo_count}
@@ -233,7 +245,11 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
           {isMeuPerfil ? (
             <TouchableOpacity
               className="border-2 border-white rounded-2xl mt-4 py-2"
-              onPress={() => router.push("../configs")}
+              onPress={() => {
+                router.push("/configs")
+                console.log("TOquei")
+
+              }} // Usando rota absoluta, mais seguro
             >
               <Text className="text-white text-center text-lg">Editar Perfil</Text>
             </TouchableOpacity>
@@ -318,17 +334,17 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
     );
 
   return (
-    <SafeAreaView className="w-full h-full bg-neutral-800">
+    <View className="w-full h-full bg-neutral-800 py-safe">
 
-      {isMeuPerfil ? 
-      <View className="px-4 pt-4 flex-row justify-between items-center">
-        <Text className="text-white text-2xl font-bold">
-           Meu Perfil
-        </Text>
-      </View>
-    :
-    <></>  
-    }
+      {isMeuPerfil ?
+        <View className="px-4 pt-4 flex-row justify-between items-center">
+          <Text className="text-white text-2xl font-bold">
+            Meu Perfil
+          </Text>
+        </View>
+        :
+        <></>
+      }
 
 
       <FlatList
@@ -367,7 +383,17 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
           comentario={descricaoSelecionado}
         />
       )}
-    </SafeAreaView>
+
+      {/* NOVO COMPONENTE MODAL DE USUÁRIOS */}
+      <UsuariosModal
+        isVisible={modalUsuariosVisible}
+        onClose={() => setModalUsuariosVisible(false)}
+        tipo={modalUsuariosTipo}
+        userId={userIdString} // Passa o ID do perfil sendo exibido
+        onUpdate={carregarPerfil} // Recarrega o perfil se uma ação de seguir/deixar de seguir ocorrer no modal
+      />
+
+    </View>
   );
 
 }

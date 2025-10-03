@@ -94,7 +94,7 @@ export default function Ranking() {
   );
 
   return (
-    <SafeAreaView className="w-full h-full">
+    <View className="w-full h-full bg-neutral-800 py-safe">
       <View className="px-4 pt-4 flex-row justify-between items-center">
         <Text className="text-white text-2xl font-bold">Ranking</Text>
       </View>
@@ -145,6 +145,6 @@ export default function Ranking() {
           </View>
         )}
       />
-    </SafeAreaView>
+    </View>
   );
 }

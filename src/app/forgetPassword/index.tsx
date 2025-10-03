@@ -6,7 +6,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import TextField from "../components/fields";
+import TextField from "../../components/fields";
 import { colors } from "~/styles/styles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";

@@ -14,7 +14,7 @@ import {
   TouchableWithoutFeedback,
   Image,
 } from "react-native";
-import TextField from "../components/fields";
+import TextField from "../../components/fields";
 
 const formatDate = (text: string) => {
   const cleaned = text.replace(/\D/g, "");
