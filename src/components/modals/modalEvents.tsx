@@ -8,17 +8,16 @@ import {
   Image,
   Platform,
   KeyboardAvoidingView,
-  SafeAreaView,
   ScrollView,
   Switch,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { Dropdown } from "react-native-element-dropdown";
 import DateTimePicker from "@react-native-community/datetimepicker";
-
+import ufCidadeJson from "../../app/uf_cidade.json";
 import { CriarEvento } from "~/api/event";
 import { ListarEsportes } from "~/api/getSports";
+import CustomDropdown from "../customDropdown";
 
 export interface ModalEvent {
   title: string;
@@ -49,6 +48,9 @@ interface Props {
   onClose: () => void;
   onSave: (event: ModalEvent) => void;
 }
+
+
+
 const InfoTooltip = ({ message }: { message: string }) => {
   const [visible, setVisible] = useState(false);
   return (
@@ -100,6 +102,29 @@ const EventCreationModal: React.FC<Props> = ({
     [esportes, setEsportes] = useState<any[]>([]),
     [showDatePicker, setShowDatePicker] = useState(false),
     [showTimePicker, setShowTimePicker] = useState(false);
+  const [estado, setEstado] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [estados, setEstados] = useState<{ label: string; value: string }[]>([]);
+  const [cidades, setCidades] = useState<{ label: string; value: string }[]>([]);
+
+  const handleEstadoChange = (ufSigla: string) => {
+    setEstado(ufSigla);
+    setCidade("");
+    const estadoEncontrado = ufCidadeJson.estados.find((e: any) => e.sigla === ufSigla);
+    setCidades(
+      estadoEncontrado ? estadoEncontrado.cidades.map((c: string) => ({ label: c, value: c })) : []
+    );
+  };
+  useEffect(() => {
+    if (ufCidadeJson?.estados) {
+      setEstados(
+        ufCidadeJson.estados.map((uf: any) => ({
+          label: `${uf.nome} (${uf.sigla})`,
+          value: uf.sigla,
+        }))
+      );
+    }
+  }, []);
 
   useEffect(() => {
     if (visible) {
@@ -163,9 +188,9 @@ const EventCreationModal: React.FC<Props> = ({
         title,
         description,
         sport,
-        date,           // data_hora
-        localizacao,    // localizacao
-        Endereco || localizacao, // endereco (se não preencher, usa localizacao)
+        date,
+        localizacao,
+        Endereco || localizacao,
         maxParticipants,
         isTournament,
         premiacao,
@@ -215,8 +240,8 @@ const EventCreationModal: React.FC<Props> = ({
       transparent
       onRequestClose={onClose}
     >
-      <View className="bg-neutral-900  p-6 flex-1">
-        <SafeAreaView className="flex-1">
+      <View className="bg-neutral-900 py-safe p-6 flex-1">
+        <View className="flex-1">
           <Text className="text-2xl font-bold text-center mt-4 mb-6 text-white">
             Novo Evento
           </Text>
@@ -227,6 +252,7 @@ const EventCreationModal: React.FC<Props> = ({
             <ScrollView
               contentContainerStyle={{ paddingBottom: 20 }}
               showsVerticalScrollIndicator={false}
+
             >
               <Text className="text-gray-300 mb-1 text-xl">Título</Text>
               <TextInput
@@ -238,30 +264,17 @@ const EventCreationModal: React.FC<Props> = ({
               />
 
               <Text className="text-gray-300 mb-1 text-xl">Esporte</Text>
-              <Dropdown
-                data={esportes}
-                labelField="label"
-                valueField="value"
-                placeholder="Selecione um esporte"
-                value={sport}
-                onChange={(item) => setSport(item.label)}
-                style={{
-                  backgroundColor: "transparent",
-                  borderRadius: 12,
-                  paddingHorizontal: 12,
-                  height: 50,
-                  marginBottom: 20,
-                  borderColor: "#4b5563",
-                  borderWidth: 1,
-                }}
-                containerStyle={{
-                  backgroundColor: "#404040",
-                  borderRadius: 12,
-                }}
-                itemTextStyle={{ textAlign: "center", color: "white" }}
-                placeholderStyle={{ color: "#888", fontSize: 16 }}
-                selectedTextStyle={{ color: "white", fontSize: 16 }}
-              />
+              
+
+                <CustomDropdown
+                  data={esportes.map((e) => ({ label: e.label, value: e.id }))}
+                  value={sport}
+                  placeholder="Selecione um esporte"
+                  onChange={(val) => setSport(val)}
+                />
+
+       
+
 
               <Text className="text-gray-300 mb-1 text-xl">Descrição</Text>
               <TextInput
@@ -272,23 +285,13 @@ const EventCreationModal: React.FC<Props> = ({
                 value={description}
                 onChangeText={setDescription}
               />
+              <Text className="text-gray-300 mb-1 text-xl">Estado</Text>
+              <CustomDropdown data={estados} value={estado} placeholder="Selecione um estado" onChange={handleEstadoChange} />
 
               <Text className="text-gray-300 mb-1 text-xl">Cidade</Text>
-              <TextInput
-                className="text-xl p-4 border border-neutral-600 rounded-xl text-white mb-4"
-                value={city}
-                onChangeText={setCity}
-                placeholder="Cidade"
-                placeholderTextColor="#888"
-              />
-              <Text className="text-gray-300 mb-1 text-xl">Estado</Text>
-              <TextInput
-                className="text-xl p-4 border border-neutral-600 rounded-xl text-white mb-4"
-                value={state}
-                onChangeText={setState}
-                placeholder="Estado"
-                placeholderTextColor="#888"
-              />
+              <CustomDropdown data={cidades} value={cidade} placeholder="Selecione uma cidade" onChange={setCidade} disabled={!estado} />
+
+
 
               <View className="flex flex-row justify-between">
                 <View>
@@ -453,7 +456,7 @@ const EventCreationModal: React.FC<Props> = ({
               </TouchableOpacity>
             </ScrollView>
           </KeyboardAvoidingView>
-        </SafeAreaView>
+        </View>
       </View>
     </Modal>
   );

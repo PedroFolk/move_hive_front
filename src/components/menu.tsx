@@ -1,21 +1,10 @@
-import React from "react";
-import {
-  View,
-  TouchableOpacity,
-  SafeAreaView,
-  Platform,
-  StatusBar,
-  Text
-} from "react-native";
+import React, { useState } from "react";
+import { TouchableOpacity, Text, View } from "react-native";
+import { BlurView } from "expo-blur";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-
-import { colors } from "../styles/styles";
 
 interface MenuProps {
   selectedIndex: number;
@@ -23,79 +12,90 @@ interface MenuProps {
 }
 
 interface Button {
-  name: string;
-  type: string;
-  size: number;
+  name?: string;
+  type?: string;
+  size?: number;
   button_name: string;
+  isHive?: boolean;
 }
+
 const Menu: React.FC<MenuProps> = ({ selectedIndex, setSelectedIndex }) => {
   const buttons: Button[] = [
-    {
-      name: "home", type: "Entypo", size: 24,
-      button_name: "Inicio"
-    },
-    {
-      name: "dumbbell", type: "FontAwesome5", size: 24,
-      button_name: "Treinos"
-    },
-    {
-      name: "ranking-star", type: "FontAwesome6", size: 24,
-      button_name: "Podio"
-    },
-    {
-      name: "trophy", type: "FontAwesome", size: 24,
-      button_name: "Eventos"
-    },
-    {
-      name: "person", type: "Ionicons", size: 24,
-      button_name: "Perfil"
-    },
+    { name: "trophy", type: "FontAwesome", size: 22, button_name: "Eventos" },
+    { name: "dumbbell", type: "FontAwesome5", size: 22, button_name: "Treinos" },
+    { isHive: true, button_name: "Hive" }, // botão flutuante central
+    { name: "users", type: "FontAwesome", size: 22, button_name: "Social" },
+    { name: "person", type: "Ionicons", size: 22, button_name: "Perfil" },
   ];
 
   const getIconComponent = (type: Button["type"]) => {
     switch (type) {
-      case "Entypo":
-        return Entypo;
-      case "FontAwesome5":
-        return FontAwesome5;
-      case "FontAwesome":
-        return FontAwesome;
-
-      case "FontAwesome6":
-        return FontAwesome6;
-      case "Ionicons":
-        return Ionicons;
-      case "MaterialCommunityIcons":
-        return MaterialCommunityIcons;
-      default:
-        return AntDesign;
+      case "FontAwesome5": return FontAwesome5;
+      case "Ionicons": return Ionicons;
+      case "FontAwesome": return FontAwesome;
+      default: return AntDesign;
     }
   };
 
   return (
-    <SafeAreaView className="absolute bottom-0 flex-row justify-around  bg-yellow-500 w-full pb-safe  ">
-      {buttons.map((btn, index) => {
-        const ativo = index === selectedIndex;
-        const IconComponent = getIconComponent(btn.type);
+    <View
+      className="absolute py-safe w-full bottom-0  items-center justify-center "
+    >
+      <BlurView
+        intensity={30}
+        tint="light"
+        className="flex-1 mx-5 h-[80px] rounded-full  flex-row justify-around items-center px-4 overflow-hidden"
+        style={{
+          borderRadius: 35,
+        }}
+      >
+        {buttons.map((btn, index) => {
+          if (btn.isHive) {
+            return (
+              <TouchableOpacity
+                className=" w-20 h-20 rounded-full bg-yellow-500  items-center justify-center "
+                key={index}
+                onPress={() => alert("Hive clicado!")}
 
-        return (
-          <TouchableOpacity
-            key={index}
-            onPress={() => setSelectedIndex(index)}
-            className={`rounded-xl py-3  mt-2 ${ativo ? `${colors.background}` : "bg-transparent"} flex items-center w-1/6`}
-          >
-            <IconComponent
-              name={btn.name as any}
-              size={btn.size}
-              color={ativo ? "white" : "black"}
-            />
-            <Text className={ativo ? "text-white mt-1" : "text-black mt-1"}>
-              {btn.button_name}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </SafeAreaView>
+           
+              >
+                <Text 
+                className="text-neutral-800 text-2xl font-bold">
+                  {btn.button_name}
+                </Text>
+              </TouchableOpacity>
+            );
+          }
+
+          const ativo = index === selectedIndex;
+          const IconComponent = getIconComponent(btn.type);
+
+          return (
+            <TouchableOpacity
+              key={index}
+              onPress={() => setSelectedIndex(index)}
+              style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+              activeOpacity={0.9}
+            >
+              <IconComponent
+                name={btn.name as any}
+                size={btn.size}
+                color={ativo ? "#facc15" : "#a3a3a3"}
+              />
+              <Text
+                style={{
+                  color: ativo ? "#facc15" : "#a3a3a3",
+                  marginTop: 4,
+                  fontSize: 10,
+                }}
+              >
+                {btn.button_name}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </BlurView>
+    </View>
   );
 };
 

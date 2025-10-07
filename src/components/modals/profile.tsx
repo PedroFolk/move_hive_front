@@ -1,7 +1,8 @@
 import React from 'react';
 import { Modal, View, TouchableOpacity, SafeAreaView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import Perfil from '~/app/(tabs)/profile';
+import Perfil from '~/app/profile';
+
 
 type ProfileModalProps = {
   visible: boolean;

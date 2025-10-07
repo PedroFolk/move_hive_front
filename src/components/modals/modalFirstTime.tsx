@@ -7,23 +7,17 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   Image,
   TextInput,
   Keyboard,
   TouchableWithoutFeedback,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import Entypo from "@expo/vector-icons/Entypo";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { Dropdown } from "react-native-element-dropdown";
-import ufCidadeJson from "../../app/uf_cidade.json";
 import * as ImagePicker from "expo-image-picker";
+import ufCidadeJson from "../../app/uf_cidade.json";
 import { ListarEsportes } from "~/api/getSports";
+import CustomDropdown from "../customDropdown";
 
 type ModalFirstTimeProps = {
   visible: boolean;
@@ -41,18 +35,6 @@ type SubmitData = {
 
 const niveis = ["iniciante", "amador", "profissional"] as const;
 
-function getIconComponent(type: string) {
-  const map: Record<string, any> = {
-    Entypo,
-    FontAwesome5,
-    FontAwesome,
-    FontAwesome6,
-    Ionicons,
-    MaterialCommunityIcons,
-  };
-  return map[type] || AntDesign;
-}
-
 type EsporteAPI = {
   label: string;
   value: string;
@@ -69,6 +51,8 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
   const [esportes, setEsportes] = useState<Record<string, "iniciante" | "amador" | "profissional">>({});
   const [foto, setFoto] = useState<any | null>(null);
   const [esportesAPI, setEsportesAPI] = useState<EsporteAPI[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     if (ufCidadeJson?.estados) {
@@ -83,12 +67,15 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
 
   useEffect(() => {
     const carregarEsportes = async () => {
-      const data = await ListarEsportes();
-      const sorted = data.sort((a: EsporteAPI, b: EsporteAPI) =>
-        a.label.localeCompare(b.label, "pt", { sensitivity: "base" })
-      );
-      setEsportesAPI(sorted);
-      console.log("Esportes da API:", sorted); // debug
+      try {
+        const data = await ListarEsportes();
+        const sorted = data.sort((a: EsporteAPI, b: EsporteAPI) =>
+          a.label.localeCompare(b.label, "pt", { sensitivity: "base" })
+        );
+        setEsportesAPI(sorted);
+      } catch (error) {
+        Alert.alert("Erro", "Não foi possível carregar os esportes. Tente novamente.");
+      }
     };
     if (visible) carregarEsportes();
   }, [visible]);
@@ -135,45 +122,55 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
 
   const handleFinalSubmit = async () => {
     Keyboard.dismiss();
-    await onSubmit({
-      biografia: descricao,
-      cidade,
-      estado,
-      esportes_praticados: esportes,
-      arquivo_foto: foto,
-    });
-    onClose();
-    setStep(1);
-    setEsportes({});
-    setDescricao("");
-    setCidade("");
-    setEstado("");
-    setFoto(null);
+    setLoading(true);
+
+    try {
+      await onSubmit({
+        biografia: descricao,
+        cidade,
+        estado,
+        esportes_praticados: esportes,
+        arquivo_foto: foto,
+      });
+      setSubmitted(true);
+      setTimeout(() => {
+        setSubmitted(false);
+        onClose();
+        setStep(1);
+        setEsportes({});
+        setDescricao("");
+        setCidade("");
+        setEstado("");
+        setFoto(null);
+      }, 1200); // mantém check 1.2s
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Erro", "Não foi possível enviar os dados. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   };
+
   return (
-    <Modal visible={visible} transparent animationType="slide" >
+    <Modal visible={visible} transparent animationType="slide">
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View className="bg-neutral-800 rounded-lg p-6 flex-1 justify-between h-full">
-          <SafeAreaView className="flex-1">
-
+          <View className="flex-1 py-safe">
             {step === 1 ? (
               <>
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
-                  <Text className="text-white text-2xl text-center font-bold mt-10">
-                    Selecione 
-                  </Text>
-                   <Text className="text-white text-2xl text-center font-bold mb-20 mt-4">
-                    esportes e níveis
-                  </Text>
-                  <ScrollView className="mb-4" >
+                  <Text className="text-white text-2xl text-center font-bold mt-10">Selecione</Text>
+                  <Text className="text-white text-2xl text-center font-bold mb-20 mt-4">esportes e níveis</Text>
+                  <ScrollView className="mb-4">
                     <View className="flex flex-row flex-wrap justify-between">
                       {esportesAPI.map(({ value, label, foto: esporteFoto }) => {
                         const nivel = esportes[value];
                         return (
                           <TouchableOpacity
                             key={value}
-                            className={`basis-[48%] mb-4 border rounded-2xl p-3 items-center ${nivel ? "border-blue-500 bg-blue-900" : "border-gray-700"
-                              }`}
+                            className={`basis-[48%] mb-4 border rounded-2xl p-3 items-center ${
+                              nivel ? "border-blue-500 bg-blue-900" : "border-gray-700"
+                            }`}
                             onPress={() => toggleEsporte(value)}
                             activeOpacity={0.8}
                           >
@@ -194,12 +191,13 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
                             {nivel && (
                               <TouchableOpacity
                                 onPress={() => changeNivel(value)}
-                                className={`mt-2 px-6 py-2 rounded-lg ${nivel === "iniciante"
-                                  ? "bg-green-600"
-                                  : nivel === "amador"
+                                className={`mt-2 px-6 py-2 rounded-lg ${
+                                  nivel === "iniciante"
+                                    ? "bg-green-600"
+                                    : nivel === "amador"
                                     ? "bg-yellow-500"
                                     : "bg-red-600"
-                                  }`}
+                                }`}
                                 activeOpacity={0.7}
                               >
                                 <Text className="text-white font-bold capitalize">{nivel}</Text>
@@ -209,130 +207,64 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
                         );
                       })}
                     </View>
-
                   </ScrollView>
                 </KeyboardAvoidingView>
 
                 <TouchableOpacity
-                  className={`rounded-xl p-4 mb-4 ${Object.keys(esportes).length === 0
-                    ? "bg-transparent border-white border-2"
-                    : "bg-yellow-500 border-yellow-500"
-                    } mt-auto`}
+                  className={`rounded-xl p-4 mb-4 ${
+                    Object.keys(esportes).length === 0 ? "bg-transparent border-white border-2" : "bg-yellow-500 border-yellow-500"
+                  } mt-auto`}
                   onPress={() => setStep(2)}
                   disabled={Object.keys(esportes).length === 0}
                 >
                   <Text
-                    className={`text-center text-xl font-semibold ${Object.keys(esportes).length === 0 ? "text-white" : "text-black"
-                      }`}
+                    className={`text-center text-xl font-semibold ${
+                      Object.keys(esportes).length === 0 ? "text-white" : "text-black"
+                    }`}
                   >
                     Continuar
                   </Text>
                 </TouchableOpacity>
               </>
             ) : step === 2 ? (
-
               <>
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
                   <View className="flex-1">
-                    <Text className="text-white text-2xl text-center mt-10 font-bold mb-10">
-                      Localidade
-                    </Text>
+                    <Text className="text-white text-2xl text-center mt-10 font-bold mb-10">Localidade</Text>
 
                     <Text className="text-gray-300 mb-1 text-xl">Estado</Text>
-                    <Dropdown
-                      data={estados}
-                      labelField="label"
-                      valueField="value"
-                      placeholder="Selecione um estado"
-                      value={estado}
-                      search
-                      searchPlaceholder="Buscar cidade..."
-                      inputSearchStyle={{ borderRadius: 12, color: "white" }}
-                      onChange={(item) => handleEstadoChange(item.value)}
-                      style={{
-                        backgroundColor: "transparent",
-                        borderRadius: 12,
-                        paddingHorizontal: 12,
-                        height: 50,
-                        marginBottom: 20,
-                        borderColor: "#4b5563",
-                        borderWidth: 1,
-                      }}
-                      containerStyle={{ backgroundColor: "#404040", borderRadius: 12 }}
-                      itemTextStyle={{ textAlign: "center", color: "white" }}
-                      placeholderStyle={{ color: "#888", fontSize: 16 }}
-                      selectedTextStyle={{ color: "white", fontSize: 16 }}
-                    />
+                    <CustomDropdown data={estados} value={estado} placeholder="Selecione um estado" onChange={handleEstadoChange} />
 
                     <Text className="text-gray-300 mb-1 text-xl">Cidade</Text>
-                    <Dropdown
-                      data={cidades}
-                      labelField="label"
-                      valueField="value"
-                      placeholder="Selecione uma cidade"
-                      value={cidade}
-                      onChange={(item) => setCidade(item.value)}
-                      disable={!estado}
-                      search
-                      searchPlaceholder="Buscar cidade..."
-                      inputSearchStyle={{ borderRadius: 12, color: "white" }}
-                      style={{
-                        backgroundColor: "transparent",
-                        borderRadius: 12,
-                        paddingHorizontal: 12,
-                        height: 50,
-                        marginBottom: 20,
-                        borderColor: "#4b5563",
-                        borderWidth: 1,
-                      }}
-                      containerStyle={{ backgroundColor: "#404040", borderRadius: 12 }}
-                      itemTextStyle={{ textAlign: "center", color: "white" }}
-                      placeholderStyle={{ color: "#888", fontSize: 16 }}
-                      selectedTextStyle={{ color: "white", fontSize: 16 }}
-                    />
+                    <CustomDropdown data={cidades} value={cidade} placeholder="Selecione uma cidade" onChange={setCidade} disabled={!estado} />
                   </View>
                 </KeyboardAvoidingView>
 
                 <View className="absolute bottom-2 w-full">
-                  <TouchableOpacity
-                    onPress={() => setStep(1)}
-                    className="py-3 px-5 border border-gray-600 rounded-xl mb-4"
-                  >
+                  <TouchableOpacity onPress={() => setStep(1)} className="py-3 px-5 border border-gray-600 rounded-xl mb-4">
                     <Text className="text-white text-center text-xl">Voltar</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
                     onPress={() => setStep(3)}
-                    className={`py-3 px-5 rounded-xl border-2 mb-4 ${!cidade || !estado ? "bg-transparent border-white" : "bg-yellow-500"
-                      }`}
+                    className={`py-3 px-5 rounded-xl border-2 mb-4 ${!cidade || !estado ? "bg-transparent border-white" : "bg-yellow-500"}`}
                     disabled={!cidade || !estado}
                   >
-                    <Text
-                      className={`text-xl text-center ${!cidade || !estado ? "text-white" : "text-black"
-                        }`}
-                    >
+                    <Text className={`text-xl text-center ${!cidade || !estado ? "text-white" : "text-black"}`}>
                       Continuar
                     </Text>
                   </TouchableOpacity>
                 </View>
               </>
             ) : (
-
               <>
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
                   <Text className="text-white text-2xl text-center mt-10 font-bold mb-6">
                     Gostaria de colocar uma foto e biografia agora?
                   </Text>
 
-                  <TouchableOpacity
-                    onPress={escolherFoto}
-                    className="bg-gray-700 rounded-xl p-4 mb-4 items-center"
-                  >
-                    {foto ? (
-                      <Image source={{ uri: foto.uri }} className="w-24 h-24 rounded-full" />
-                    ) : (
-                      <Text className="text-white">Selecionar Foto</Text>
-                    )}
+                  <TouchableOpacity onPress={escolherFoto} className="bg-gray-700 rounded-xl p-4 mb-4 items-center">
+                    {foto ? <Image source={{ uri: foto.uri }} className="w-24 h-24 rounded-full" /> : <Text className="text-white">Selecionar Foto</Text>}
                   </TouchableOpacity>
 
                   <Text className="text-gray-300 mb-2 text-xl">Biografia</Text>
@@ -346,24 +278,28 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
                   />
                 </KeyboardAvoidingView>
 
-                <View className="absolute bottom-2 w-full">
-                  <TouchableOpacity
-                    onPress={() => setStep(2)}
-                    className="py-3 px-5 border border-gray-600 rounded-xl mb-4"
-                  >
+                <View className="absolute bottom-2 w-full items-center">
+                  <TouchableOpacity onPress={() => setStep(2)} className="py-3 px-5 border border-gray-600 rounded-xl mb-4 w-[90%]">
                     <Text className="text-white text-center text-xl">Voltar</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
                     onPress={handleFinalSubmit}
-                    className="py-3 px-5 rounded-xl bg-yellow-500 mb-4"
+                    className={`py-3 px-5 rounded-xl mb-4 w-[90%] items-center justify-center ${loading ? "bg-gray-600" : "bg-yellow-500"}`}
+                    disabled={loading}
                   >
-                    <Text className="text-black text-xl text-center">Enviar</Text>
+                    {loading ? (
+                      <ActivityIndicator size="small" color="#000" />
+                    ) : submitted ? (
+                      <Text className="text-black text-xl text-center">✔️ Enviado</Text>
+                    ) : (
+                      <Text className="text-black text-xl text-center">Enviar</Text>
+                    )}
                   </TouchableOpacity>
                 </View>
               </>
             )}
-          </SafeAreaView>
+          </View>
         </View>
       </TouchableWithoutFeedback>
     </Modal>

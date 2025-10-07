@@ -1,7 +1,6 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router } from "expo-router";
 import "../../../global.css";
-import TextField from "../../components/fields";
 import { useEffect, useState } from "react";
 import {
   View,
@@ -20,11 +19,13 @@ import {
 import { colors } from "../../styles/styles";
 import { LogarUsuario } from "~/api/auth";
 import * as SecureStore from "expo-secure-store";
+import TextField from "~/components/fields";
+
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false); // estado de bloqueio
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (loading) return; // previne múltiplos cliques
@@ -50,11 +51,11 @@ export default function Login() {
       await SecureStore.deleteItemAsync("token");
       await SecureStore.deleteItemAsync("userId");
     };
+
     checkAuth();
   }, []);
-
   return (
-    <SafeAreaView className={`flex-1 ${colors.background}`}>
+    <SafeAreaView className={`flex-1 ${colors.background}  `}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -63,10 +64,12 @@ export default function Login() {
           <View
             className={`w-full max-w-md rounded-2xl ${colors.background} self-center p-6`}
           >
+
+
             <Image
               source={require("../../images/logoMoveHive_sem_fundo_cor_branco.png")}
               resizeMode="center"
-              className="rounded-full w-48 h-48 justify-center m-auto"
+              className="rounded-full w-48 h-48 justify-center m-auto "
             />
 
             <TextField
@@ -96,9 +99,8 @@ export default function Login() {
             <TouchableOpacity
               onPress={handleLogin}
               disabled={loading} // bloqueia o botão enquanto loading = true
-              className={`mt-10 rounded-2xl ${colors.button} p-3 ${
-                loading ? "opacity-50" : ""
-              }`}
+              className={`mt-10 rounded-2xl ${colors.button} p-3 ${loading ? "opacity-50" : ""
+                }`}
             >
               {loading ? (
                 <View className="flex-row justify-center items-center">
@@ -123,11 +125,28 @@ export default function Login() {
               className={`mt-5 rounded-2xl border-2 ${colors.border} p-3`}
             >
               <Text
-                className={`text-center text-xl font-bold ${colors.textPrimaryButton}`}
+                className={`text-center text-xl font-bold ${colors.textPrimaryButton} `}
               >
                 Cadastrar-se
               </Text>
             </TouchableOpacity>
+            {/* 
+            <View className="mt-10 flex flex-row items-center gap-5">
+              <View
+                className={`h-1 flex-1 rounded-full ${colors.separator} `}
+              />
+              <Text className="text-2xl text-white ">ou</Text>
+              <View className={`h-1 flex-1 rounded-full ${colors.separator}`} />
+            </View>
+
+            <TouchableOpacity
+              className={`mt-10 flex flex-row items-center gap-5 rounded-2xl bg-neutral-600 p-2 `}
+            >
+              <AntDesign name="google" size={48} color="gray" />
+              <Text className=" text-2xl font-bold text-white">
+                Entrar com Google
+              </Text>
+            </TouchableOpacity> */}
           </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>

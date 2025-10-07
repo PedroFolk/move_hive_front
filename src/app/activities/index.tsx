@@ -11,8 +11,8 @@ import {
   RefreshControl, // 👈 importar aqui
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import AddActivityModal, { ModalActivity } from "../../../components/modals/modalActivities";
-import AddButton from "../../../components/addButton";
+import AddActivityModal, { ModalActivity } from "../../components/modals/modalActivities";
+import AddButton from "../../components/addButton";
 import { DeletarTreino, ListarTreinos } from "~/api/activities";
 import { ListarEsportes } from "~/api/getSports";
 
@@ -133,7 +133,7 @@ const ActivitiesScreen = () => {
   };
 
   return (
-    <SafeAreaView className="h-full w-full bg-neutral-800">
+    <View className="h-full w-full py-safe bg-neutral-800">
       <View className="px-4 pt-4 flex-row justify-between items-center">
         <Text className="text-white text-2xl font-bold">Minhas Atividades</Text>
       </View>
@@ -253,7 +253,7 @@ const ActivitiesScreen = () => {
           await carregarTreinos();
         }}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

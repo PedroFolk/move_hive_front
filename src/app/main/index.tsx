@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { Text, ActivityIndicator, View } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+
+import { PreencherDadosModal } from "~/api/user";
+import "../../../global.css";
 import Events from "../events";
 import Perfil from "../profile";
-import Activity from "../activities";
 import Ranking from "../ranking";
-import { PreencherDadosModal } from "~/api/user";
-import "../../../../global.css";
+import Activity from "../activities";
+import Menu from "~/components/menu";
 import ModalFirstTime from "~/components/modals/modalFirstTime";
 
 
@@ -19,6 +21,7 @@ export default function Main() {
 
 
   useEffect(() => {
+    
     const checkAuth = async () => {
       try {
         const token = await SecureStore.getItemAsync("token");
@@ -48,13 +51,7 @@ export default function Main() {
   const renderContent = () => {
     switch (selectedIndex) {
       case 0:
-        return (
-          <View className="bg-neutral-800">
-
-            <Events />
-
-          </View>
-        );
+        return <Events />;
       case 1:
         return <Activity />;
       case 2:
@@ -75,10 +72,16 @@ export default function Main() {
   }
 
   return (
-    <View
-      className={`w-full h-full items-center justify-center flex pt-safe pb-safe bg-neutral-800`}
-    >
-      {renderContent()}
+    <>
+      <View
+        className={`w-full h-full  pb-safe bg-neutral-800`}
+      >
+        {renderContent()}
+        <Menu
+          selectedIndex={selectedIndex}
+          setSelectedIndex={setSelectedIndex} />
+      </View>
+
       <ModalFirstTime
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
@@ -95,6 +98,7 @@ export default function Main() {
           }
         }}
       />
-    </View>
+    </>
   );
+
 }
