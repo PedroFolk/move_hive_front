@@ -11,6 +11,8 @@ import Ranking from "../ranking";
 import Activity from "../activities";
 import Menu from "~/components/menu";
 import ModalFirstTime from "~/components/modals/modalFirstTime";
+import SocialPage from "../social";
+import Feed from "../feed";
 
 
 export default function Main() {
@@ -21,7 +23,6 @@ export default function Main() {
 
 
   useEffect(() => {
-    
     const checkAuth = async () => {
       try {
         const token = await SecureStore.getItemAsync("token");
@@ -53,10 +54,13 @@ export default function Main() {
       case 0:
         return <Events />;
       case 1:
-        return <Activity />;
+        return <Feed />;
       case 2:
         return <Ranking />;
       case 3:
+        return <Ranking />;
+      case 4:
+        return <Perfil meuUserId={""}  />;
       default:
         return <Perfil meuUserId={""} />;
     }

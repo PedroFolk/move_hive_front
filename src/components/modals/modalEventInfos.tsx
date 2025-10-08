@@ -1,6 +1,9 @@
 import { useRouter } from "expo-router";
-import { Modal, ScrollView, Text, Image, View, TouchableOpacity } from "react-native";
-import { MaterialIcons, Entypo } from '@expo/vector-icons'; // ícones para data, hora e local
+import { Modal, ScrollView, Text, Image, View, TouchableOpacity, ActivityIndicator } from "react-native";
+import { MaterialIcons, Entypo, Ionicons } from '@expo/vector-icons';
+import { useEffect, useState } from "react";
+import * as SecureStore from "expo-secure-store";
+import { ParticiparEvento, CancelarParticipacao } from "~/api/event";
 
 type ModalEventInfosProps = {
     visible: boolean;
@@ -14,9 +17,11 @@ type ModalEventInfosProps = {
     state: string;
     imageUri?: string;
     isPrivate?: boolean;
+    participantes?: { id: string }[];
 }
 
 export default function ModalEventInfos({
+    id,
     visible,
     onClose,
     title,
@@ -26,92 +31,113 @@ export default function ModalEventInfos({
     city,
     state,
     imageUri,
-    isPrivate }: ModalEventInfosProps) {
-    const router = useRouter();
+    isPrivate,
+    participantes
+}: ModalEventInfosProps) {
+    const [userId, setUserId] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [isParticipated, setIsParticipated] = useState(false);
+
+    useEffect(() => {
+        const fetchUserId = async () => {
+            const id = await SecureStore.getItemAsync("userId");
+            setUserId(id);
+        };
+        fetchUserId();
+    }, []);
+
+    // Atualiza o estado quando o modal abrir ou quando participantes mudarem
+    useEffect(() => {
+        if (userId && participantes) {
+            setIsParticipated(participantes.some(p => p.id === userId));
+        }
+    }, [userId, participantes, visible]);
+
+    const handleParticipate = async () => {
+        if (!id || !userId || loading) return; // evita múltiplos cliques
+        setLoading(true);
+
+        try {
+            if (!isParticipated) {
+                await ParticiparEvento(id);
+            } else {
+                await CancelarParticipacao(id);
+            }
+            // Atualiza o estado local após a ação
+            setIsParticipated(!isParticipated);
+        } catch (error) {
+            console.log("Erro ao atualizar participação:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
-        <Modal
-            visible={visible}
-            animationType="slide"
-            transparent
-            onRequestClose={onClose}
-        >
-            <View className="flex-1 bg-neutral-800">
-                {/* Imagem de destaque */}
-                <View style={{ backgroundColor: "rgba(0,0,0,1)" }}>
-                    <Image
-                        source={{ uri: imageUri }}
-                        className="absolute flex-1 w-full h-64 "
-                        resizeMode="cover"
-                    />
-                </View>
+        <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+            <View className="flex-1 py-safe bg-neutral-800">
+                <View>
+                    <View className="px-4 py-2 z-10 flex-row justify-between items-center">
+                        <TouchableOpacity onPress={onClose}>
+                            <Ionicons name="close" size={30} color="#fff" />
+                        </TouchableOpacity>
 
-                {/* Overlay com título */}
-                <View
-                    className="h-64 w-full justify-center absolute items-center"
-                    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-                >
-                    <Text className="text-white font-bold text-3xl pt-40 text-center px-4">
-                        {title.toUpperCase()}
-                    </Text>
-                </View>
+                        <Text className="text-white text-2xl font-semibold">{title}</Text>
 
-                {/* Botão fechar */}
-                <View className="py-safe px-4 z-10">
-                    <TouchableOpacity onPress={onClose}>
-                        <Text className="text-white text-3xl">←</Text>
-                    </TouchableOpacity>
-                </View>
+                        <TouchableOpacity className="bg-neutral-800">
+                            <Ionicons name="close" size={30} color="#262626" />
+                        </TouchableOpacity>
+                    </View>
 
-                {/* Conteúdo */}
-                <View className="px-4 mt-32 h-full flex-1 justify-between">
                     <View>
-                        <View className="flex justify-between items-start">
+                        {imageUri ? (
+                            <Image source={{ uri: imageUri }} className=" shadow-md m-4 rounded-lg h-64" resizeMode="cover" />
+                        ) : (
+                            <View className="h-64 rounded-lg mt-4 mx-4 bg-neutral-900 justify-center items-center">
+                                <Text className="text-white text-2xl">Não foi possível carregar a imagem</Text>
+                            </View>
+                        )}
+                    </View>
+                </View>
 
-                            {/* Local */}
-                            <View className="flex-row items-center space-x-2">
-                                <Entypo name="location-pin" size={24} color="white" />
+                <View className="px-4 pt-4 h-full flex-1 justify-between shadow-md">
+                    <ScrollView className="mt-[-10] h-full bg-neutral-900 rounded-lg p-4">
+                        <View className="flex justify-between items-start ">
+                            <View className="flex-row items-center ">
+                                <Entypo name="location-pin" size={24} color="white" className="mr-2" />
                                 <Text className="text-white text-lg">{city}, {state}</Text>
                             </View>
 
                             <View>
-
-                                {/* Data */}
-                                <View className="flex-row items-center space-x-2">
-                                    <MaterialIcons name="date-range" size={24} color="white" />
+                                <View className="flex-row items-center mt-2">
+                                    <MaterialIcons name="date-range" size={24} color="white" className="mr-2" />
                                     <Text className="text-white text-lg">{dateString}</Text>
                                 </View>
 
-                                {/* Hora */}
-                                <View className="flex-row items-center space-x-2">
-                                    <MaterialIcons name="access-time" size={24} color="white" />
+                                <View className="flex-row items-center mt-2">
+                                    <MaterialIcons name="access-time" size={24} color="white" className="mr-2" />
                                     <Text className="text-white text-lg">{hourString}</Text>
                                 </View>
-
-
                             </View>
-
-
                         </View>
 
-                        {/* Descrição */}
                         <View>
-                            <Text className="text-white font-bold text-xl mt-10 mb-2">Descrição</Text>
+                            <Text className="text-white font-semibold text-xl mt-6 mb-2">Descrição</Text>
                             <Text className="text-white text-base">{description}</Text>
                         </View>
+                    </ScrollView>
 
-
-
-
-
-
-                    </View>
-                    {/* Ação */}
                     <TouchableOpacity
-                        className="my-safe bg-yellow-500 py-3 rounded-xl items-center"
-                        onPress={() => alert("Você confirmou presença!")}
+                        className={`my-safe py-3 rounded-xl items-center shadow-md ${isParticipated ? '  bg-red-900' : 'bg-yellow-500'}`}
+                        onPress={handleParticipate}
+                        disabled={loading}
                     >
-                        <Text className="text-black font-bold text-lg">Participar</Text>
+                        {loading ? (
+                            <ActivityIndicator color="#000" />
+                        ) : (
+                            <Text className={`${isParticipated ? 'text-neutral-400' : 'text-black'} font-bold text-lg`}>
+                                {isParticipated ? "Cancelar Participação" : "Participar"}
+                            </Text>
+                        )}
                     </TouchableOpacity>
                 </View>
             </View>

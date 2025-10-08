@@ -25,7 +25,7 @@ export default function EventCard({ event, onPress, isPrivate }: EventCardProps)
 
     return (
         <TouchableOpacity
-            className="mr-4 mb-4 max-h-64 w-48 bg-neutral-900 rounded-2xl overflow-hidden shadow-lg"
+            className="mr-4 mb-4 max-h-64 w-48 bg-neutral-900 rounded-2xl shadow-lg "
             activeOpacity={0.8}
             onPress={() => {
                 Haptics.selectionAsync();
@@ -37,7 +37,7 @@ export default function EventCard({ event, onPress, isPrivate }: EventCardProps)
             {event.imageUri ? (
                 <Image
                     source={{ uri: event.imageUri }}
-                    className="w-full h-40"
+                    className="w-full h-40 rounded-t-2xl"
                     resizeMode="cover"
                 />
             ) : (

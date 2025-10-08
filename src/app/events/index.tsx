@@ -121,9 +121,9 @@ export default function Events() {
           prev.map((ev) =>
             ev.id === item.id
               ? {
-                  ...ev,
-                  participantes: ev.participantes?.filter((p) => p.id !== userId) || [],
-                }
+                ...ev,
+                participantes: ev.participantes?.filter((p) => p.id !== userId) || [],
+              }
               : ev
           )
         );
@@ -156,7 +156,7 @@ export default function Events() {
   return (
     <View className="flex-1 bg-neutral-800 py-safe">
       {/* Cabeçalho */}
-      <View className="pt-4 flex-row justify-between px-4 mb-2 items-center">
+      {/* <View className="pt-4 flex-row justify-between px-4 mb-2 items-center">
         <Text className="text-white text-2xl font-bold">Eventos</Text>
         <TouchableOpacity
           onPress={() => setShowModal(true)}
@@ -164,7 +164,66 @@ export default function Events() {
         >
           <Ionicons name="add" size={28} color="#eab308" />
         </TouchableOpacity>
-      </View>
+      </View> */}
+
+      {currentData.length > 0 && (
+        <View className="pt-4 shadow-lg shadow-black">
+          <View className=" flex-row justify-between px-4 mb-2 items-center">
+
+            <Text className="text-white text-2xl font-bold ">Eventos</Text>
+            <TouchableOpacity
+              onPress={() => setShowModal(true)}
+              className="z-50 bg-neutral-900 p-2 rounded-full "
+            >
+              <Ionicons name="add" size={28} color="#eab308" />
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            className="mt-6 "
+            data={currentData}
+            keyExtractor={(item) => item.id!}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            pagingEnabled
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedEvent(item);
+                  setModalCardVisible(true);
+                }}
+                className="mr-0 w-screen h-64"
+              >
+                <View className="flex-1 mx-4 h-full rounded-xl overflow-hidden">
+                  {item.imageUri ? (
+                    <Image
+                      source={{ uri: item.imageUri }}
+                      className="w-full h-full"
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View className="flex-1 justify-center items-center bg-gray-600">
+                      <Text className="text-white text-xl font-bold">{item.title}</Text>
+                    </View>
+                  )}
+
+
+
+                  {/* Tags na parte inferior */}
+                  <View className="absolute bottom-0 left-0 right-0 flex-row justify-between bg-black  opacity-[.80] px-4 py-2">
+                    <Text className="text-white font-bold text-lg   ">{item.title}</Text>
+                    <View className="bg-purple-300 opacity-[1] px-3 py-1 rounded-full">
+                      <Text className="text-neutral-900 font-semibold text-md">#{item.sport}</Text>
+                    </View>
+
+                    {/* Você pode adicionar mais tags aqui se quiser */}
+                  </View>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
+
+        </View>
+      )}
 
       {/* Filtros horizontais */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-4 max-h-14">
@@ -172,14 +231,12 @@ export default function Events() {
           <TouchableOpacity
             key={cat}
             onPress={() => setSelectedCategory(cat)}
-            className={`mb-2 mr-2 px-6 h-10 justify-center items-center rounded-full border ${
-              selectedCategory === cat ? "bg-white border-transparent" : "border-gray-500 border-2"
-            }`}
+            className={`mb-2 mr-2 px-6 h-10 justify-center items-center rounded-full border ${selectedCategory === cat ? "bg-white border-transparent" : "border-gray-500 border-2"
+              }`}
           >
             <Text
-              className={`text-sm font-medium ${
-                selectedCategory === cat ? "text-black" : "text-gray-300"
-              }`}
+              className={`text-sm font-medium ${selectedCategory === cat ? "text-black" : "text-gray-300"
+                }`}
             >
               {cat}
             </Text>
@@ -216,6 +273,7 @@ export default function Events() {
 
       {/* Modais */}
       <ModalEventInfos
+        id={selectedEvent?.id || ""}
         visible={modalCardVisible}
         onClose={() => setModalCardVisible(false)}
         title={selectedEvent?.title || ""}
@@ -225,6 +283,7 @@ export default function Events() {
         city={selectedEvent?.city || ""}
         state={selectedEvent?.state || ""}
         imageUri={selectedEvent?.imageUri || ""}
+        participantes={selectedEvent?.participantes}
       />
 
       <EventCreationModal
