@@ -13,6 +13,7 @@ import Menu from "~/components/menu";
 import ModalFirstTime from "~/components/modals/modalFirstTime";
 import SocialPage from "../social";
 import Feed from "../feed";
+import Hive from "../hive";
 
 
 export default function Main() {
@@ -56,7 +57,7 @@ export default function Main() {
       case 1:
         return <Feed />;
       case 2:
-        return <Ranking />;
+        return <Hive />;
       case 3:
         return <Ranking />;
       case 4:

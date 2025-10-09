@@ -41,6 +41,7 @@
     "react-native-calendars": "^1.1312.1",
     "react-native-dropdown-picker": "^5.4.6",
     "react-native-element-dropdown": "^2.12.4",
+    "react-native-get-random-values": "^1.11.0",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-mask-text": "^0.14.2",
     "react-native-modal-datetime-picker": "^18.0.0",

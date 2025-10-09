@@ -65,7 +65,7 @@ const Menu: React.FC<MenuProps> = ({ selectedIndex, setSelectedIndex }) => {
                   <TouchableOpacity
                     className="w-20 h-20 rounded-full bg-yellow-500 items-center justify-center"
                     activeOpacity={0.8}
-                    onPress={() => alert("Hive clicado!")}
+                    onPress={() => setSelectedIndex(2)}
                   >
                     <Text className="text-neutral-800 text-xl font-bold">HIVE</Text>
                   </TouchableOpacity>

@@ -23,7 +23,7 @@ export interface ModalEvent {
   title: string;
   sport: string;
   description: string;
-  dateString: string;
+  dateString: string; 
   city: string;
   state: string;
   endereco: string;
