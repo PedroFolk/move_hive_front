@@ -17,10 +17,9 @@ interface Event {
 interface EventCardProps {
     event: Event;
     onPress?: () => void;
-    isPrivate?: boolean
 }
 
-export default function EventCard({ event, onPress, isPrivate }: EventCardProps) {
+export default function EventCard({ event, onPress }: EventCardProps) {
     const [expanded, setExpanded] = useState(false);
 
     return (
@@ -33,7 +32,6 @@ export default function EventCard({ event, onPress, isPrivate }: EventCardProps)
                 setExpanded(p => !p);
             }}
         >
-            {/* Imagem de destaque */}
             {event.imageUri ? (
                 <Image
                     source={{ uri: event.imageUri }}
@@ -48,7 +46,6 @@ export default function EventCard({ event, onPress, isPrivate }: EventCardProps)
                 </View>
             )}
 
-            {/* Conteúdo do card */}
 
 
             <View className="p-4">
@@ -56,27 +53,17 @@ export default function EventCard({ event, onPress, isPrivate }: EventCardProps)
                     {event.title}
                 </Text>
 
-                {isPrivate ? (
 
-                    <View>
-                        <Text className="text-gray-400 text-sm mb-1" numberOfLines={1}>
-                            Evento Privado
-                        </Text>
-                    
+                <View>
+                    <Text className="text-gray-400 text-sm " numberOfLines={1}>
+                        {event.state}, {event.city}
+                    </Text>
+                    <Text className="text-gray-400 text-sm mb-2" numberOfLines={1}>
+                        {event.dateString}
+                    </Text>
 
-                    </View>
+                </View>
 
-                ) : (
-                    <View>
-                        <Text className="text-gray-400 text-sm " numberOfLines={1}>
-                            {event.state}, {event.city}
-                        </Text>
-                        <Text className="text-gray-400 text-sm mb-2" numberOfLines={1}>
-                            {event.dateString}
-                        </Text>
-
-                    </View>
-                )}
 
 
 

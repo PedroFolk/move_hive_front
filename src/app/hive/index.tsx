@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { View, Text, FlatList, ScrollView, TouchableOpacity, Image } from "react-native";
+import { View, Text, FlatList, ScrollView, TouchableOpacity, Image, Alert } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { router } from "expo-router";
 
-import { ListarTodosHives } from "~/api/hive";
+import { cancelarParticipacaoHive, DeletarHive, ListarTodosHives, ParticiparHive } from "~/api/hive";
 import { UsuarioAlheio } from "~/api/user";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import HiveCreationModal from "~/components/modals/modalHive";
+import AddButton from "~/components/addButton";
 
 type HiveType = {
     id: string;
@@ -16,60 +18,175 @@ type HiveType = {
     max_participantes: number;
     usuario_id: string;
     localizacao: string;
+    data_hora: string;
+    descricao: string;
+    endereco: string
+    privado: boolean;
+    observacoes: string;
 };
 
 export default function Hive() {
     const [hives, setHives] = useState<HiveType[]>([]);
     const [meuUsuarioId, setMeuUsuarioId] = useState<string>("");
     const [selectedCategory, setSelectedCategory] = useState<string>("Todos");
+    const [modalVisible, setModalVisible] = useState(false);
+    const [hiveToEdit, setHiveToEdit] = useState<HiveType | undefined>(undefined);
+
 
     const TYPES = ["Todos", "Participando", "Meus"];
 
     useEffect(() => {
         (async () => {
             const userId = await SecureStore.getItemAsync("userId");
-            if (userId) setMeuUsuarioId(userId);
-
-            const result = await ListarTodosHives();
-            const mapped = await Promise.all(
-                result.map(async (h: any) => {
-                    const participantesComFoto = await Promise.all(
-                        h.participantes.map(async (p: string) => {
-                            try {
-                                const usuario = await UsuarioAlheio(p);
-                                return { uri: usuario?.foto_perfil || "https://via.placeholder.com/150", id: p };
-                            } catch {
-                                return { uri: "https://via.placeholder.com/150", id: p };
-                            }
-                        })
-                    );
-                    return { ...h, participantes: participantesComFoto };
-                })
-            );
-
-            setHives(mapped);
+            if (userId) {
+                setMeuUsuarioId(userId);
+                await loadHives(userId);
+            }
         })();
     }, []);
+
+    const loadHives = async (userId: string) => {
+        const result = await ListarTodosHives();
+        const mapped = await Promise.all(
+            result.map(async (h: any) => {
+                const participantesComFoto = await Promise.all(
+                    h.participantes.map(async (p: string) => {
+                        try {
+                            const usuario = await UsuarioAlheio(p);
+                            return { uri: usuario?.foto_perfil || "https://via.placeholder.com/150", id: p };
+                        } catch {
+                            return { uri: "https://via.placeholder.com/150", id: p };
+                        }
+                    })
+                );
+                return { ...h, participantes: participantesComFoto };
+            })
+        );
+
+        setHives(mapped);
+    };
+
 
     const currentData = hives.filter(hive => {
         if (!meuUsuarioId) return true;
 
-        if (selectedCategory === "Meus") return hive.usuario_id === meuUsuarioId;
-        if (selectedCategory === "Participando") return hive.participantes.some(p => p.id === meuUsuarioId) && hive.usuario_id !== meuUsuarioId;
+        if (selectedCategory === "Meus") {
+            return hive.usuario_id === meuUsuarioId;
+        }
+
+        if (selectedCategory === "Participando") {
+            return hive.usuario_id !== meuUsuarioId && hive.participantes.some(p => p.id === meuUsuarioId);
+        }
+
+        if (selectedCategory === "Todos") {
+            return hive.usuario_id !== meuUsuarioId && !hive.participantes.some(p => p.id === meuUsuarioId);
+        }
 
         return true;
     });
 
-    const handleParticipate = (hive: HiveType) => {
+
+    const handleParticipate = async (hive: HiveType) => {
         if (hive.participantes.some(p => p.id === meuUsuarioId)) return;
 
-        setHives(prev =>
-            prev.map(h =>
-                h.id === hive.id
-                    ? { ...h, participantes: [...h.participantes, { id: meuUsuarioId, uri: "https://via.placeholder.com/150" }] }
-                    : h
-            )
+        try {
+            await ParticiparHive(hive.id);
+            setHives(prev =>
+                prev.map(h =>
+                    h.id === hive.id
+                        ? {
+                            ...h,
+                            participantes: [
+                                ...h.participantes,
+                                { id: meuUsuarioId, uri: "https://via.placeholder.com/150" },
+                            ],
+                        }
+                        : h
+                )
+            );
+        } catch (error) {
+            console.error("Erro ao participar do hive:", error);
+        }
+    };
+
+
+    const handleCancelParticipation = async (hive: HiveType) => {
+
+        Alert.alert(
+            "Confirmar exclusão",
+            "Tem certeza que deseja deletar este Hive?",
+            [
+                {
+                    text: "Cancelar",
+                    style: "cancel",
+                }, {
+                    text: "Deletar",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await cancelarParticipacaoHive(hive.id); // supondo que você tenha essa função
+                            setHives(prev =>
+                                prev.map(h =>
+                                    h.id === hive.id
+                                        ? {
+                                            ...h,
+                                            participantes: h.participantes.filter(p => p.id !== meuUsuarioId),
+                                        }
+                                        : h
+                                )
+                            );
+                        } catch (error) {
+                            console.error("Erro ao cancelar participação:", error);
+                        }
+
+
+                    }
+                }
+            ]
         );
+    };
+
+
+    const handleDelete = (hiveId: string) => {
+        Alert.alert(
+            "Confirmar exclusão",
+            "Tem certeza que deseja deletar este Hive?",
+            [
+                {
+                    text: "Cancelar",
+                    style: "cancel",
+                },
+                {
+                    text: "Deletar",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await DeletarHive(hiveId);
+                            setHives(prev => prev.filter(h => h.id !== hiveId));
+                        } catch (error) {
+                            console.error("Erro ao deletar o hive:", error);
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
+    const handleEdit = (hive: HiveType) => {
+        setHiveToEdit(hive);
+        setModalVisible(true);
+    };
+
+    const handleSaveHive = async () => {
+        await loadHives(meuUsuarioId);
+        setModalVisible(false);
+        setHiveToEdit(undefined);
+    };
+
+
+    const handleCreate = () => {
+        setHiveToEdit(undefined);
+        setModalVisible(true);
     };
 
     const renderItem = ({ item }: { item: HiveType }) => (
@@ -79,34 +196,73 @@ export default function Hive() {
                 className="w-32 h-32 rounded-lg"
                 resizeMode="cover"
             />
+
             <View className="flex-1 ml-3 space-y-1">
-                <Text className="text-white font-bold mb-4">{item.titulo}</Text>
-                <Text className="text-gray-300 mb-2">{item.esporte_nome}</Text>
-                <Text className="text-gray-300 mb-2">{item.localizacao}</Text>
-                <View className="flex-row mt-1 items-center">
-                    {item.participantes.map((p, idx) => (
+                <Text className="text-white font-bold mb-1">{item.titulo}</Text>
+                <Text className="text-gray-300">{item.esporte_nome}</Text>
+                <Text className="text-gray-300">{item.localizacao}</Text>
+
+                <View className="flex-row mt-2 items-center">
+                    {item.participantes.slice(0, 5).map((p) => (
                         <Image
-                            key={idx}
+                            key={p.id}
                             source={{ uri: p.uri }}
-                            className="w-8 h-8 rounded-full border-2 border-neutral-800 "
+                            className="w-8 h-8 rounded-full border-2 border-neutral-800 -ml-2"
                         />
                     ))}
+                    {item.participantes.length > 5 && (
+                        <View className="w-8 h-8 rounded-full bg-gray-700 justify-center items-center -ml-2 border-2 border-neutral-800">
+                            <Text className="text-xs text-white font-bold">
+                                +{item.participantes.length - 5}
+                            </Text>
+                        </View>
+                    )}
                     <Text className="text-gray-400 ml-2">
                         {item.participantes.length}/{item.max_participantes}
                     </Text>
                 </View>
             </View>
 
-            {item.usuario_id !== meuUsuarioId && !item.participantes.some(p => p.id === meuUsuarioId) && (
-                <TouchableOpacity
-                    className="bg-yellow-500 p-2 rounded-full animate-pulse"
-                    onPress={() => handleParticipate(item)}
-                >
-                    <Text className="text-black font-bold px-2">Participar</Text>
-                </TouchableOpacity>
-            )}
+            <View className="ml-2">
+                {item.usuario_id === meuUsuarioId && selectedCategory === "Meus" ? (
+                    // Meus Hives → editar/deletar
+                    <View className="flex justify-between flex-1">
+                        <TouchableOpacity
+                            className="p-2 bg-red-600 rounded-full"
+                            onPress={() => handleDelete(item.id)}
+                        >
+                            <MaterialIcons name="delete" size={22} color="white" />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            className="p-2 bg-yellow-500 rounded-full"
+                            onPress={() => handleEdit(item)}
+                        >
+                            <MaterialIcons name="edit" size={22} color="black" />
+                        </TouchableOpacity>
+                    </View>
+                ) : item.usuario_id !== meuUsuarioId && item.participantes.some(p => p.id === meuUsuarioId) ? (
+                    // Já participando → cancelar
+                    <TouchableOpacity
+                        className="p-2 bg-red-500 rounded-full"
+                        onPress={() => handleCancelParticipation(item)}
+                    >
+                        <MaterialIcons name="close" size={22} color="white" />
+                    </TouchableOpacity>
+                ) : item.usuario_id !== meuUsuarioId ? (
+                    // Não participando → participar
+                    <TouchableOpacity
+                        className="p-2 bg-yellow-500 rounded-full animate-pulse"
+                        onPress={() => handleParticipate(item)}
+                    >
+                        <MaterialCommunityIcons name="account-plus" size={22} color="black" />
+                    </TouchableOpacity>
+                ) : null}
+            </View>
         </View>
     );
+
+
 
     return (
         <View className="flex-1 bg-neutral-800 py-safe">
@@ -119,7 +275,7 @@ export default function Hive() {
             </View>
 
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-4 max-h-14">
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-4 max-h-10">
                 {TYPES.map(cat => (
                     <TouchableOpacity
                         activeOpacity={1}
@@ -144,7 +300,27 @@ export default function Hive() {
                 data={currentData}
                 keyExtractor={item => item.id}
                 renderItem={renderItem}
+                initialNumToRender={5}
+                windowSize={10}
             />
+
+            <AddButton onPress={() => { handleCreate() }} />
+
+            <HiveCreationModal
+                visible={modalVisible}
+                onClose={() => {
+                    setModalVisible(false);
+                    setHiveToEdit(undefined);
+                }}
+                onSave={handleSaveHive}
+                hiveToEdit={hiveToEdit}
+            />
+
+
         </View>
+
+
     );
+
 }
+

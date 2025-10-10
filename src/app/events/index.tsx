@@ -25,6 +25,7 @@ import EventCard from "~/components/eventCard";
 
 interface Event {
   id?: any;
+  usuario_id: string;
   title: string;
   sport: string;
   description: string;
@@ -33,10 +34,11 @@ interface Event {
   state: string;
   hourString: string;
   maxParticipants?: number;
-  isTournament?: boolean;
-  isPrivate?: boolean;
+  torneio: boolean;
   imageUri?: string;
-  participantes?: { id: string }[];
+  link_oficial: string;
+  interesse: [];
+  status: string;
 }
 
 export default function Events() {
@@ -59,9 +61,12 @@ export default function Events() {
     data.map((ev) => {
       const [city = "", state = ""] =
         ev.localizacao?.split(",").map((s: string) => s.trim()) || [];
+
       const dateObj = new Date(ev.data_hora);
+
       return {
         id: ev.id,
+        usuario_id: ev.usuario_id,
         title: ev.titulo,
         sport: ev.esporte_nome,
         description: ev.descricao,
@@ -73,12 +78,14 @@ export default function Events() {
         city,
         state,
         maxParticipants: ev.max_participantes,
-        isTournament: !!ev.torneio,
-        isPrivate: !!ev.privado,
+        torneio: !!ev.torneio,
         imageUri: ev.foto,
-        participantes: ev.participantes?.map((id: string) => ({ id })) || [],
+        link_oficial: ev.link_oficial,
+        interesse: ev.interesse || [],
+        status: ev.status || "ativo",
       };
     });
+
 
   const fetchData = useCallback(async () => {
     if (selectedCategory === "Eventos") {
@@ -98,38 +105,7 @@ export default function Events() {
     fetchData();
   }, [selectedCategory]);
 
-  const handleParticipate = async (item: Event) => {
-    if (!item.id || !userId) return;
 
-    const isParticipated = item.participantes?.some((p) => p.id === userId);
-
-    if (!isParticipated) {
-      const result = await ParticiparEvento(item.id);
-      if (result) {
-        setEvents((prev) =>
-          prev.map((ev) =>
-            ev.id === item.id
-              ? { ...ev, participantes: [...(ev.participantes || []), { id: userId }] }
-              : ev
-          )
-        );
-      }
-    } else {
-      const result = await CancelarParticipacao(item.id);
-      if (result) {
-        setEvents((prev) =>
-          prev.map((ev) =>
-            ev.id === item.id
-              ? {
-                ...ev,
-                participantes: ev.participantes?.filter((p) => p.id !== userId) || [],
-              }
-              : ev
-          )
-        );
-      }
-    }
-  };
 
   const handleDelete = (id: string) => {
     Alert.alert("Confirmar exclusão", "Deseja realmente excluir este evento?", [
@@ -258,7 +234,7 @@ export default function Events() {
           renderItem={({ item }) => (
             <EventCard
               event={item}
-              isPrivate={item.isPrivate}
+            
               onPress={() => {
                 setSelectedEvent(item);
                 setModalCardVisible(true);
@@ -272,19 +248,26 @@ export default function Events() {
       )}
 
       {/* Modais */}
-      <ModalEventInfos
-        id={selectedEvent?.id || ""}
-        visible={modalCardVisible}
-        onClose={() => setModalCardVisible(false)}
-        title={selectedEvent?.title || ""}
-        description={selectedEvent?.description || ""}
-        dateString={selectedEvent?.dateString || ""}
-        hourString={selectedEvent?.hourString || ""}
-        city={selectedEvent?.city || ""}
-        state={selectedEvent?.state || ""}
-        imageUri={selectedEvent?.imageUri || ""}
-        participantes={selectedEvent?.participantes}
-      />
+<ModalEventInfos
+  visible={modalCardVisible}
+  onClose={() => setModalCardVisible(false)}
+
+  id={selectedEvent?.id || ""}
+  title={selectedEvent?.title || ""}
+  sport={selectedEvent?.sport || ""}
+  description={selectedEvent?.description || ""}
+  dateString={selectedEvent?.dateString || ""}
+  hourString={selectedEvent?.hourString || ""}
+  city={selectedEvent?.city || ""}
+  state={selectedEvent?.state || ""}
+  maxParticipants={selectedEvent?.maxParticipants || 0}
+  torneio={selectedEvent?.torneio || false}
+  imageUri={selectedEvent?.imageUri || ""}
+  link_oficial={selectedEvent?.link_oficial || ""}
+  interesse={selectedEvent?.interesse || []}
+  status={selectedEvent?.status || "ativo"}
+/>
+
 
       <EventCreationModal
         visible={showModal}

@@ -1,23 +1,24 @@
-import { useRouter } from "expo-router";
-import { Modal, ScrollView, Text, Image, View, TouchableOpacity, ActivityIndicator } from "react-native";
+import { Modal, ScrollView, Text, Image, View, TouchableOpacity, ActivityIndicator,Linking, Alert  } from "react-native";
 import { MaterialIcons, Entypo, Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from "react";
-import * as SecureStore from "expo-secure-store";
-import { ParticiparEvento, CancelarParticipacao } from "~/api/event";
+import { useState } from "react";
 
 type ModalEventInfosProps = {
     visible: boolean;
     onClose: () => void;
-    id?: string;
-    title: string;
-    description: string;
-    dateString: string;
-    hourString: string;
-    city: string;
-    state: string;
-    imageUri?: string;
-    isPrivate?: boolean;
-    participantes?: { id: string }[];
+      id?: any;
+  title: string;
+  sport: string;
+  description: string;
+  dateString: string;
+  city: string;
+  state: string;
+  hourString: string;
+  maxParticipants?: number;
+  torneio: boolean;
+  imageUri?: string;
+  link_oficial: string;
+  interesse: [];
+  status: string;
 }
 
 export default function ModalEventInfos({
@@ -31,46 +32,27 @@ export default function ModalEventInfos({
     city,
     state,
     imageUri,
-    isPrivate,
-    participantes
+    link_oficial
 }: ModalEventInfosProps) {
-    const [userId, setUserId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const [isParticipated, setIsParticipated] = useState(false);
 
-    useEffect(() => {
-        const fetchUserId = async () => {
-            const id = await SecureStore.getItemAsync("userId");
-            setUserId(id);
-        };
-        fetchUserId();
-    }, []);
 
-    // Atualiza o estado quando o modal abrir ou quando participantes mudarem
-    useEffect(() => {
-        if (userId && participantes) {
-            setIsParticipated(participantes.some(p => p.id === userId));
-        }
-    }, [userId, participantes, visible]);
 
-    const handleParticipate = async () => {
-        if (!id || !userId || loading) return; // evita múltiplos cliques
-        setLoading(true);
+const handleExternalRedirect = async () => {
+  if (!link_oficial) {
+    Alert.alert("Link indisponível", "Nenhum link foi fornecido para este evento.");
+    return;
+  }
 
-        try {
-            if (!isParticipated) {
-                await ParticiparEvento(id);
-            } else {
-                await CancelarParticipacao(id);
-            }
-            // Atualiza o estado local após a ação
-            setIsParticipated(!isParticipated);
-        } catch (error) {
-            console.log("Erro ao atualizar participação:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const supported = await Linking.canOpenURL(link_oficial);
+  if (supported) {
+    await Linking.openURL(link_oficial);
+  } else {
+    Alert.alert("Erro", "Não foi possível abrir o link fornecido.");
+  }
+};
+
+
 
     return (
         <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -88,7 +70,7 @@ export default function ModalEventInfos({
                         </TouchableOpacity>
                     </View>
 
-                    <View>
+                    <View className="shadow-md">
                         {imageUri ? (
                             <Image source={{ uri: imageUri }} className=" shadow-md m-4 rounded-lg h-64" resizeMode="cover" />
                         ) : (
@@ -127,15 +109,15 @@ export default function ModalEventInfos({
                     </ScrollView>
 
                     <TouchableOpacity
-                        className={`my-safe py-3 rounded-xl items-center shadow-md ${isParticipated ? '  bg-red-900' : 'bg-yellow-500'}`}
-                        onPress={handleParticipate}
+                        className={`my-safe py-3 rounded-xl items-center shadow-md  bg-yellow-500`}
+                        onPress={handleExternalRedirect}
                         disabled={loading}
                     >
                         {loading ? (
                             <ActivityIndicator color="#000" />
                         ) : (
-                            <Text className={`${isParticipated ? 'text-neutral-400' : 'text-black'} font-bold text-lg`}>
-                                {isParticipated ? "Cancelar Participação" : "Participar"}
+                            <Text className={`text-black font-bold text-lg`}>
+                                Link do evento
                             </Text>
                         )}
                     </TouchableOpacity>

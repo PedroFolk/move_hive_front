@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { GestureHandlerRootView } from "react-native-gesture-handler"; // <- import necessário
+import { View } from "react-native"; // apenas para o container
 
 function decodeToken(token: string) {
   try {
@@ -12,7 +14,7 @@ function decodeToken(token: string) {
   }
 }
 
-export default function Home() {
+export default function App() {
   const router = useRouter();
 
   useEffect(() => {
@@ -35,6 +37,9 @@ export default function Home() {
     verificarToken();
   }, []);
 
-  return null;
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={{ flex: 1 }} />
+    </GestureHandlerRootView>
+  );
 }
-

@@ -14,7 +14,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { AdicionarHive } from "~/api/hive";
+import { AdicionarHive, EditarHive } from "~/api/hive";
 import CustomDropdown from "../customDropdown";
 import ufCidadeJson from "../../app/uf_cidade.json";
 
@@ -24,17 +24,34 @@ interface ImagemHive {
   type: string;
 }
 
+interface HiveType {
+  id: string;
+  titulo: string;
+  descricao?: string;
+  esporte_nome: string;
+  data_hora_str: string;
+  localizacao: string;
+  endereco?: string;
+  max_participantes: number;
+  privado?: boolean;
+  observacoes?: string;
+  foto?: string;
+}
+
 interface Props {
   visible: boolean;
   onClose: () => void;
-  onSave: () => void; // chamada após sucesso
+  onSave: () => void;
+  hiveToEdit?: any;
 }
 
-const HiveCreationModal: React.FC<Props> = ({ visible, onClose, onSave }) => {
+const HiveCreationModal: React.FC<Props> = ({ visible, onClose, onSave, hiveToEdit }) => {
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [esporte, setEsporte] = useState("");
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(new Date()); // só a data
+  const [time, setTime] = useState(new Date()); // só a hora
+
   const [estado, setEstado] = useState("");
   const [cidade, setCidade] = useState("");
   const [endereco, setEndereco] = useState("");
@@ -46,6 +63,7 @@ const HiveCreationModal: React.FC<Props> = ({ visible, onClose, onSave }) => {
   const [estados, setEstados] = useState<{ label: string; value: string }[]>([]);
   const [cidades, setCidades] = useState<{ label: string; value: string }[]>([]);
 
+  // Preenche estados
   useEffect(() => {
     if (ufCidadeJson?.estados) {
       setEstados(
@@ -57,12 +75,50 @@ const HiveCreationModal: React.FC<Props> = ({ visible, onClose, onSave }) => {
     }
   }, []);
 
+
+
+  // Preenche campos se estiver editando
+  useEffect(() => {
+    if (hiveToEdit) {
+      const dt = new Date(hiveToEdit.data_hora);
+      setDate(dt);
+      setTime(dt);
+      setTitulo(hiveToEdit.titulo);
+      setDescricao(hiveToEdit.descricao || "");
+      setEsporte(hiveToEdit.esporte_nome);
+      const [cidadeStr, estadoStr] = hiveToEdit.localizacao.split(" - ");
+      setCidade(cidadeStr);
+      setEstado(estadoStr);
+      setEndereco(hiveToEdit.endereco || hiveToEdit.localizacao);
+      setMaxParticipantes(hiveToEdit.max_participantes);
+      setPrivado(hiveToEdit.privado || false);
+      setObservacoes(hiveToEdit.observacoes || "");
+      setImage(
+        hiveToEdit.foto
+          ? { uri: hiveToEdit.foto, name: "foto.jpg", type: "image/jpeg" }
+          : undefined
+      );
+    } else {
+      // Limpa campos se não for edição
+      setDate(new Date());
+      setTime(new Date());
+      setTitulo("");
+      setDescricao("");
+      setEsporte("");
+      setCidade("");
+      setEstado("");
+      setEndereco("");
+      setMaxParticipantes(0);
+      setPrivado(false);
+      setObservacoes("");
+      setImage(undefined);
+    }
+  }, [hiveToEdit]);
+
   const handleEstadoChange = (ufSigla: string) => {
     setEstado(ufSigla);
     setCidade("");
-    const estadoEncontrado = ufCidadeJson.estados.find(
-      (e: any) => e.sigla === ufSigla
-    );
+    const estadoEncontrado = ufCidadeJson.estados.find((e: any) => e.sigla === ufSigla);
     setCidades(
       estadoEncontrado
         ? estadoEncontrado.cidades.map((c: string) => ({ label: c, value: c }))
@@ -88,56 +144,80 @@ const HiveCreationModal: React.FC<Props> = ({ visible, onClose, onSave }) => {
     }
   };
 
-  const handleSave = async () => {
-    if (isSaving) return;
+ const handleSave = async () => {
+  if (isSaving) return;
 
-    if (!titulo.trim() || !esporte || !estado || !cidade) {
-      alert("Preencha todos os campos obrigatórios.");
+  if (!titulo.trim() || !esporte || !estado || !cidade) {
+    alert("Preencha todos os campos obrigatórios.");
+    return;
+  }
+
+  setIsSaving(true);
+
+  try {
+    const localizacao = `${cidade} - ${estado}`;
+    const dataHora = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      time.getHours(),
+      time.getMinutes()
+    );
+
+    const hiveDataEdit = {
+      id: hiveToEdit?.id,
+      titulo,
+      descricao,
+      esporte_nome: esporte,
+      data_hora_str: dataHora,
+      localizacao,
+      endereco: endereco || localizacao,
+      max_participantes: maxParticipantes,
+      privado,
+      observacoes,
+      arquivo_foto: image,
+    };
+
+      const hiveData = {
+      titulo,
+      descricao,
+      esporte_nome: esporte,
+      data_hora_str: dataHora,
+      localizacao,
+      endereco: endereco || localizacao,
+      max_participantes: maxParticipantes,
+      privado,
+      observacoes,
+      arquivo_foto: image,
+    };
+
+    const result = hiveToEdit
+      ? await EditarHive(hiveDataEdit)
+      : await AdicionarHive(hiveData);
+
+    if ("erro" in result) {
+      alert(result.erro);
       return;
     }
 
-    setIsSaving(true);
+    alert("Hive salva com sucesso!");
+    onSave();
+    onClose();
+  } catch (error) {
+    console.log(error);
+    alert("Falha ao salvar Hive.");
+  } finally {
+    setIsSaving(false);
+  }
+};
 
-    try {
-      const localizacao = `${cidade} - ${estado}`;
-
-      const hive = {
-        titulo,
-        descricao,
-        esporte_nome: esporte,
-        data_hora_str: date,
-        localizacao,
-        endereco: endereco || localizacao,
-        max_participantes: maxParticipantes,
-        privado,
-        observacoes,
-        arquivo_foto: image,
-      };
-
-      const result = await AdicionarHive(hive);
-
-      if (!result) {
-        alert("Erro ao criar Hive.");
-        return;
-      }
-
-      alert("Hive criada com sucesso!");
-      onSave();
-      onClose();
-    } catch (error) {
-      console.log(error)
-      alert("Falha ao criar Hive.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View className="bg-neutral-900 py-safe p-6 flex-1">
         <View className="flex-1">
           <Text className="text-2xl font-bold text-center mt-4 mb-6 text-white">
-            Nova Hive
+            {hiveToEdit ? "Editar Hive" : "Nova Hive"}
           </Text>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -147,6 +227,7 @@ const HiveCreationModal: React.FC<Props> = ({ visible, onClose, onSave }) => {
               contentContainerStyle={{ paddingBottom: 20 }}
               showsVerticalScrollIndicator={false}
             >
+              {/* Campos do formulário */}
               <Text className="text-gray-300 mb-1 text-xl">Título</Text>
               <TextInput
                 className="text-xl p-4 border border-neutral-600 rounded-xl text-white mb-4"
@@ -213,11 +294,11 @@ const HiveCreationModal: React.FC<Props> = ({ visible, onClose, onSave }) => {
                   onChange={(_, d) => d && setDate(d)}
                 />
                 <DateTimePicker
-                  value={date}
+                  value={time}
                   mode="time"
                   display="default"
                   is24Hour
-                  onChange={(_, d) => d && setDate(d)}
+                  onChange={(_, t) => t && setTime(t)}
                 />
               </View>
 
@@ -275,7 +356,11 @@ const HiveCreationModal: React.FC<Props> = ({ visible, onClose, onSave }) => {
                 disabled={isSaving}
               >
                 <Text className="text-center text-xl font-semibold text-black">
-                  {isSaving ? "Salvando..." : "Salvar Hive"}
+                  {isSaving
+                    ? "Salvando..."
+                    : hiveToEdit
+                    ? "Salvar Alterações"
+                    : "Salvar Hive"}
                 </Text>
               </TouchableOpacity>
 
