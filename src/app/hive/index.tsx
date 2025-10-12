@@ -28,7 +28,7 @@ type HiveType = {
 export default function Hive() {
     const [hives, setHives] = useState<HiveType[]>([]);
     const [meuUsuarioId, setMeuUsuarioId] = useState<string>("");
-    const [selectedCategory, setSelectedCategory] = useState<string>("Todos");
+    const [selectedCategory, setSelectedCategory] = useState<string>("Participando");
     const [modalVisible, setModalVisible] = useState(false);
     const [hiveToEdit, setHiveToEdit] = useState<HiveType | undefined>(undefined);
 
@@ -124,7 +124,7 @@ export default function Hive() {
                     style: "destructive",
                     onPress: async () => {
                         try {
-                            await cancelarParticipacaoHive(hive.id); // supondo que você tenha essa função
+                            await cancelarParticipacaoHive(hive.id);
                             setHives(prev =>
                                 prev.map(h =>
                                     h.id === hive.id
@@ -190,7 +190,7 @@ export default function Hive() {
     };
 
     const renderItem = ({ item }: { item: HiveType }) => (
-        <View className="flex-row bg-neutral-900 rounded-xl p-3 m-2 items-center">
+        <View className="flex-row bg-neutral-900 rounded-xl p-3 m-2 items-center mt-4 ">
             <Image
                 source={{ uri: item.foto }}
                 className="w-32 h-32 rounded-lg"
@@ -225,7 +225,6 @@ export default function Hive() {
 
             <View className="ml-2">
                 {item.usuario_id === meuUsuarioId && selectedCategory === "Meus" ? (
-                    // Meus Hives → editar/deletar
                     <View className="flex justify-between flex-1">
                         <TouchableOpacity
                             className="p-2 bg-red-600 rounded-full"
@@ -242,7 +241,6 @@ export default function Hive() {
                         </TouchableOpacity>
                     </View>
                 ) : item.usuario_id !== meuUsuarioId && item.participantes.some(p => p.id === meuUsuarioId) ? (
-                    // Já participando → cancelar
                     <TouchableOpacity
                         className="p-2 bg-red-500 rounded-full"
                         onPress={() => handleCancelParticipation(item)}
@@ -250,7 +248,6 @@ export default function Hive() {
                         <MaterialIcons name="close" size={22} color="white" />
                     </TouchableOpacity>
                 ) : item.usuario_id !== meuUsuarioId ? (
-                    // Não participando → participar
                     <TouchableOpacity
                         className="p-2 bg-yellow-500 rounded-full animate-pulse"
                         onPress={() => handleParticipate(item)}
@@ -268,10 +265,18 @@ export default function Hive() {
         <View className="flex-1 bg-neutral-800 py-safe">
             <View className="px-4 pt-4 flex-row justify-between items-center">
                 <Text className="text-white text-2xl font-bold">HIVE</Text>
+                <View className="flex-row">
+                    <TouchableOpacity onPress={() => router.push("../feed")}>
+                        <MaterialCommunityIcons name="bell-outline" size={28} color="white" />
+                    </TouchableOpacity>
+                    <TouchableOpacity className="ml-4" onPress={() => router.push("../notifications")}>
+                        <MaterialCommunityIcons name="chat-processing-outline" size={28} color="white" />
+                    </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => router.push("../notifications")}>
-                    <MaterialCommunityIcons name="bell-outline" size={28} color="white" />
-                </TouchableOpacity>
+                </View>
+
+
+
             </View>
 
 

@@ -144,72 +144,72 @@ const HiveCreationModal: React.FC<Props> = ({ visible, onClose, onSave, hiveToEd
     }
   };
 
- const handleSave = async () => {
-  if (isSaving) return;
+  const handleSave = async () => {
+    if (isSaving) return;
 
-  if (!titulo.trim() || !esporte || !estado || !cidade) {
-    alert("Preencha todos os campos obrigatórios.");
-    return;
-  }
-
-  setIsSaving(true);
-
-  try {
-    const localizacao = `${cidade} - ${estado}`;
-    const dataHora = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate(),
-      time.getHours(),
-      time.getMinutes()
-    );
-
-    const hiveDataEdit = {
-      id: hiveToEdit?.id,
-      titulo,
-      descricao,
-      esporte_nome: esporte,
-      data_hora_str: dataHora,
-      localizacao,
-      endereco: endereco || localizacao,
-      max_participantes: maxParticipantes,
-      privado,
-      observacoes,
-      arquivo_foto: image,
-    };
-
-      const hiveData = {
-      titulo,
-      descricao,
-      esporte_nome: esporte,
-      data_hora_str: dataHora,
-      localizacao,
-      endereco: endereco || localizacao,
-      max_participantes: maxParticipantes,
-      privado,
-      observacoes,
-      arquivo_foto: image,
-    };
-
-    const result = hiveToEdit
-      ? await EditarHive(hiveDataEdit)
-      : await AdicionarHive(hiveData);
-
-    if ("erro" in result) {
-      alert(result.erro);
+    if (!titulo.trim() || !esporte || !estado || !cidade) {
+      alert("Preencha todos os campos obrigatórios.");
       return;
     }
 
-    alert("Hive salva com sucesso!");
-    onSave();
-    onClose();
-  } catch (error) {
-    console.log(error);
-    alert("Falha ao salvar Hive.");
-  } finally {
-    setIsSaving(false);
-  }
-};
+    setIsSaving(true);
+
+    try {
+      const localizacao = `${cidade} - ${estado}`;
+      const dataHora = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        time.getHours(),
+        time.getMinutes()
+      );
+
+      const hiveDataEdit = {
+        id: hiveToEdit?.id,
+        titulo,
+        descricao,
+        esporte_nome: esporte,
+        data_hora_str: dataHora,
+        localizacao,
+        endereco: endereco || localizacao,
+        max_participantes: maxParticipantes,
+        privado,
+        observacoes,
+        arquivo_foto: image,
+      };
+
+      const hiveData = {
+        titulo,
+        descricao,
+        esporte_nome: esporte,
+        data_hora_str: dataHora,
+        localizacao,
+        endereco: endereco || localizacao,
+        max_participantes: maxParticipantes,
+        privado,
+        observacoes,
+        arquivo_foto: image,
+      };
+
+      const result = hiveToEdit
+        ? await EditarHive(hiveDataEdit)
+        : await AdicionarHive(hiveData);
+
+      if ("erro" in result) {
+        alert(result.erro);
+        return;
+      }
+
+      alert("Hive salva com sucesso!");
+      onSave();
+      onClose();
+    } catch (error) {
+      console.log(error);
+      alert("Falha ao salvar Hive.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
 
   return (
@@ -227,6 +227,30 @@ const HiveCreationModal: React.FC<Props> = ({ visible, onClose, onSave, hiveToEd
               contentContainerStyle={{ paddingBottom: 20 }}
               showsVerticalScrollIndicator={false}
             >
+
+              <View className="items-center justify-center p-20 bg-neutral-700 my-4  rounded-xl">
+                {!image ? (
+                  <TouchableOpacity
+                    className="flex-row items-center justify-center"
+                    onPress={openImagePickerAsync}
+                  >
+                    <MaterialIcons name="image" size={24} color="white" />
+                    <Text className="text-white ml-2">Escolher imagem</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    className="mt-4 items-center border-white border-2 rounded-xl"
+                    onPress={openImagePickerAsync}
+                  >
+                    <Image
+                      source={{ uri: image.uri }}
+                      style={{ width: 100, height: 100, borderRadius: 8 }}
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+
               {/* Campos do formulário */}
               <Text className="text-gray-300 mb-1 text-xl">Título</Text>
               <TextInput
@@ -236,6 +260,7 @@ const HiveCreationModal: React.FC<Props> = ({ visible, onClose, onSave, hiveToEd
                 placeholder="Digite o título"
                 placeholderTextColor="#888"
               />
+
 
               <Text className="text-gray-300 mb-1 text-xl">Esporte</Text>
               <CustomDropdown
@@ -285,7 +310,32 @@ const HiveCreationModal: React.FC<Props> = ({ visible, onClose, onSave, hiveToEd
                 onChangeText={setEndereco}
               />
 
-              <Text className="text-gray-300 mb-1 text-xl">Data e Hora</Text>
+
+              <Text className="text-gray-300 mb-1 text-xl">Máx. Participantes</Text>
+              <TextInput
+                className="text-xl p-4 border border-neutral-600 rounded-xl text-white mb-4"
+                value={maxParticipantes.toString()}
+                onChangeText={(t) => setMaxParticipantes(Number(t))}
+                keyboardType="numeric"
+                placeholder="Ex: 10"
+                placeholderTextColor="#888"
+              />
+
+
+
+              <Text className="text-gray-300 mb-1 text-xl">Observações</Text>
+              <TextInput
+                className="text-xl p-4 border border-neutral-600 rounded-xl text-white mb-4"
+                placeholder="Observações adicionais"
+                placeholderTextColor="#888"
+                multiline
+                value={observacoes}
+                onChangeText={setObservacoes}
+              />
+
+
+
+              <Text className="text-gray-300 mb-4 text-xl">Data e Hora</Text>
               <View className="flex-row justify-around mb-4">
                 <DateTimePicker
                   value={date}
@@ -302,56 +352,13 @@ const HiveCreationModal: React.FC<Props> = ({ visible, onClose, onSave, hiveToEd
                 />
               </View>
 
-              <Text className="text-gray-300 mb-1 text-xl">Máx. Participantes</Text>
-              <TextInput
-                className="text-xl p-4 border border-neutral-600 rounded-xl text-white mb-4"
-                value={maxParticipantes.toString()}
-                onChangeText={(t) => setMaxParticipantes(Number(t))}
-                keyboardType="numeric"
-                placeholder="Ex: 10"
-                placeholderTextColor="#888"
-              />
-
-              <View className="flex-row items-center justify-between mb-4">
+              <View className="flex-row items-center justify-between my-4">
                 <Text className="text-gray-300 text-xl">Privado?</Text>
                 <Switch value={privado} onValueChange={setPrivado} />
               </View>
 
-              <Text className="text-gray-300 mb-1 text-xl">Observações</Text>
-              <TextInput
-                className="text-xl p-4 border border-neutral-600 rounded-xl text-white mb-4"
-                placeholder="Observações adicionais"
-                placeholderTextColor="#888"
-                multiline
-                value={observacoes}
-                onChangeText={setObservacoes}
-              />
-
-              <View className="items-center justify-center mb-6">
-                {!image ? (
-                  <TouchableOpacity
-                    className="flex-row items-center justify-center"
-                    onPress={openImagePickerAsync}
-                  >
-                    <MaterialIcons name="image" size={24} color="white" />
-                    <Text className="text-white ml-2">Escolher imagem</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity
-                    className="mt-4 items-center border-white border-2 rounded-xl"
-                    onPress={openImagePickerAsync}
-                  >
-                    <Image
-                      source={{ uri: image.uri }}
-                      style={{ width: 100, height: 100, borderRadius: 8 }}
-                      resizeMode="cover"
-                    />
-                  </TouchableOpacity>
-                )}
-              </View>
-
               <TouchableOpacity
-                className={`rounded-xl p-4 ${isSaving ? "bg-gray-500" : "bg-yellow-500"}`}
+                className={`rounded-xl mt-4 p-4 ${isSaving ? "bg-gray-500" : "bg-yellow-500"}`}
                 onPress={handleSave}
                 disabled={isSaving}
               >
@@ -359,8 +366,8 @@ const HiveCreationModal: React.FC<Props> = ({ visible, onClose, onSave, hiveToEd
                   {isSaving
                     ? "Salvando..."
                     : hiveToEdit
-                    ? "Salvar Alterações"
-                    : "Salvar Hive"}
+                      ? "Salvar Alterações"
+                      : "Salvar Hive"}
                 </Text>
               </TouchableOpacity>
 

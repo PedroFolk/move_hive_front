@@ -175,9 +175,10 @@ export default function ModalConfiguracoes({ visible, onClose }: ModalConfigurac
       animationType="slide"
       transparent
       onRequestClose={onClose}
+      className="py-safe"
     >
       <KeyboardAvoidingView
-        className="flex-1 bg-neutral-800"
+        className="flex-1 bg-neutral-800 "
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         // Adiciona um offset para ajustar a posição, se necessário, especialmente no iOS
         keyboardVerticalOffset={0}

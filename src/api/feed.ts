@@ -175,3 +175,27 @@ export const PostUsuarioAlheio = async (usuario_id: string) => {
     return [];
   }
 };
+
+
+export const CurtirPost = async (postId: string) => {
+  const token = await getToken();
+  try {
+    const response = await fetch(`${API_URL}/postagem/ToggleCurtida`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ post_id: postId }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Erro ao curtir postagem:", error);
+    return null;
+  }
+};

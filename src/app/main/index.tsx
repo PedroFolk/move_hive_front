@@ -17,7 +17,7 @@ import Hive from "../hive";
 
 
 export default function Main() {
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(2);
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const params = useLocalSearchParams();
