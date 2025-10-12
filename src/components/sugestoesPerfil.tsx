@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,40 +10,31 @@ import {
   Alert,
 } from "react-native";
 import { SeguirUsuario, SugerirPerfis } from "~/api/user";
-import ProfileModal from "./modals/profile"; // Ajuste o caminho real do seu ProfileModal
+import ProfileModal from "./modals/profile"; 
 
-// IMPORTANTE: Substitua este valor pela sua lógica real para obter o ID do usuário logado!
-const MEU_USER_ID = "ID_DO_USUARIO_LOGADO"; 
+
+const MEU_USER_ID = ""; 
 
 export default function SugestoesPerfis() {
   const [perfis, setPerfis] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Estados para o Modal de Perfil
-  const [modalVisible, setModalVisible] = useState(false);
-  const [perfilModalId, setPerfilModalId] = useState<string | null>(null);
 
-  /**
-   * Define o userId para o modal e o torna visível.
-   */
+
   const irParaPerfil = (usuario_id: string) => {
-    setPerfilModalId(usuario_id);
-    setModalVisible(true);
-  };
-  
-  /**
-   * Fecha o modal e limpa o userId selecionado.
-   */
-  const fecharModal = () => {
-    setModalVisible(false);
-    setPerfilModalId(null);
+    router.push({
+      pathname: "/profile",
+      params: { userId: usuario_id },
+    });
   }
+  
+
 
   useEffect(() => {
     const fetchPerfis = async () => {
       try {
         const data = await SugerirPerfis();
-        // Filtra o próprio usuário, se necessário
+
         if (data) setPerfis(data.filter((p: any) => p.id !== MEU_USER_ID)); 
       } catch (e) {
         console.error(e);
@@ -97,7 +88,6 @@ export default function SugestoesPerfis() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity className="items-center mr-4 bg-neutral-900 p-3 rounded-xl w-40"
-            // Chama a nova função para abrir o modal
             onPress={() => { irParaPerfil(item.id) }} 
           >
             <Image
@@ -127,13 +117,6 @@ export default function SugestoesPerfis() {
         )}
       />
 
-      {/* INSTANCIAÇÃO DO MODAL DE PERFIL */}
-      <ProfileModal
-        visible={modalVisible}
-        onClose={fecharModal} // Função para fechar o modal
-        userId={perfilModalId} // ID do perfil a ser exibido
-        meuUserId={MEU_USER_ID} // ID do usuário logado
-      />
     </View>
   );
 }

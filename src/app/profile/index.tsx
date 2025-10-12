@@ -18,12 +18,10 @@ import {
   UsuariosSeguidos,
 } from "~/api/user";
 import { ExcluirPost, ListarPostProprios, PostUsuarioAlheio } from "~/api/feed";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import PostModal from "~/components/modals/modalPosts";
 import UsuariosModal from "~/components/modals/modalUsuarios";
 import ModalConfiguracoes from "~/components/modals/modalConfigs";
-
-// IMPORTAÇÃO DO NOVO MODAL DE USUÁRIOS
 
 type PerfilProps = {
   userId?: string;
@@ -34,7 +32,8 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
   const params = useLocalSearchParams();
   const userIdString = userId || (params.userId as string | undefined);
   const isMeuPerfil = !userIdString || userIdString === meuUserId;
-  const [modalConfiguracoesVisible, setModalConfiguracoesVisible] = useState(false);
+  const [modalConfiguracoesVisible, setModalConfiguracoesVisible] =
+    useState(false);
 
   const [perfil, setPerfil] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -45,12 +44,10 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
   const [jaSegue, setJaSegue] = useState<boolean>(false);
   const [segLoading, setSegLoading] = useState<boolean>(false);
 
-  // NOVOS ESTADOS PARA O MODAL DE USUÁRIOS
   const [modalUsuariosVisible, setModalUsuariosVisible] = useState(false);
-  const [modalUsuariosTipo, setModalUsuariosTipo] = useState<"seguindo" | "seguidores">(
-    "seguindo"
-  );
-
+  const [modalUsuariosTipo, setModalUsuariosTipo] = useState<
+    "seguindo" | "seguidores"
+  >("seguindo");
 
   const carregarPerfil = useCallback(async () => {
     setRefreshing(true);
@@ -62,13 +59,16 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
         dados = await ListarDadosPerfil();
         const postsRaw = await ListarPostProprios();
         postsApi = postsRaw.map(
-          (p: {
-            id: any;
-            imagem: any;
-            imagem_url: any;
-            conteudo: any;
-            descricao: any;
-          }, i: any) => ({
+          (
+            p: {
+              id: any;
+              imagem: any;
+              imagem_url: any;
+              conteudo: any;
+              descricao: any;
+            },
+            i: any
+          ) => ({
             id: p.id || `post-${i}`,
             imagem: p.imagem || p.imagem_url,
             descricao: p.conteudo || p.descricao,
@@ -78,13 +78,16 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
         const raw = await UsuarioAlheio(userIdString);
         const postsRaw = await PostUsuarioAlheio(userIdString);
         postsApi = postsRaw.map(
-          (p: {
-            id: any;
-            imagem: any;
-            imagem_url: any;
-            conteudo: any;
-            descricao: any;
-          }, i: any) => ({
+          (
+            p: {
+              id: any;
+              imagem: any;
+              imagem_url: any;
+              conteudo: any;
+              descricao: any;
+            },
+            i: any
+          ) => ({
             id: p.id || `post-${i}`,
             imagem: p.imagem || p.imagem_url || "",
             descricao: p.conteudo || p.descricao || "",
@@ -174,8 +177,6 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
     }
   };
 
-
-
   const formatarPostsParaGrid = (posts: any[]) => {
     const resto = posts.length % 3;
     if (resto === 0) return posts;
@@ -196,8 +197,19 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
 
   const Header = () => (
     <View className="w-full py-4 px-6 bg-neutral-800">
-
-
+      <View className="flex-row justify-between items-center mb-4">
+        <View className="w-10">
+          {!isMeuPerfil && (
+            <TouchableOpacity onPress={() => router.back()}>
+              <Ionicons name="close" size={30} color="#fff" />
+            </TouchableOpacity>
+          )}
+        </View>
+        <Text className="text-white text-2xl font-bold">
+          {isMeuPerfil ? "Meu Perfil" : "Perfil"}
+        </Text>
+        <View className="w-10" />
+      </View>
 
       <View className="flex-row items-center justify-between">
         {perfil.foto_perfil ? (
@@ -216,7 +228,6 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
 
         <View className="flex-1 ml-4 justify-center">
           <View className="flex-row flex-1 justify-around">
-            {/* NOVO ONPRESS: ABRE O MODAL PARA SEGUIDORES */}
             <TouchableOpacity
               className="items-center"
               onPress={() => {
@@ -230,7 +241,6 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
               <Text className="text-white text-sm">Seguidores</Text>
             </TouchableOpacity>
 
-            {/* NOVO ONPRESS: ABRE O MODAL PARA SEGUINDO */}
             <TouchableOpacity
               className="items-center"
               onPress={() => {
@@ -249,29 +259,37 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
             <TouchableOpacity
               className="border-2 border-white rounded-2xl mt-4 py-2"
               onPress={() => {
-                setModalConfiguracoesVisible(true)
+                setModalConfiguracoesVisible(true);
               }}
             >
-              <Text className="text-white text-center text-lg">Editar Perfil</Text>
+              <Text className="text-white text-center text-lg">
+                Editar Perfil
+              </Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
-              className={`border-2 rounded-2xl mt-4 py-2 ${jaSegue ? "border-red-500 bg-red-500" : "border-yellow-500 bg-yellow-500"
-                }`}
+              className={`border-2 rounded-2xl mt-4 py-2 ${
+                jaSegue
+                  ? "border-red-500 bg-red-500"
+                  : "border-yellow-500 bg-yellow-500"
+              }`}
               onPress={handleToggleSeguir}
               disabled={segLoading}
             >
               {segLoading ? (
                 <View className="flex-row items-center justify-center py-1 px-6">
                   <ActivityIndicator />
-                  <Text className={`ml-2 ${jaSegue ? "text-white" : "text-black"}`}>
+                  <Text
+                    className={`ml-2 ${jaSegue ? "text-white" : "text-black"}`}
+                  >
                     {jaSegue ? "Deixar de seguir" : "Seguir"}
                   </Text>
                 </View>
               ) : (
                 <Text
-                  className={`text-center text-lg ${jaSegue ? "text-white" : "text-black"
-                    }`}
+                  className={`text-center text-lg ${
+                    jaSegue ? "text-white" : "text-black"
+                  }`}
                 >
                   {jaSegue ? "Deixar de seguir" : "Seguir"}
                 </Text>
@@ -281,7 +299,9 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
         </View>
       </View>
 
-      <Text className="text-white text-lg font-bold mt-4">{perfil.nome_completo}</Text>
+      <Text className="text-white text-lg font-bold mt-4">
+        {perfil.nome_completo}
+      </Text>
       <Text className="text-neutral-400 text-sm">@{perfil.username}</Text>
 
       {perfil.cidade && perfil.estado && (
@@ -336,20 +356,7 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
 
   return (
     <View className="w-full h-full bg-neutral-800 py-safe">
-
-      {isMeuPerfil ?
-        <View className="px-4 pt-4 flex-row justify-between items-center">
-          <Text className="text-white text-2xl font-bold">
-            Meu Perfil
-          </Text>
-        </View>
-        :
-        <></>
-      }
-
-
       <FlatList
-
         data={formatarPostsParaGrid(posts)}
         keyExtractor={(item) => item.id}
         renderItem={renderPostItem}
@@ -367,17 +374,21 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
           onClose={() => setModalPostVisible(false)}
           post={postSelecionado}
           onDelete={() => {
-            Alert.alert("Apagar publicação", "Deseja realmente apagar sua publicação?", [
-              { text: "Não", style: "cancel" },
-              {
-                text: "Sim",
-                style: "destructive",
-                onPress: async () => {
-                  await handleDelete();
-                  setModalPostVisible(false);
+            Alert.alert(
+              "Apagar publicação",
+              "Deseja realmente apagar sua publicação?",
+              [
+                { text: "Não", style: "cancel" },
+                {
+                  text: "Sim",
+                  style: "destructive",
+                  onPress: async () => {
+                    await handleDelete();
+                    setModalPostVisible(false);
+                  },
                 },
-              },
-            ]);
+              ]
+            );
           }}
           nome={perfil.username}
           foto_perfil={perfil.foto_perfil}
@@ -388,16 +399,13 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
         visible={modalConfiguracoesVisible}
         onClose={() => setModalConfiguracoesVisible(false)}
       />
-      {/* NOVO COMPONENTE MODAL DE USUÁRIOS */}
       <UsuariosModal
         isVisible={modalUsuariosVisible}
         onClose={() => setModalUsuariosVisible(false)}
         tipo={modalUsuariosTipo}
-        userId={userIdString} // Passa o ID do perfil sendo exibido
-        onUpdate={carregarPerfil} // Recarrega o perfil se uma ação de seguir/deixar de seguir ocorrer no modal
+        userId={userIdString}
+        onUpdate={carregarPerfil}
       />
-
     </View>
   );
-
 }

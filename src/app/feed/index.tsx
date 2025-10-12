@@ -52,13 +52,12 @@ const curtirPost = async (post_id: string) => {
           let novoContador = p.postagem.contador_curtidas || 0;
 
           if (usuarioJaCurtiu) {
-            // remove curtida
+            
             novasCurtidas = p.postagem.curtidas.filter(
               (c: any) => c.usuario_id !== token
             );
             novoContador -= 1;
           } else {
-            // adiciona curtida
             novasCurtidas = [
               ...(p.postagem.curtidas || []),
               { usuario_id: token },

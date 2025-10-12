@@ -2,16 +2,13 @@ import { useState, useEffect } from "react";
 import { Text, ActivityIndicator, View } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-
 import { PreencherDadosModal } from "~/api/user";
 import "../../../global.css";
 import Events from "../events";
 import Perfil from "../profile";
 import Ranking from "../ranking";
-import Activity from "../activities";
 import Menu from "~/components/menu";
 import ModalFirstTime from "~/components/modals/modalFirstTime";
-import SocialPage from "../social";
 import Feed from "../feed";
 import Hive from "../hive";
 

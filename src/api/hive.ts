@@ -186,7 +186,6 @@ export const EditarHive = async (hive: {
           typeof value === "object" &&
           "uri" in value
         ) {
-          // Aqui garantimos que value tem uri
           formData.append("arquivo_foto", {
             uri: value.uri,
             name: value.name ?? "hive_photo.jpg",
@@ -206,7 +205,6 @@ export const EditarHive = async (hive: {
       body: formData,
     });
 
-    // Debug rápido caso ainda retorne HTML
     const text = await response.text();
     try {
       const data = JSON.parse(text);
@@ -221,3 +219,55 @@ export const EditarHive = async (hive: {
     return { erro: error.message ?? "Erro desconhecido ao editar hive." };
   }
 };
+
+
+export const solicitarParticipacaoHive = async (hive_id: string) => {
+  const token = await getToken();
+
+  try {
+    const response = await fetch(`${API_URL}/hive/participarHive`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ hive_id }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Erro ao solicitar participacao da hive:", error);
+    return null;
+  }
+};
+
+
+export const decidirParticipanteHive = async (hive_id: string,usuario_id:string,acao:string) => {
+  const token = await getToken();
+
+  try {
+    const response = await fetch(`${API_URL}/hive/decidirParticipanteHive`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ hive_id,usuario_id,acao }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Erro ao decidir participacao da hive:", error);
+    return null;
+  }
+};
+
+

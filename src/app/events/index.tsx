@@ -131,16 +131,7 @@ export default function Events() {
 
   return (
     <View className="flex-1 bg-neutral-800 py-safe">
-      {/* Cabeçalho */}
-      {/* <View className="pt-4 flex-row justify-between px-4 mb-2 items-center">
-        <Text className="text-white text-2xl font-bold">Eventos</Text>
-        <TouchableOpacity
-          onPress={() => setShowModal(true)}
-          className="z-50 bg-neutral-900 p-2 rounded-full shadow-md"
-        >
-          <Ionicons name="add" size={28} color="#eab308" />
-        </TouchableOpacity>
-      </View> */}
+   
 
       {currentData.length > 0 && (
         <View className="pt-4 shadow-lg shadow-black">
