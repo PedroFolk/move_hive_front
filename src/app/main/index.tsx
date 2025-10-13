@@ -11,6 +11,7 @@ import Menu from "~/components/menu";
 import ModalFirstTime from "~/components/modals/modalFirstTime";
 import Feed from "../feed";
 import Hive from "../hive";
+import HiveChats from "../chat";
 
 
 export default function Main() {
@@ -60,7 +61,7 @@ export default function Main() {
       case 4:
         return <Perfil meuUserId={""}  />;
       default:
-        return <Perfil meuUserId={""} />;
+        return <HiveChats />;
     }
   };
 

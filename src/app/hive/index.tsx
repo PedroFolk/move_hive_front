@@ -441,7 +441,7 @@ export default function Hive() {
         className="flex-row bg-neutral-900 rounded-xl p-3 mx-2 items-center mt-2 "
         activeOpacity={0.9}
         onPress={handlePressCard}
-        disabled={!(isDono || isParticipando)} 
+        disabled={!(isDono || isParticipando)}
       >
         <Image
           source={{ uri: item.foto }}
@@ -570,12 +570,25 @@ export default function Hive() {
     <View className="flex-1 bg-neutral-800 py-safe">
       <View className="px-4 pt-4 flex-row justify-between items-center">
         <Text className="text-white text-2xl font-bold">HIVE</Text>
-        <TouchableOpacity
-          onPress={handleCreate}
-          className="z-50 bg-neutral-900 p-2 rounded-full "
-        >
-          <Ionicons name="add" size={28} color="#eab308" />
-        </TouchableOpacity>
+        <View className="flex-row">
+    
+
+          <TouchableOpacity
+            onPress={handleCreate}
+            className="z-50 bg-neutral-900 p-2 rounded-full "
+          >
+            <Ionicons name="add" size={28} color="#eab308" />
+          </TouchableOpacity>
+
+                <TouchableOpacity
+            onPress={
+()=>router.push("/chat")
+            }
+            className="z-50 p-2 rounded-full ml-4"
+          >
+            <Ionicons name="chatbubble-ellipses-outline" size={28} color="#eab308" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
