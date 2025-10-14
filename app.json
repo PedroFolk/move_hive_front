@@ -10,13 +10,15 @@
     "experiments": {
       "tsconfigPaths": true
     },
-    "plugins": [],
+    "plugins": [
+      "expo-router"
+    ],
     "orientation": "portrait",
     "icon": "./src/images/logoMoveHive.jpg",
     "userInterfaceStyle": "automatic",
     "scheme": "my-expo-app",
     "splash": {
-      "image":"./src/images/logoMoveHive.jpg",
+      "image": "./src/images/logoMoveHive.jpg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },

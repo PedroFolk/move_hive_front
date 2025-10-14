@@ -32,11 +32,7 @@ type HiveType = {
   titulo: string;
   esporte_nome: string;
   foto: string;
-  participantes: {
-    [x: string]: any;
-    uri: string;
-    id: string;
-  }[];
+  participantes: { uri: string; id: string; username: string }[];
   pendentes: { uri: string; id: string; username: string }[];
   max_participantes: number;
   usuario_id: string;
@@ -70,62 +66,76 @@ export default function Hive() {
   }, []);
 
   const loadHives = async (userId: string) => {
-    const result = await ListarTodosHives();
+    try {
+      const result = await ListarTodosHives();
 
-    const mapped = await Promise.all(
-      result.map(async (h: any) => {
-        const participantesComFoto = await Promise.all(
-          h.participantes.map(async (p: string) => {
-            try {
-              const usuario = await UsuarioAlheio(p);
+      if (!Array.isArray(result)) {
+        console.warn("⚠️ ListarTodosHives não retornou um array:", result);
+        setHives([]);
+        return;
+      }
 
-              return {
-                uri: usuario?.foto_perfil || "https://via.placeholder.com/150",
-                username: usuario?.username || "Placeholder",
-                id: p,
-              };
-            } catch {
-              return {
-                uri: "https://via.placeholder.com/150",
-                id: p,
-                username: "Usuário",
-              };
-            }
-          })
-        );
+      const mapped = await Promise.all(
+        result.map(async (h: any) => {
+          const participantes = Array.isArray(h.participantes)
+            ? h.participantes
+            : [];
+          const pendentes = Array.isArray(h.pendentes) ? h.pendentes : [];
 
-        const pendentesComFoto = await Promise.all(
-          (h.pendentes || []).map(async (p: string) => {
-            try {
-              const usuario = await UsuarioAlheio(p);
-              return {
-                uri: usuario?.foto_perfil || "https://via.placeholder.com/150",
-                username: usuario?.username || "Placeholder",
-                id: p,
-              };
-            } catch {
-              return {
-                uri: "https://via.placeholder.com/150",
-                id: p,
-                username: "Usuário",
-              };
-            }
-          })
-        );
+          const participantesComFoto = await Promise.all(
+            participantes.map(async (p: string) => {
+              try {
+                const usuario = await UsuarioAlheio(p);
+                return {
+                  uri: usuario?.foto_perfil || "https://via.placeholder.com/150",
+                  username: usuario?.username || "Placeholder",
+                  id: p,
+                };
+              } catch {
+                return {
+                  uri: "https://via.placeholder.com/150",
+                  id: p,
+                  username: "Usuário",
+                };
+              }
+            })
+          );
 
-        return {
-          ...h,
-          participantes: participantesComFoto,
-          pendentes: pendentesComFoto,
-        };
-      })
-    );
+          const pendentesComFoto = await Promise.all(
+            pendentes.map(async (p: string) => {
+              try {
+                const usuario = await UsuarioAlheio(p);
+                return {
+                  uri: usuario?.foto_perfil || "https://via.placeholder.com/150",
+                  username: usuario?.username || "Placeholder",
+                  id: p,
+                };
+              } catch {
+                return {
+                  uri: "https://via.placeholder.com/150",
+                  id: p,
+                  username: "Usuário",
+                };
+              }
+            })
+          );
 
-    setHives(mapped);
-    const count = mapped.filter(
-      (h) => h.usuario_id === userId && h.pendentes?.length > 0
-    ).length;
-    setPendingCount(count);
+          return {
+            ...h,
+            participantes: participantesComFoto,
+            pendentes: pendentesComFoto,
+          };
+        })
+      );
+
+      setHives(mapped);
+      const count = mapped.filter(
+        (h) => h.usuario_id === userId && (h.pendentes?.length ?? 0) > 0
+      ).length;
+      setPendingCount(count);
+    } catch (err) {
+      console.error("Erro ao carregar hives:", err);
+    }
   };
 
   const onRefresh = async () => {
@@ -137,43 +147,38 @@ export default function Hive() {
 
   const currentData = hives.filter((hive) => {
     if (!meuUsuarioId) return true;
+    const participantes = hive.participantes || [];
+    const pendentes = hive.pendentes || [];
 
-    if (selectedCategory === "Meus") {
-      return hive.usuario_id === meuUsuarioId;
-    }
+    if (selectedCategory === "Meus") return hive.usuario_id === meuUsuarioId;
 
-    if (selectedCategory === "Participando") {
+    if (selectedCategory === "Participando")
       return (
         hive.usuario_id !== meuUsuarioId &&
-        hive.participantes.some((p) => p.id === meuUsuarioId)
+        participantes.some((p) => p.id === meuUsuarioId)
       );
-    }
 
-    if (selectedCategory === "Solicitado") {
+    if (selectedCategory === "Solicitado")
       return (
         hive.usuario_id !== meuUsuarioId &&
-        hive.pendentes?.some((p) => p.id === meuUsuarioId)
+        pendentes.some((p) => p.id === meuUsuarioId)
       );
-    }
 
-    if (selectedCategory === "Todos") {
+    if (selectedCategory === "Todos")
       return (
         hive.usuario_id !== meuUsuarioId &&
-        !hive.participantes.some((p) => p.id === meuUsuarioId) &&
-        !hive.pendentes?.some((p) => p.id === meuUsuarioId)
+        !participantes.some((p) => p.id === meuUsuarioId) &&
+        !pendentes.some((p) => p.id === meuUsuarioId)
       );
-    }
 
-    if (selectedCategory === "Pendentes") {
-      return hive.usuario_id === meuUsuarioId && hive.pendentes?.length > 0;
-    }
+    if (selectedCategory === "Pendentes")
+      return hive.usuario_id === meuUsuarioId && pendentes.length > 0;
 
     return true;
   });
 
   const handleParticipate = async (hive: HiveType) => {
-    if (hive.participantes.some((p) => p.id === meuUsuarioId)) return;
-
+    if (hive.participantes?.some((p) => p.id === meuUsuarioId)) return;
     try {
       await ParticiparHive(hive.id);
       setHives((prev) =>
@@ -182,7 +187,7 @@ export default function Hive() {
             ? {
                 ...h,
                 pendentes: [
-                  ...h.pendentes,
+                  ...(h.pendentes || []),
                   {
                     id: meuUsuarioId,
                     uri: "https://via.placeholder.com/150",
@@ -199,137 +204,99 @@ export default function Hive() {
   };
 
   const handleCancelParticipation = async (hive: HiveType) => {
-    Alert.alert(
-      "Cancelar participação",
-      "Tem certeza que deseja sair deste Hive?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Sair",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await cancelarParticipacaoHive(hive.id);
-              setHives((prev) =>
-                prev.map((h) =>
-                  h.id === hive.id
-                    ? {
-                        ...h,
-                        participantes: h.participantes.filter(
-                          (p) => p.id !== meuUsuarioId
-                        ),
-                      }
-                    : h
-                )
-              );
-            } catch (error) {
-              console.error("Erro ao cancelar participação:", error);
-            }
-          },
+    Alert.alert("Cancelar participação", "Deseja sair deste Hive?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Sair",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await cancelarParticipacaoHive(hive.id);
+            setHives((prev) =>
+              prev.map((h) =>
+                h.id === hive.id
+                  ? {
+                      ...h,
+                      participantes: (h.participantes || []).filter(
+                        (p) => p.id !== meuUsuarioId
+                      ),
+                    }
+                  : h
+              )
+            );
+          } catch (error) {
+            console.error("Erro ao cancelar participação:", error);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleCancelRequest = async (hive: HiveType) => {
-    Alert.alert(
-      "Cancelar solicitação",
-      "Deseja realmente cancelar seu pedido de participação?",
-      [
-        { text: "Não", style: "cancel" },
-        {
-          text: "Sim",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await cancelarParticipacaoHive(hive.id);
-              setHives((prev) =>
-                prev.map((h) =>
-                  h.id === hive.id
-                    ? {
-                        ...h,
-                        pendentes: h.pendentes.filter(
-                          (p) => p.id !== meuUsuarioId
-                        ),
-                      }
-                    : h
-                )
-              );
-            } catch (error) {
-              console.error("Erro ao cancelar solicitação:", error);
-            }
-          },
+    Alert.alert("Cancelar solicitação", "Deseja cancelar o pedido?", [
+      { text: "Não", style: "cancel" },
+      {
+        text: "Sim",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await cancelarParticipacaoHive(hive.id);
+            setHives((prev) =>
+              prev.map((h) =>
+                h.id === hive.id
+                  ? {
+                      ...h,
+                      pendentes: (h.pendentes || []).filter(
+                        (p) => p.id !== meuUsuarioId
+                      ),
+                    }
+                  : h
+              )
+            );
+          } catch (error) {
+            console.error("Erro ao cancelar solicitação:", error);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
-  const handleAccept = (hiveId: string, participanteId: string) => {
-    Alert.alert(
-      "Aprovar participante",
-      "Deseja realmente aprovar esta solicitação?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Aprovar",
-          onPress: async () => {
-            try {
-              await decidirParticipanteHive(hiveId, participanteId, "aceitar");
-              await loadHives(meuUsuarioId);
-              Alert.alert("Sucesso", "Solicitação aprovada.");
-            } catch (error) {
-              console.error("Erro ao aprovar solicitação:", error);
-              Alert.alert("Erro", "Não foi possível aprovar a solicitação.");
-            }
-          },
-        },
-      ]
-    );
+  const handleAccept = async (hiveId: string, participanteId: string) => {
+    try {
+      await decidirParticipanteHive(hiveId, participanteId, "aceitar");
+      await loadHives(meuUsuarioId);
+      Alert.alert("Sucesso", "Solicitação aprovada.");
+    } catch (error) {
+      console.error("Erro ao aprovar solicitação:", error);
+    }
   };
 
-  const handleReject = (hiveId: string, participanteId: string) => {
-    Alert.alert(
-      "Recusar participante",
-      "Deseja realmente recusar esta solicitação?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Recusar",
-          onPress: async () => {
-            try {
-              await decidirParticipanteHive(hiveId, participanteId, "recusar");
-              await loadHives(meuUsuarioId);
-              Alert.alert("Sucesso", "Solicitação recusada.");
-            } catch (error) {
-              console.error("Erro ao recusar solicitação:", error);
-              Alert.alert("Erro", "Não foi possível recusar a solicitação.");
-            }
-          },
-        },
-      ]
-    );
+  const handleReject = async (hiveId: string, participanteId: string) => {
+    try {
+      await decidirParticipanteHive(hiveId, participanteId, "recusar");
+      await loadHives(meuUsuarioId);
+      Alert.alert("Sucesso", "Solicitação recusada.");
+    } catch (error) {
+      console.error("Erro ao recusar solicitação:", error);
+    }
   };
 
   const handleDelete = (hiveId: string) => {
-    Alert.alert(
-      "Confirmar exclusão",
-      "Tem certeza que deseja deletar este Hive?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Deletar",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await DeletarHive(hiveId);
-              setHives((prev) => prev.filter((h) => h.id !== hiveId));
-            } catch (error) {
-              console.error("Erro ao deletar o hive:", error);
-            }
-          },
+    Alert.alert("Excluir Hive", "Deseja realmente deletar este Hive?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Deletar",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await DeletarHive(hiveId);
+            setHives((prev) => prev.filter((h) => h.id !== hiveId));
+          } catch (error) {
+            console.error("Erro ao deletar hive:", error);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleEdit = (hive: HiveType) => {
@@ -349,18 +316,16 @@ export default function Hive() {
   };
 
   const irParaPerfil = (usuario_id: string) => {
-    router.push({
-      pathname: "/profile",
-      params: { userId: usuario_id },
-    });
+    router.push({ pathname: "/profile", params: { userId: usuario_id } });
   };
 
   const renderItem = ({ item }: { item: HiveType }) => {
+    const participantes = item.participantes || [];
+    const pendentes = item.pendentes || [];
+
     const isDono = item.usuario_id === meuUsuarioId;
-    const isParticipando = item.participantes.some(
-      (p) => p.id === meuUsuarioId
-    );
-    const isPendente = item.pendentes?.some((p) => p.id === meuUsuarioId);
+    const isParticipando = participantes.some((p) => p.id === meuUsuarioId);
+    const isPendente = pendentes.some((p) => p.id === meuUsuarioId);
 
     if (selectedCategory === "Pendentes") {
       return (
@@ -372,20 +337,17 @@ export default function Hive() {
               resizeMode="cover"
             />
             <View className="flex-1 ml-4">
-              <Text className="text-white font-bold text-lg">
-                {item.titulo}
-              </Text>
+              <Text className="text-white font-bold text-lg">{item.titulo}</Text>
               <Text className="text-gray-400">{item.esporte_nome}</Text>
             </View>
           </View>
 
           <View className="border-t border-neutral-700 pt-3">
             <Text className="text-gray-300 font-bold mb-2">
-              Solicitações ({item.pendentes.length})
+              Solicitações ({pendentes.length})
             </Text>
-            {item.pendentes.map((p) => (
+            {pendentes.map((p) => (
               <TouchableOpacity
-                activeOpacity={100}
                 key={p.id}
                 className="flex-row items-center justify-between my-2 bg-neutral-800 p-3 rounded-lg"
                 onPress={() => irParaPerfil(p.id)}
@@ -427,12 +389,10 @@ export default function Hive() {
         </View>
       );
     }
+
     const handlePressCard = () => {
       if (isDono || isParticipando) {
-        router.push({
-          pathname: "/chat",
-          params: { userId: item.id },
-        });
+        router.push({ pathname: "/chat", params: { userId: item.id } });
       }
     };
 
@@ -455,28 +415,26 @@ export default function Hive() {
           <Text className="text-gray-300">{item.localizacao}</Text>
 
           <View className="flex-row mt-2 items-center">
-            {item.participantes.slice(0, 5).map((p) =>
-              p.uri && !p.uri.includes("placeholder") ? (
-                <TouchableOpacity key={p.id} onPress={() => irParaPerfil(p.id)}>
+            {participantes.slice(0, 5).map((p) => (
+              <TouchableOpacity key={p.id} onPress={() => irParaPerfil(p.id)}>
+                {p.uri && !p.uri.includes("placeholder") ? (
                   <Image
                     source={{ uri: p.uri }}
                     className="w-8 h-8 rounded-full border-2 border-neutral-800 -ml-2"
                     resizeMode="cover"
                   />
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity key={p.id} onPress={() => irParaPerfil(p.id)}>
+                ) : (
                   <View className="w-8 h-8 rounded-full bg-neutral-600 justify-center items-center border-2 border-neutral-800 -ml-2">
                     <Text className="text-white font-bold text-xs">
                       {p.username ? p.username[0].toUpperCase() : "U"}
                     </Text>
                   </View>
-                </TouchableOpacity>
-              )
-            )}
+                )}
+              </TouchableOpacity>
+            ))}
 
             <Text className="text-gray-400 ml-2">
-              {item.participantes.length}/{item.max_participantes}
+              {participantes.length}/{item.max_participantes}
             </Text>
           </View>
         </View>
@@ -571,8 +529,6 @@ export default function Hive() {
       <View className="px-4 pt-4 flex-row justify-between items-center">
         <Text className="text-white text-2xl font-bold">HIVE</Text>
         <View className="flex-row">
-    
-
           <TouchableOpacity
             onPress={handleCreate}
             className="z-50 bg-neutral-900 p-2 rounded-full "
@@ -580,13 +536,15 @@ export default function Hive() {
             <Ionicons name="add" size={28} color="#eab308" />
           </TouchableOpacity>
 
-                <TouchableOpacity
-            onPress={
-()=>router.push("/chat")
-            }
+          <TouchableOpacity
+            onPress={() => router.push("/chat")}
             className="z-50 p-2 rounded-full ml-4"
           >
-            <Ionicons name="chatbubble-ellipses-outline" size={28} color="#eab308" />
+            <Ionicons
+              name="chatbubble-ellipses-outline"
+              size={28}
+              color="#eab308"
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -603,7 +561,6 @@ export default function Hive() {
               : cat;
           return (
             <TouchableOpacity
-              activeOpacity={100}
               key={cat}
               onPress={() => setSelectedCategory(cat)}
               className={`mb-2 mr-2 px-6 h-10 justify-center items-center rounded-full border ${
