@@ -142,7 +142,7 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
         setCidade("");
         setEstado("");
         setFoto(null);
-      }, 1200); // mantém check 1.2s
+      }, 1200);
     } catch (error) {
       console.error(error);
       Alert.alert("Erro", "Não foi possível enviar os dados. Tente novamente.");
@@ -156,53 +156,32 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View className="bg-neutral-800 rounded-lg p-6 flex-1 justify-between h-full">
           <View className="flex-1 py-safe">
-            {step === 1 ? (
+            
+            {step === 1 && (
               <>
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
-                  <Text className="text-white text-2xl text-center font-bold mt-10">Selecione</Text>
-                  <Text className="text-white text-2xl text-center font-bold mb-20 mt-4">esportes e níveis</Text>
+                  <Text className="text-white text-2xl text-center font-bold mt-10">Selecione os esportes</Text>
                   <ScrollView className="mb-4">
                     <View className="flex flex-row flex-wrap justify-between">
                       {esportesAPI.map(({ value, label, foto: esporteFoto }) => {
-                        const nivel = esportes[value];
+                        const selecionado = esportes[value];
                         return (
                           <TouchableOpacity
                             key={value}
                             className={`basis-[48%] mb-4 border rounded-2xl p-3 items-center ${
-                              nivel ? "border-blue-500 bg-blue-900" : "border-gray-700"
+                              selecionado ? "border-blue-500 bg-blue-900" : "border-gray-700"
                             }`}
                             onPress={() => toggleEsporte(value)}
                             activeOpacity={0.8}
                           >
                             <View className="w-16 h-16 bg-gray-700 mb-2 justify-center items-center rounded-xl overflow-hidden">
                               {esporteFoto ? (
-                                <Image
-                                  source={{ uri: esporteFoto }}
-                                  style={{ width: 64, height: 64 }}
-                                  resizeMode="cover"
-                                />
+                                <Image source={{ uri: esporteFoto }} style={{ width: 64, height: 64 }} resizeMode="cover" />
                               ) : (
                                 <Text className="text-white font-bold text-lg">{label[0]}</Text>
                               )}
                             </View>
-
                             <Text className="text-white text-lg font-semibold">{label}</Text>
-
-                            {nivel && (
-                              <TouchableOpacity
-                                onPress={() => changeNivel(value)}
-                                className={`mt-2 px-6 py-2 rounded-lg ${
-                                  nivel === "iniciante"
-                                    ? "bg-green-600"
-                                    : nivel === "amador"
-                                    ? "bg-yellow-500"
-                                    : "bg-red-600"
-                                }`}
-                                activeOpacity={0.7}
-                              >
-                                <Text className="text-white font-bold capitalize">{nivel}</Text>
-                              </TouchableOpacity>
-                            )}
                           </TouchableOpacity>
                         );
                       })}
@@ -226,7 +205,53 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
                   </Text>
                 </TouchableOpacity>
               </>
-            ) : step === 2 ? (
+            )}
+
+            {step === 2 && (
+              <>
+                <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
+                  <Text className="text-white text-2xl text-center mt-10 font-bold mb-10">Escolha o nível de cada esporte</Text>
+                  <ScrollView className="mb-4">
+                    <View className="flex flex-col space-y-4">
+                      {Object.keys(esportes).map((key) => {
+                        const esporte = esportesAPI.find((e) => e.value === key);
+                        if (!esporte) return null;
+                        const nivel = esportes[key];
+                        return (
+                          <TouchableOpacity
+                            key={key}
+                            className="flex-row justify-between items-center bg-neutral-700 mb-4 p-4 rounded-xl"
+                            onPress={() => changeNivel(key)}
+                            activeOpacity={0.7}
+                          >
+                            <Text className="text-white text-lg">{esporte.label}</Text>
+                            <Text
+                              className={`px-4 py-1 rounded-lg font-bold ${
+                                nivel === "iniciante" ? "bg-green-600" : nivel === "amador" ? "bg-yellow-500" : "bg-red-600"
+                              } text-white`}
+                            >
+                              {nivel}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </ScrollView>
+                </KeyboardAvoidingView>
+
+                <View className="absolute bottom-2 w-full items-center">
+                  <TouchableOpacity onPress={() => setStep(1)} className="py-3 px-5 border border-gray-600 rounded-xl mb-4 w-[90%]">
+                    <Text className="text-white text-center text-xl">Voltar</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity onPress={() => setStep(3)} className="py-3 px-5 rounded-xl bg-yellow-500 mb-4 w-[90%]">
+                    <Text className="text-black text-xl text-center">Continuar</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+
+            {step === 3 && (
               <>
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
                   <View className="flex-1">
@@ -240,23 +265,23 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
                   </View>
                 </KeyboardAvoidingView>
 
-                <View className="absolute bottom-2 w-full">
-                  <TouchableOpacity onPress={() => setStep(1)} className="py-3 px-5 border border-gray-600 rounded-xl mb-4">
+                <View className="absolute bottom-2 w-full items-center">
+                  <TouchableOpacity onPress={() => setStep(2)} className="py-3 px-5 border border-gray-600 rounded-xl mb-4 w-[90%]">
                     <Text className="text-white text-center text-xl">Voltar</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    onPress={() => setStep(3)}
-                    className={`py-3 px-5 rounded-xl border-2 mb-4 ${!cidade || !estado ? "bg-transparent border-white" : "bg-yellow-500"}`}
+                    onPress={() => setStep(4)}
+                    className={`py-3 px-5 rounded-xl border-2 mb-4 w-[90%] ${!cidade || !estado ? "bg-transparent border-white" : "bg-yellow-500"}`}
                     disabled={!cidade || !estado}
                   >
-                    <Text className={`text-xl text-center ${!cidade || !estado ? "text-white" : "text-black"}`}>
-                      Continuar
-                    </Text>
+                    <Text className={`text-xl text-center ${!cidade || !estado ? "text-white" : "text-black"}`}>Continuar</Text>
                   </TouchableOpacity>
                 </View>
               </>
-            ) : (
+            )}
+
+            {step === 4 && (
               <>
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
                   <Text className="text-white text-2xl text-center mt-10 font-bold mb-6">
@@ -279,7 +304,7 @@ export default function ModalFirstTime({ visible, onClose, onSubmit }: ModalFirs
                 </KeyboardAvoidingView>
 
                 <View className="absolute bottom-2 w-full items-center">
-                  <TouchableOpacity onPress={() => setStep(2)} className="py-3 px-5 border border-gray-600 rounded-xl mb-4 w-[90%]">
+                  <TouchableOpacity onPress={() => setStep(3)} className="py-3 px-5 border border-gray-600 rounded-xl mb-4 w-[90%]">
                     <Text className="text-white text-center text-xl">Voltar</Text>
                   </TouchableOpacity>
 

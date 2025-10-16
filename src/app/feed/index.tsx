@@ -8,18 +8,25 @@ import {
   FlatList,
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
-
 import * as ImagePicker from "expo-image-picker";
-import { CriarPost, CurtirPost, ListarNofificacao, ListaTodosPost } from "~/api/feed";
+import {
+  CriarPost,
+  CurtirPost,
+  ListarNofificacao,
+  ListaPostSeguindo,
+  ListaPostDescobrir,
+} from "~/api/feed";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import AddButton from "../../components/addButton";
 import SugestoesPerfis from "../../components/sugestoesPerfil";
 import { router } from "expo-router";
 import ModalSearchUser from "~/components/modals/modalSearchUser";
 import ModalNewPost from "~/components/modals/modalNewPost";
+import { ListarDadosPerfil } from "~/api/user";
 
 export default function Feed() {
   const [posts, setPosts] = useState<any[]>([]);
+  const [abaAtiva, setAbaAtiva] = useState<"descobrir" | "seguindo">("descobrir");
   const [modalVisible, setModalVisible] = useState(false);
   const [descricao, setDescricao] = useState("");
   const [imagem, setImagem] = useState<any | null>(null);
@@ -28,7 +35,7 @@ export default function Feed() {
   const [temNotificacoes, setTemNotificacoes] = useState(false);
   const [modalSearchVisible, setModalSearchVisible] = useState(false);
   const [token, setToken] = useState<string | null>(null);
-
+ 
   useEffect(() => {
     const carregarToken = async () => {
       const t = await SecureStore.getItemAsync("userId");
@@ -37,60 +44,12 @@ export default function Feed() {
     carregarToken();
   }, []);
 
-const curtirPost = async (post_id: string) => {
-  try {
-    await CurtirPost(post_id);
-
-    setPosts((prevPosts) =>
-      prevPosts.map((p) => {
-        if (p.postagem.id === post_id) {
-          const usuarioJaCurtiu = p.postagem.curtidas?.some(
-            (c: any) => c.usuario_id === token
-          );
-
-          let novasCurtidas;
-          let novoContador = p.postagem.contador_curtidas || 0;
-
-          if (usuarioJaCurtiu) {
-            
-            novasCurtidas = p.postagem.curtidas.filter(
-              (c: any) => c.usuario_id !== token
-            );
-            novoContador -= 1;
-          } else {
-            novasCurtidas = [
-              ...(p.postagem.curtidas || []),
-              { usuario_id: token },
-            ];
-            novoContador += 1;
-          }
-
-          return {
-            ...p,
-            postagem: {
-              ...p.postagem,
-              curtidas: novasCurtidas,
-              contador_curtidas: novoContador,
-            },
-          };
-        }
-        return p;
-      })
-    );
-  } catch (e) {
-    console.log("Erro ao curtir post:", e);
-  }
-};
-
-  const aoAtualizar = async () => {
-    setRefreshing(true);
-    await buscarPosts();
-    setRefreshing(false);
-  };
+ 
 
   const buscarPosts = async () => {
     try {
-      const response = await ListaTodosPost();
+      const response =
+        abaAtiva === "descobrir" ? await ListaPostDescobrir() : await ListaPostSeguindo();
 
       if (!response || response.status === 200 || response.status === 500) {
         console.log("Erro");
@@ -104,6 +63,55 @@ const curtirPost = async (post_id: string) => {
       setTimeout(() => router.replace("/login"), 0);
     }
   };
+
+  const aoAtualizar = async () => {
+    setRefreshing(true);
+    await buscarPosts();
+    setRefreshing(false);
+  };
+
+  const curtirPost = async (post_id: string) => {
+    try {
+      await CurtirPost(post_id);
+      setPosts((prevPosts) =>
+        prevPosts.map((p) => {
+          if (p.postagem.id === post_id) {
+            const usuarioJaCurtiu = p.postagem.curtidas?.some(
+              (c: any) => c.usuario_id === token
+            );
+            let novasCurtidas;
+            let novoContador = p.postagem.contador_curtidas || 0;
+
+            if (usuarioJaCurtiu) {
+              novasCurtidas = p.postagem.curtidas.filter(
+                (c: any) => c.usuario_id !== token
+              );
+              novoContador -= 1;
+            } else {
+              novasCurtidas = [
+                ...(p.postagem.curtidas || []),
+                { usuario_id: token },
+              ];
+              novoContador += 1;
+            }
+
+            return {
+              ...p,
+              postagem: {
+                ...p.postagem,
+                curtidas: novasCurtidas,
+                contador_curtidas: novoContador,
+              },
+            };
+          }
+          return p;
+        })
+      );
+    } catch (e) {
+      console.log("Erro ao curtir post:", e);
+    }
+  };
+
   const verificarNotificacoes = useCallback(async () => {
     const data = await ListarNofificacao();
     if (data) {
@@ -112,24 +120,13 @@ const curtirPost = async (post_id: string) => {
     }
   }, []);
 
+  useEffect(() => {
+    buscarPosts();
+
+  }, [abaAtiva]);
 
   useEffect(() => {
-
-    const carregarPosts = async () => {
-      try {
-        await buscarPosts();
-      } catch (error) {
-        console.log("Erro dentro do carregarPosts:", error);
-        router.replace("/login");
-      }
-    };
-
-    carregarPosts();
-  }, []);
-  useEffect(() => {
-
     verificarNotificacoes();
-
     const interval = setInterval(verificarNotificacoes, 15000);
     return () => clearInterval(interval);
   }, [verificarNotificacoes]);
@@ -142,6 +139,7 @@ const curtirPost = async (post_id: string) => {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
@@ -160,14 +158,11 @@ const curtirPost = async (post_id: string) => {
 
   const adicionarPost = async () => {
     if (loading) return;
-
     if (!descricao.trim() || !imagem) {
       alert("Preencha a descrição e selecione uma imagem.");
       return;
     }
-
     setLoading(true);
-
     try {
       const resultado = await CriarPost(descricao, imagem);
       if (resultado) {
@@ -175,46 +170,30 @@ const curtirPost = async (post_id: string) => {
         setDescricao("");
         setImagem(null);
         setModalVisible(false);
-      } else {
-        alert("Erro ao criar post.");
-      }
-    } catch (error) {
+      } else alert("Erro ao criar post.");
+    } catch {
       alert("Erro ao criar post.");
     } finally {
       setLoading(false);
     }
   };
 
-
   const irParaPerfil = (usuario_id: string) => {
     router.push({
       pathname: "/profile",
       params: { userId: usuario_id },
     });
-
-  }
-
-
+  };
 
   const renderPost = ({ item }: { item: any }) => {
-
-    console.log(token)
     const usuarioCurtiu = item.postagem?.curtidas?.some(
       (curtida: any) => curtida.usuario_id === token
     );
-
-    
-
-
     return (
       <View className="mb-4 w-full bg-neutral-800 rounded-xl overflow-hidden">
         <TouchableOpacity
           className="flex-row items-center px-3 py-2"
-          onPress={() => {
-            if (item.usuario?.id) {
-              irParaPerfil(item.usuario.id);
-            }
-          }}
+          onPress={() => item.usuario?.id && irParaPerfil(item.usuario.id)}
         >
           {item.usuario?.foto_perfil ? (
             <Image
@@ -225,9 +204,7 @@ const curtirPost = async (post_id: string) => {
           ) : (
             <View className="w-10 h-10 mr-3 bg-neutral-600 justify-center items-center rounded-full">
               <Text className="text-white font-bold text-base">
-                {item.usuario?.username
-                  ? item.usuario.username[0].toUpperCase()
-                  : "U"}
+                {item.usuario?.username?.[0]?.toUpperCase() || "U"}
               </Text>
             </View>
           )}
@@ -246,12 +223,9 @@ const curtirPost = async (post_id: string) => {
 
         <View className="flex-row items-center px-3 py-2 justify-between">
           <View className="flex-row">
-
             <TouchableOpacity
               className="flex-row items-center mr-4"
-              onPress={() => {
-                curtirPost(item.postagem.id);
-              }}
+              onPress={() => curtirPost(item.postagem.id)}
             >
               <Ionicons
                 name={usuarioCurtiu ? "heart" : "heart-outline"}
@@ -262,7 +236,6 @@ const curtirPost = async (post_id: string) => {
                 {item.postagem.contador_curtidas || 0}
               </Text>
             </TouchableOpacity>
-
 
             <TouchableOpacity className="flex-row items-center mr-4">
               <Ionicons name="chatbubble-outline" size={24} color="white" />
@@ -277,7 +250,6 @@ const curtirPost = async (post_id: string) => {
           </View>
         </View>
 
-
         <View className="px-3 pb-3 flex-row flex">
           <Text className="font-bold text-sm text-white">
             {item.usuario?.username}:
@@ -290,9 +262,8 @@ const curtirPost = async (post_id: string) => {
     );
   };
 
-
   return (
-    <View className="flex-1 w-full py-safe" >
+    <View className="flex-1 w-full py-safe">
       <ModalSearchUser
         visible={modalSearchVisible}
         onClose={() => setModalSearchVisible(false)}
@@ -300,28 +271,37 @@ const curtirPost = async (post_id: string) => {
 
       <View className="px-4 pt-4 flex-row justify-between items-center">
         <Text className="text-white text-2xl font-bold">Publicações</Text>
-
         <View className="flex-row">
-
           <TouchableOpacity onPress={() => setModalSearchVisible(true)}>
-            <Ionicons className="mr-4" name="search" size={28} color="white" />
+            <Ionicons name="search" size={28} color="white" />
           </TouchableOpacity>
-
-
           <TouchableOpacity onPress={() => router.push("../notifications")}>
-            <View className="relative ">
-
+            <View className="relative ml-4">
               <MaterialCommunityIcons name="bell-outline" size={28} color="white" />
               {temNotificacoes && (
-                <View
-                  className=" absolute top-0 left-0 w-2 h-2 rounded-full bg-red-500"
-
-                />
+                <View className="absolute top-0 left-0 w-2 h-2 rounded-full bg-red-500" />
               )}
             </View>
           </TouchableOpacity>
-
         </View>
+      </View>
+
+      <View className="flex-row justify-around mt-4 mb-2 border-b border-neutral-700">
+        {["descobrir", "seguindo"].map((aba) => (
+          <TouchableOpacity
+            key={aba}
+            activeOpacity={100}
+            className="p-4"
+            onPress={() => setAbaAtiva(aba as "descobrir" | "seguindo")}
+          >
+            <Text
+              className={`text-base font-bold ${abaAtiva === aba ? "text-yellow-400" : "text-neutral-400"
+                }`}
+            >
+              {aba === "descobrir" ? "Descobrir" : "Seguindo"}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       <FlatList
@@ -336,7 +316,7 @@ const curtirPost = async (post_id: string) => {
             colors={["#facc15"]}
           />
         }
-        ListHeaderComponent={<SugestoesPerfis />}
+        ListHeaderComponent={abaAtiva === "descobrir" ? <SugestoesPerfis /> : null}
       />
 
       <ModalNewPost
