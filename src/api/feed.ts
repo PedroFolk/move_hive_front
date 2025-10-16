@@ -5,10 +5,32 @@ const getToken = async () => {
   return await SecureStore.getItemAsync("token");
 };
 
-export const ListaTodosPost = async () => {
+export const ListaPostDescobrir = async () => {
   const token = await getToken();
   try {
     const response = await fetch(`${API_URL}/postagem/FeedSemFiltro`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Erro ao listar postagens:", error);
+    return null;
+  }
+};
+
+export const ListaPostSeguindo = async () => {
+  const token = await getToken();
+  try {
+    const response = await fetch(`${API_URL}/postagem/FeedSeguindo`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

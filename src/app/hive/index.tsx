@@ -8,6 +8,7 @@ import {
   Image,
   Alert,
   RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { router } from "expo-router";
@@ -52,12 +53,25 @@ export default function Hive() {
   const [hiveToEdit, setHiveToEdit] = useState<HiveType | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const [loadingHiveId, setLoadingHiveId] = useState<string | null>(null);
+
 
   const TYPES = ["Pendentes", "Todos", "Participando", "Solicitado", "Meus"];
 
   useEffect(() => {
+    function decodeToken(token: string) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        return String(payload.user_id);
+      } catch (e) {
+        console.error("Erro ao decodificar o token:", e);
+        return null;
+      }
+    }
     (async () => {
-      const userId = await SecureStore.getItemAsync("userId");
+
+      const token = await SecureStore.getItemAsync("token");
+      const userId = decodeToken(token!);
       if (userId) {
         setMeuUsuarioId(userId);
         await loadHives(userId);
@@ -145,63 +159,52 @@ export default function Hive() {
     setRefreshing(false);
   };
 
+
   const currentData = hives.filter((hive) => {
     if (!meuUsuarioId) return true;
+
     const participantes = hive.participantes || [];
     const pendentes = hive.pendentes || [];
 
-    if (selectedCategory === "Meus") return hive.usuario_id === meuUsuarioId;
+    const isDono = hive.usuario_id === meuUsuarioId;
+    const isParticipando = participantes.some((p) => p.id === meuUsuarioId);
+    const isPendente = pendentes.some((p) => p.id === meuUsuarioId);
 
-    if (selectedCategory === "Participando")
-      return (
-        hive.usuario_id !== meuUsuarioId &&
-        participantes.some((p) => p.id === meuUsuarioId)
-      );
+    switch (selectedCategory) {
+      case "Meus":
+        return isDono;
 
-    if (selectedCategory === "Solicitado")
-      return (
-        hive.usuario_id !== meuUsuarioId &&
-        pendentes.some((p) => p.id === meuUsuarioId)
-      );
+      case "Participando":
+        return isParticipando;
 
-    if (selectedCategory === "Todos")
-      return (
-        hive.usuario_id !== meuUsuarioId &&
-        !participantes.some((p) => p.id === meuUsuarioId) &&
-        !pendentes.some((p) => p.id === meuUsuarioId)
-      );
+      case "Solicitado":
+        return isPendente;
 
-    if (selectedCategory === "Pendentes")
-      return hive.usuario_id === meuUsuarioId && pendentes.length > 0;
+      case "Pendentes":
+        return hive.usuario_id === meuUsuarioId && pendentes.length > 0;
 
-    return true;
+      case "Todos":
+      default:
+        return !isDono && !isParticipando && !isPendente;
+    }
   });
+
+
 
   const handleParticipate = async (hive: HiveType) => {
     if (hive.participantes?.some((p) => p.id === meuUsuarioId)) return;
     try {
+      setLoadingHiveId(hive.id);
       await ParticiparHive(hive.id);
-      setHives((prev) =>
-        prev.map((h) =>
-          h.id === hive.id
-            ? {
-                ...h,
-                pendentes: [
-                  ...(h.pendentes || []),
-                  {
-                    id: meuUsuarioId,
-                    uri: "https://via.placeholder.com/150",
-                    username: "Você",
-                  },
-                ],
-              }
-            : h
-        )
-      );
+      await loadHives(meuUsuarioId);
+      setSelectedCategory("Participando");
     } catch (error) {
       console.error("Erro ao participar do hive:", error);
+    } finally {
+      setLoadingHiveId(null);
     }
   };
+
 
   const handleCancelParticipation = async (hive: HiveType) => {
     Alert.alert("Cancelar participação", "Deseja sair deste Hive?", [
@@ -216,11 +219,11 @@ export default function Hive() {
               prev.map((h) =>
                 h.id === hive.id
                   ? {
-                      ...h,
-                      participantes: (h.participantes || []).filter(
-                        (p) => p.id !== meuUsuarioId
-                      ),
-                    }
+                    ...h,
+                    participantes: (h.participantes || []).filter(
+                      (p) => p.id !== meuUsuarioId
+                    ),
+                  }
                   : h
               )
             );
@@ -245,11 +248,11 @@ export default function Hive() {
               prev.map((h) =>
                 h.id === hive.id
                   ? {
-                      ...h,
-                      pendentes: (h.pendentes || []).filter(
-                        (p) => p.id !== meuUsuarioId
-                      ),
-                    }
+                    ...h,
+                    pendentes: (h.pendentes || []).filter(
+                      (p) => p.id !== meuUsuarioId
+                    ),
+                  }
                   : h
               )
             );
@@ -290,14 +293,19 @@ export default function Hive() {
         onPress: async () => {
           try {
             await DeletarHive(hiveId);
+
             setHives((prev) => prev.filter((h) => h.id !== hiveId));
+
+
           } catch (error) {
             console.error("Erro ao deletar hive:", error);
+            Alert.alert("Erro", "Não foi possível deletar o Hive. Tente novamente.");
           }
         },
       },
     ]);
   };
+
 
   const handleEdit = (hive: HiveType) => {
     setHiveToEdit(hive);
@@ -348,6 +356,7 @@ export default function Hive() {
             </Text>
             {pendentes.map((p) => (
               <TouchableOpacity
+                activeOpacity={100}
                 key={p.id}
                 className="flex-row items-center justify-between my-2 bg-neutral-800 p-3 rounded-lg"
                 onPress={() => irParaPerfil(p.id)}
@@ -476,9 +485,9 @@ export default function Hive() {
             </TouchableOpacity>
           ) : !isDono ? (
             <TouchableOpacity
-              className={`p-2 rounded-full ${
-                item.privado ? "bg-blue-500" : "bg-yellow-500 animate-pulse"
-              }`}
+              disabled={loadingHiveId === item.id} 
+              className={`p-2 rounded-full ${item.privado ? "bg-blue-500" : "bg-yellow-500 "
+                } ${loadingHiveId === item.id ? "opacity-50" : ""}`} 
               onPress={() => {
                 if (item.privado) {
                   Alert.alert("Hive privado", "Deseja pedir para participar?", [
@@ -487,14 +496,16 @@ export default function Hive() {
                       text: "Pedir",
                       onPress: async () => {
                         try {
+                          setLoadingHiveId(item.id);
                           await ParticiparHive(item.id);
+                          await loadHives(meuUsuarioId);
+                          setSelectedCategory("Solicitado");
                           Alert.alert("Solicitação enviada com sucesso!");
                         } catch (error) {
-                          console.error(
-                            "Erro ao solicitar participação:",
-                            error
-                          );
+                          console.error("Erro ao solicitar participação:", error);
                           Alert.alert("Erro ao solicitar participação.");
+                        } finally {
+                          setLoadingHiveId(null);
                         }
                       },
                     },
@@ -504,20 +515,15 @@ export default function Hive() {
                 }
               }}
             >
-              {item.privado ? (
-                <MaterialCommunityIcons
-                  name="lock-outline"
-                  size={22}
-                  color="white"
-                />
+              {loadingHiveId === item.id ? (
+                <ActivityIndicator color="white" size="small" />
+              ) : item.privado ? (
+                <MaterialCommunityIcons name="lock-outline" size={22} color="white" />
               ) : (
-                <MaterialCommunityIcons
-                  name="account-plus"
-                  size={22}
-                  color="black"
-                />
+                <MaterialCommunityIcons name="account-plus" size={22} color="black" />
               )}
             </TouchableOpacity>
+
           ) : null}
         </View>
       </TouchableOpacity>
@@ -561,18 +567,17 @@ export default function Hive() {
               : cat;
           return (
             <TouchableOpacity
+              activeOpacity={100}
               key={cat}
               onPress={() => setSelectedCategory(cat)}
-              className={`mb-2 mr-2 px-6 h-10 justify-center items-center rounded-full border ${
-                selectedCategory === cat
-                  ? "bg-white border-transparent"
-                  : "bg-neutral-800 border-gray-500 border-2"
-              }`}
+              className={`mb-2 mr-2 px-6 h-10 justify-center items-center rounded-full border ${selectedCategory === cat
+                ? "bg-white border-transparent"
+                : "bg-neutral-800 border-gray-500 border-2"
+                }`}
             >
               <Text
-                className={`text-sm font-medium ${
-                  selectedCategory === cat ? "text-black" : "text-gray-300"
-                }`}
+                className={`text-sm font-medium ${selectedCategory === cat ? "text-black" : "text-gray-300"
+                  }`}
               >
                 {categoryName}
               </Text>

@@ -22,6 +22,7 @@ import {
 import EventCreationModal from "~/components/modals/modalEvents";
 import ModalEventInfos from "~/components/modals/modalEventInfos";
 import EventCard from "~/components/eventCard";
+import { ListarDadosPerfil } from "~/api/user";
 
 interface Event {
   id?: any;
@@ -49,8 +50,19 @@ export default function Events() {
   const [showModal, setShowModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [modalCardVisible, setModalCardVisible] = useState(false);
+  const [tipoUsuario, setTipoUsuario] = useState<string | null>(null);
 
   const TYPES = ["Eventos", "Torneios", "Meus Eventos"];
+
+  useEffect(() => {
+    const carregarTipoPerfil = async () => {
+
+      const user = await ListarDadosPerfil()
+      setTipoUsuario(user.tipo_usuario)
+    };
+    carregarTipoPerfil();
+  }, []);
+
 
   const fetchUserId = async () => {
     const id = await SecureStore.getItemAsync("userId");
@@ -131,19 +143,29 @@ export default function Events() {
 
   return (
     <View className="flex-1 bg-neutral-800 py-safe">
-   
+
 
       {currentData.length > 0 && (
         <View className="pt-4 shadow-lg shadow-black">
           <View className=" flex-row justify-between px-4 mb-2 items-center">
 
             <Text className="text-white text-2xl font-bold ">Eventos</Text>
-            <TouchableOpacity
-              onPress={() => setShowModal(true)}
-              className="z-50 bg-neutral-900 p-2 rounded-full "
-            >
-              <Ionicons name="add" size={28} color="#eab308" />
-            </TouchableOpacity>
+
+            {
+              (tipoUsuario == "empresa")
+                ?
+                <TouchableOpacity
+                  onPress={() => setShowModal(true)}
+                  className="z-50 bg-neutral-900 p-2 rounded-full "
+                >
+                  <Ionicons name="add" size={28} color="#eab308" />
+                </TouchableOpacity>
+                :
+                <></>
+            }
+
+
+
           </View>
           <FlatList
             className="mt-6 "
@@ -225,7 +247,7 @@ export default function Events() {
           renderItem={({ item }) => (
             <EventCard
               event={item}
-            
+
               onPress={() => {
                 setSelectedEvent(item);
                 setModalCardVisible(true);
@@ -239,25 +261,25 @@ export default function Events() {
       )}
 
       {/* Modais */}
-<ModalEventInfos
-  visible={modalCardVisible}
-  onClose={() => setModalCardVisible(false)}
+      <ModalEventInfos
+        visible={modalCardVisible}
+        onClose={() => setModalCardVisible(false)}
 
-  id={selectedEvent?.id || ""}
-  title={selectedEvent?.title || ""}
-  sport={selectedEvent?.sport || ""}
-  description={selectedEvent?.description || ""}
-  dateString={selectedEvent?.dateString || ""}
-  hourString={selectedEvent?.hourString || ""}
-  city={selectedEvent?.city || ""}
-  state={selectedEvent?.state || ""}
-  maxParticipants={selectedEvent?.maxParticipants || 0}
-  torneio={selectedEvent?.torneio || false}
-  imageUri={selectedEvent?.imageUri || ""}
-  link_oficial={selectedEvent?.link_oficial || ""}
-  interesse={selectedEvent?.interesse || []}
-  status={selectedEvent?.status || "ativo"}
-/>
+        id={selectedEvent?.id || ""}
+        title={selectedEvent?.title || ""}
+        sport={selectedEvent?.sport || ""}
+        description={selectedEvent?.description || ""}
+        dateString={selectedEvent?.dateString || ""}
+        hourString={selectedEvent?.hourString || ""}
+        city={selectedEvent?.city || ""}
+        state={selectedEvent?.state || ""}
+        maxParticipants={selectedEvent?.maxParticipants || 0}
+        torneio={selectedEvent?.torneio || false}
+        imageUri={selectedEvent?.imageUri || ""}
+        link_oficial={selectedEvent?.link_oficial || ""}
+        interesse={selectedEvent?.interesse || []}
+        status={selectedEvent?.status || "ativo"}
+      />
 
 
       <EventCreationModal

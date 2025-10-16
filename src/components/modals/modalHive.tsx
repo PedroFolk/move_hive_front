@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Switch,
+  Alert,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -17,6 +18,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { AdicionarHive, EditarHive } from "~/api/hive";
 import CustomDropdown from "../customDropdown";
 import ufCidadeJson from "../../app/uf_cidade.json";
+import { ListarEsportes } from "~/api/getSports";
 
 interface ImagemHive {
   uri: string;
@@ -54,8 +56,10 @@ const HiveCreationModal: React.FC<Props> = ({
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [esporte, setEsporte] = useState("");
-  const [date, setDate] = useState(new Date()); // só a data
-  const [time, setTime] = useState(new Date()); // só a hora
+  const [date, setDate] = useState(new Date());
+  const [time, setTime] = useState(new Date());
+  const [esportesAPI, setEsportesAPI] = useState<{ label: string; value: string }[]>([]);
+
 
   const [estado, setEstado] = useState("");
   const [cidade, setCidade] = useState("");
@@ -82,6 +86,23 @@ const HiveCreationModal: React.FC<Props> = ({
       );
     }
   }, []);
+
+  useEffect(() => {
+    const carregarEsportes = async () => {
+      try {
+        const data = await ListarEsportes();
+        const sorted = data
+          .map((e: any) => ({ label: e.label, value: e.label }))
+          .sort((a: { label: string; }, b: { label: any; }) =>
+            a.label.localeCompare(b.label, "pt", { sensitivity: "base" })
+          );
+        setEsportesAPI(sorted);
+      } catch (error) {
+        Alert.alert("Erro", "Não foi possível carregar os esportes. Tente novamente.");
+      }
+    };
+    if (visible) carregarEsportes();
+  }, [visible]);
 
   useEffect(() => {
     if (hiveToEdit) {
@@ -269,15 +290,12 @@ const HiveCreationModal: React.FC<Props> = ({
 
               <Text className="text-gray-300 mb-1 text-xl">Esporte</Text>
               <CustomDropdown
-                data={[
-                  { label: "Futebol", value: "Futebol" },
-                  { label: "Basquete", value: "Basquete" },
-                  { label: "Vôlei", value: "Vôlei" },
-                ]}
+                data={esportesAPI}
                 value={esporte}
                 placeholder="Selecione um esporte"
                 onChange={(val) => setEsporte(val)}
               />
+
 
               <Text className="text-gray-300 mb-1 text-xl">Descrição</Text>
               <TextInput

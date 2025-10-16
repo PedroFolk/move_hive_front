@@ -268,11 +268,10 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
-              className={`border-2 rounded-2xl mt-4 py-2 ${
-                jaSegue
+              className={`border-2 rounded-2xl mt-4 py-2 ${jaSegue
                   ? "border-red-500 bg-red-500"
                   : "border-yellow-500 bg-yellow-500"
-              }`}
+                }`}
               onPress={handleToggleSeguir}
               disabled={segLoading}
             >
@@ -287,9 +286,8 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
                 </View>
               ) : (
                 <Text
-                  className={`text-center text-lg ${
-                    jaSegue ? "text-white" : "text-black"
-                  }`}
+                  className={`text-center text-lg ${jaSegue ? "text-white" : "text-black"
+                    }`}
                 >
                   {jaSegue ? "Deixar de seguir" : "Seguir"}
                 </Text>
@@ -317,17 +315,7 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
         <Text className="text-neutral-300 mt-2">{perfil.biografia}</Text>
       )}
 
-      {perfil.pontos !== undefined && (
-        <View className="w-full mt-4 items-center">
-          <TouchableOpacity className="flex-row items-center w-2/3 justify-between rounded-2xl border-2 border-yellow-500 bg-yellow-500 py-2 px-4">
-            <MaterialCommunityIcons name="trophy" size={24} color="black" />
-            <Text className="text-black font-semibold text-lg mx-2">
-              {perfil.pontos.toFixed(0)}
-            </Text>
-            <MaterialCommunityIcons name="trophy" size={24} color="black" />
-          </TouchableOpacity>
-        </View>
-      )}
+
 
       <View className="mt-6 mb-2 h-1 w-full rounded-full bg-neutral-700" />
     </View>
