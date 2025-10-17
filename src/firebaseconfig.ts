@@ -1,6 +1,9 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import {
+import Constants from "expo-constants";
+
+// Pega as variáveis do extra definidas em app.config.js
+const {
   FIREBASE_API_KEY,
   FIREBASE_AUTH_DOMAIN,
   FIREBASE_DATABASE_URL,
@@ -9,7 +12,7 @@ import {
   FIREBASE_MESSAGING_SENDER_ID,
   FIREBASE_APP_ID,
   FIREBASE_MEASUREMENT_ID,
-} from "@env";
+} = Constants.expoConfig?.extra || {};
 
 const firebaseConfig = {
   apiKey: FIREBASE_API_KEY,
