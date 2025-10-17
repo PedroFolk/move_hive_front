@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Text, ActivityIndicator, View } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { PreencherDadosModal } from "~/api/user";
+import { ListarDadosPerfil, PreencherDadosModal } from "~/api/user";
 import "../../../global.css";
 import Events from "../events";
 import Perfil from "../profile";
@@ -22,10 +22,31 @@ export default function Main() {
 
 
   useEffect(() => {
+    const carregarDados = async () => {
+      try {
+        const data = await ListarDadosPerfil();
+        if (data?.tipo_usuario) {
+          await SecureStore.setItemAsync("tipo_usuario", data.tipo_usuario);
+
+        }
+      } catch (err) {
+        console.error("Erro ao carregar perfil:", err);
+      }
+    };
+
+    carregarDados();
+  }, []);
+
+
+  useEffect(() => {
     const checkAuth = async () => {
       try {
         const token = await SecureStore.getItemAsync("token");
         const id = await SecureStore.getItemAsync("userId");
+
+
+
+
 
         if (!token) {
           await SecureStore.deleteItemAsync("token");
@@ -59,7 +80,7 @@ export default function Main() {
       case 3:
         return <Ranking />;
       case 4:
-        return <Perfil meuUserId={""}  />;
+        return <Perfil meuUserId={""} />;
       default:
         return <HiveChats />;
     }

@@ -10,19 +10,14 @@ import {
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { Ionicons } from "@expo/vector-icons";
-
 import {
   ListarTodosEventos,
   ListarTodosTorneios,
   ListarMeusEventos,
-  ParticiparEvento,
-  CancelarParticipacao,
-  DeletarEvento,
 } from "~/api/event";
 import EventCreationModal from "~/components/modals/modalEvents";
 import ModalEventInfos from "~/components/modals/modalEventInfos";
 import EventCard from "~/components/eventCard";
-import { ListarDadosPerfil } from "~/api/user";
 
 interface Event {
   id?: any;
@@ -55,10 +50,12 @@ export default function Events() {
   const TYPES = ["Eventos", "Torneios", "Meus Eventos"];
 
   useEffect(() => {
+
     const carregarTipoPerfil = async () => {
 
-      const user = await ListarDadosPerfil()
-      setTipoUsuario(user.tipo_usuario)
+      const tipo_usuario = await SecureStore.getItemAsync("tipo_usuario");
+
+      setTipoUsuario(tipo_usuario)
     };
     carregarTipoPerfil();
   }, []);
@@ -119,25 +116,6 @@ export default function Events() {
 
 
 
-  const handleDelete = (id: string) => {
-    Alert.alert("Confirmar exclusão", "Deseja realmente excluir este evento?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Excluir",
-        style: "destructive",
-        onPress: async () => {
-          const result = await DeletarEvento(id);
-          if (result) {
-            setEvents((prev) => prev.filter((ev) => ev.id !== id));
-            setTournaments((prev) => prev.filter((t) => t.id !== id));
-            Alert.alert("Sucesso", "Evento deletado com sucesso!");
-          } else {
-            Alert.alert("Erro", "Não foi possível deletar o evento.");
-          }
-        },
-      },
-    ]);
-  };
 
   const currentData = selectedCategory === "Torneios" ? tournaments : events;
 

@@ -10,12 +10,23 @@ import {
   KeyboardAvoidingView,
   Platform,
   RefreshControl,
-  SafeAreaView,
   Image,
 } from "react-native";
-import { ConversaChatId, EnviarMensagemChat } from "~/api/chat";
 import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
+import {
+  query,
+  collection,
+  orderBy,
+  onSnapshot,
+  serverTimestamp,
+  addDoc,
+  doc,
+  updateDoc,
+  getDoc,
+} from "firebase/firestore";
+import { db } from "../../firebaseconfig";
+import { UsuarioAlheio } from "~/api/user";
 
 interface ChatModalProps {
   visible: boolean;
@@ -23,17 +34,22 @@ interface ChatModalProps {
   chatId: string;
 }
 
-export default function ChatModal({
-  visible,
-  onClose,
-  chatId,
-}: ChatModalProps) {
-  const [mensagens, setMensagens] = useState<any[]>([]);
+interface Mensagem {
+  mensagem_id: string;
+  id_remetente: string;
+  texto: string;
+  timestamp?: any;
+  nome_usuario?: string;
+}
+
+export default function ChatModal({ visible, onClose, chatId }: ChatModalProps) {
+  const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [mensagem, setMensagem] = useState("");
-  const flatListRef = useRef<FlatList<any>>(null);
+  const flatListRef = useRef<FlatList<Mensagem>>(null);
   const [meuUsuarioId, setMeuUsuarioId] = useState<string>("");
+  const [fotosUsuarios, setFotosUsuarios] = useState<Record<string, string>>({}); 
 
   useEffect(() => {
     (async () => {
@@ -42,31 +58,55 @@ export default function ChatModal({
     })();
   }, []);
 
-  const carregarConversa = async () => {
-    setRefreshing(true);
-    try {
-      const conversa = await ConversaChatId(chatId);
-      if (conversa) {
-        const ordenadas = conversa.sort(
-          (
-            a: { timestamp: string | number | Date },
-            b: { timestamp: string | number | Date }
-          ) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-        );
-        setMensagens(ordenadas);
-      } else {
-        setMensagens([]);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    setRefreshing(false);
-    setLoading(false);
-  };
+  useEffect(() => {
+    if (!visible || !chatId) return;
+
+    const q = query(
+      collection(db, "Chat", chatId, "mensagens"),
+      orderBy("timestamp", "asc")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const novas: Mensagem[] = snapshot.docs.map((doc) => ({
+        mensagem_id: doc.id,
+        ...doc.data(),
+      })) as Mensagem[];
+
+      setMensagens(novas);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [visible, chatId]);
 
   useEffect(() => {
-    if (visible) carregarConversa();
-  }, [visible]);
+    if (!meuUsuarioId || mensagens.length === 0) return;
+
+    const buscarFotos = async () => {
+      const ids = mensagens
+        .map((m) => m.id_remetente?.toString().trim())
+
+      if (ids.length === 0) return;
+
+      const promessas = ids.map(async (id) => {
+        const usuario = await UsuarioAlheio(id);
+        return { id, foto: usuario?.foto_perfil || "" };
+      });
+
+      const resultados = await Promise.all(promessas);
+
+      const novasFotos: Record<string, string> = {};
+      resultados.forEach((r) => {
+        if (r.foto) novasFotos[r.id] = r.foto;
+      });
+
+      setFotosUsuarios((prev) => ({ ...prev, ...novasFotos }));
+    };
+
+    buscarFotos();
+  }, [mensagens, meuUsuarioId]);
+
+
 
   useEffect(() => {
     if (mensagens.length > 0) {
@@ -74,32 +114,15 @@ export default function ChatModal({
     }
   }, [mensagens]);
 
-  const enviarMensagem = async () => {
-    if (!mensagem.trim()) return;
-
-    const nova = {
-      mensagem_id: Date.now().toString(),
-      texto: mensagem,
-      id_remetente: meuUsuarioId,
-      timestamp: new Date().toISOString(),
-      nome_usuario: "Você",
-      foto_usuario: null, // Aqui você pode colocar sua foto real
-    };
-
-    setMensagens((prev) => [...prev, nova]);
-    setMensagem("");
-
+  const formatarData = (timestamp: any) => {
+    if (!timestamp) return "";
     try {
-      await EnviarMensagemChat(chatId, mensagem);
-    } catch (e) {
-      console.error("Erro ao enviar mensagem:", e);
-    }
-  };
-
-  const formatarData = (dataStr: string) => {
-    try {
-      const data = new Date(dataStr);
-      if (isNaN(data.getTime())) return "";
+      const data =
+        timestamp instanceof Date
+          ? timestamp
+          : timestamp.toDate
+            ? timestamp.toDate()
+            : new Date(timestamp);
       return data.toLocaleTimeString("pt-BR", {
         hour: "2-digit",
         minute: "2-digit",
@@ -109,9 +132,35 @@ export default function ChatModal({
     }
   };
 
+  const enviarMensagem = async () => {
+    if (!mensagem.trim() || !chatId || !meuUsuarioId) return;
+
+    try {
+      const userRef = doc(db, "Usuarios", meuUsuarioId);
+      const userSnap = await getDoc(userRef);
+      const userData = userSnap.exists() ? userSnap.data() : null;
+
+      await addDoc(collection(db, "Chat", chatId, "mensagens"), {
+        texto: mensagem,
+        id_remetente: meuUsuarioId,
+        timestamp: serverTimestamp(),
+        nome_usuario: userData?.nome || "Usuário",
+      });
+
+      await updateDoc(doc(db, "Chat", chatId), {
+        ultima_mensagem: mensagem,
+        horario_ultima_mensagem: new Date().toISOString(),
+      });
+
+      setMensagem("");
+    } catch (e) {
+      console.error("Erro ao enviar mensagem:", e);
+    }
+  };
+
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <SafeAreaView className="flex-1 bg-neutral-900">
+      <View className="flex-1 py-safe bg-neutral-900">
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           className="flex-1"
@@ -131,7 +180,7 @@ export default function ChatModal({
               <ActivityIndicator size="large" color="#eab308" />
             </View>
           ) : (
-            <FlatList
+            <FlatList<Mensagem>
               ref={flatListRef}
               data={mensagens}
               keyExtractor={(item) => item.mensagem_id}
@@ -139,7 +188,7 @@ export default function ChatModal({
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
-                  onRefresh={carregarConversa}
+                  onRefresh={() => { }}
                   tintColor="#eab308"
                 />
               }
@@ -153,44 +202,34 @@ export default function ChatModal({
               renderItem={({ item }) => {
                 const remetenteId = item.id_remetente?.toString().trim() ?? "";
                 const minhaMensagem =
-                  remetenteId &&
-                  meuUsuarioId &&
-                  remetenteId === meuUsuarioId.trim();
+                  remetenteId && meuUsuarioId && remetenteId === meuUsuarioId.trim();
 
                 const nome = item.nome_usuario || "Usuário";
 
+                const foto = fotosUsuarios[remetenteId]; 
+
+
                 return (
                   <View
-                    className={`mb-3 flex-row items-end ${
-                      minhaMensagem ? "self-end flex-row-reverse" : "self-start"
-                    }`}
+                    className={`mb-3 flex-row items-end ${minhaMensagem ? "self-end flex-row-reverse" : "self-start"
+                      }`}
                   >
                     {/* Foto */}
                     <View className="mx-2">
-                      {item.foto_usuario ? (
-                        <Image
-                          source={{ uri: item.foto_usuario }}
-                          className="w-7 h-7 rounded-full"
-                        />
+                      {foto ? (
+                        <Image source={{ uri: foto }} className="w-7 h-7 rounded-full" />
                       ) : (
-                        <Ionicons
-                          name="person-circle"
-                          size={28}
-                          color="#eab308"
-                        />
+                        <Ionicons name="person-circle" size={28} color="#eab308" />
                       )}
                     </View>
 
-                    {/* Balão de mensagem */}
+                    {/* Balão */}
                     <View
-                      className={`rounded-2xl px-4 py-3 max-w-[75%] ${
-                        minhaMensagem ? "bg-yellow-600" : "bg-neutral-700"
-                      }`}
+                      className={`rounded-2xl px-4 py-3 max-w-[75%] ${minhaMensagem ? "bg-yellow-600" : "bg-neutral-700"
+                        }`}
                     >
                       {!minhaMensagem && (
-                        <Text className="text-neutral-200 text-xs mb-1">
-                          {nome}
-                        </Text>
+                        <Text className="text-neutral-200 text-xs mb-1">{nome}</Text>
                       )}
                       <Text className="text-white">{item.texto}</Text>
                       <Text className="text-white text-xs text-right mt-1">
@@ -203,6 +242,7 @@ export default function ChatModal({
             />
           )}
 
+          {/* Campo de envio */}
           <View className="flex-row items-center bg-neutral-800 border-t border-neutral-700 px-4 py-3">
             <TextInput
               value={mensagem}
@@ -220,7 +260,7 @@ export default function ChatModal({
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 }
