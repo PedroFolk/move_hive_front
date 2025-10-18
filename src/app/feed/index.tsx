@@ -22,7 +22,6 @@ import SugestoesPerfis from "../../components/sugestoesPerfil";
 import { router } from "expo-router";
 import ModalSearchUser from "~/components/modals/modalSearchUser";
 import ModalNewPost from "~/components/modals/modalNewPost";
-import { ListarDadosPerfil } from "~/api/user";
 
 export default function Feed() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -35,7 +34,7 @@ export default function Feed() {
   const [temNotificacoes, setTemNotificacoes] = useState(false);
   const [modalSearchVisible, setModalSearchVisible] = useState(false);
   const [token, setToken] = useState<string | null>(null);
- 
+
   useEffect(() => {
     const carregarToken = async () => {
       const t = await SecureStore.getItemAsync("userId");
@@ -44,7 +43,7 @@ export default function Feed() {
     carregarToken();
   }, []);
 
- 
+
 
   const buscarPosts = async () => {
     try {
@@ -166,17 +165,33 @@ export default function Feed() {
     try {
       const resultado = await CriarPost(descricao, imagem);
       if (resultado) {
-        setPosts((postsAntigos) => [resultado, ...postsAntigos]);
+        const postComDefaults = {
+          usuario: resultado.usuario || { id: token, username: "usuario", foto_perfil: null },
+          postagem: {
+            id: resultado.id || String(Date.now()),
+            descricao: resultado.descricao || descricao,
+            imagem: resultado.imagem || imagem.uri,
+            curtidas: resultado.curtidas || [],
+            contador_curtidas: resultado.contador_curtidas || 0,
+          },
+          comentarios: resultado.comentarios || 0,
+        };
+        setPosts((postsAntigos) => [postComDefaults, ...postsAntigos]);
         setDescricao("");
         setImagem(null);
         setModalVisible(false);
-      } else alert("Erro ao criar post.");
-    } catch {
+      } else {
+        alert("Erro ao criar post.");
+      }
+    } catch (e) {
+      console.log("Erro ao criar post:", e);
       alert("Erro ao criar post.");
     } finally {
       setLoading(false);
     }
   };
+
+
 
   const irParaPerfil = (usuario_id: string) => {
     router.push({

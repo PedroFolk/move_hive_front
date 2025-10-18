@@ -108,3 +108,23 @@ export const DeletarTreino = async (treino_id: string) => {
     return null;
   }
 };
+
+export const FeedTreinoSeguido = async () => {
+  const token = await getToken();
+  try {
+    const response = await fetch(`${API_URL}/treino/FeedTreinosSeguidos`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error(`Erro ${response.status}`);
+    
+    return await response.json();
+    
+  } catch (error) {
+    console.error("Erro ao listar treinos:", error);
+    return null;
+  }
+};

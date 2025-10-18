@@ -21,7 +21,7 @@ import { ExcluirPost, ListarPostProprios, PostUsuarioAlheio } from "~/api/feed";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import PostModal from "~/components/modals/modalPosts";
 import UsuariosModal from "~/components/modals/modalUsuarios";
-import ModalConfiguracoes from "~/components/modals/modalConfigs";
+import ModalConfiguracoes from "~/app/profileConfigs";
 
 type PerfilProps = {
   userId?: string;
@@ -61,6 +61,7 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
         postsApi = postsRaw.map(
           (
             p: {
+              data_criacao: any;
               id: any;
               imagem: any;
               imagem_url: any;
@@ -72,14 +73,23 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
             id: p.id || `post-${i}`,
             imagem: p.imagem || p.imagem_url,
             descricao: p.conteudo || p.descricao,
+            data_criacao: p.data_criacao,
           })
         );
+        postsApi.sort((a, b) => {
+          const dateA = new Date(a.data_criacao).getTime();
+          const dateB = new Date(b.data_criacao).getTime();
+          return dateB - dateA;
+        });
+
       } else if (userIdString) {
         const raw = await UsuarioAlheio(userIdString);
         const postsRaw = await PostUsuarioAlheio(userIdString);
+        console.log(postsRaw);
         postsApi = postsRaw.map(
           (
             p: {
+              data_criacao: any;
               id: any;
               imagem: any;
               imagem_url: any;
@@ -91,8 +101,13 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
             id: p.id || `post-${i}`,
             imagem: p.imagem || p.imagem_url || "",
             descricao: p.conteudo || p.descricao || "",
+            data_criacao: p.data_criacao,
           })
+
+
         );
+        postsApi.sort((a, b) => new Date(b.data_criacao).getTime() - new Date(a.data_criacao).getTime());
+
         dados = {
           nome_completo: raw?.nome_completo || raw?.nome || "",
           username:
@@ -259,18 +274,18 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
             <TouchableOpacity
               className="border-2 border-white rounded-2xl mt-4 py-2"
               onPress={() => {
-                setModalConfiguracoesVisible(true);
+                router.push("/profileConfigs")
               }}
             >
               <Text className="text-white text-center text-lg">
-                Editar Perfil
+                Configurações
               </Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
               className={`border-2 rounded-2xl mt-4 py-2 ${jaSegue
-                  ? "border-red-500 bg-red-500"
-                  : "border-yellow-500 bg-yellow-500"
+                ? "border-red-500 bg-red-500"
+                : "border-yellow-500 bg-yellow-500"
                 }`}
               onPress={handleToggleSeguir}
               disabled={segLoading}
@@ -326,7 +341,7 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
       <View className="flex-1" />
     ) : (
       <TouchableOpacity
-        className="flex-1 mx-1"
+        className="flex-1 mx-1 my-1"
         onPress={() => {
           setPostSelecionado(item);
           setDescricaoSelecionad(item.descricao);
@@ -380,13 +395,9 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
           }}
           nome={perfil.username}
           foto_perfil={perfil.foto_perfil}
-          comentario={descricaoSelecionado}
-        />
+          comentario={descricaoSelecionado} token={null} />
       )}
-      <ModalConfiguracoes
-        visible={modalConfiguracoesVisible}
-        onClose={() => setModalConfiguracoesVisible(false)}
-      />
+
       <UsuariosModal
         isVisible={modalUsuariosVisible}
         onClose={() => setModalUsuariosVisible(false)}

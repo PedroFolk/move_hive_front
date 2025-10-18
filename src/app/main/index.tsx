@@ -6,13 +6,13 @@ import { ListarDadosPerfil, PreencherDadosModal } from "~/api/user";
 import "../../../global.css";
 import Events from "../events";
 import Perfil from "../profile";
-import Ranking from "../ranking";
 import Menu from "~/components/menu";
 import ModalFirstTime from "~/components/modals/modalFirstTime";
 import Feed from "../feed";
 import Hive from "../hive";
 import HiveChats from "../chat";
 import Constants from "expo-constants";
+import Dashboard from "../dashboard";
 
 
 export default function Main() {
@@ -40,7 +40,6 @@ export default function Main() {
 
 
   useEffect(() => {
-  
 
     const checkAuth = async () => {
       
@@ -82,7 +81,7 @@ export default function Main() {
       case 2:
         return <Hive />;
       case 3:
-        return <Ranking />;
+        return <Dashboard />;
       case 4:
         return <Perfil meuUserId={""} />;
       default:

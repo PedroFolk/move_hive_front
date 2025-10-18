@@ -12,6 +12,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ScrollView,
+  Alert,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -21,12 +22,13 @@ import { ListarEsportes } from "~/api/getSports";
 import { MaterialIcons } from "@expo/vector-icons";
 import { PostarTreino } from "~/api/activities";
 import { Picker } from "@react-native-picker/picker";
+import CustomDropdown from "../customDropdown";
 
 export interface ModalActivity {
   pontos: number;
   descricao: string;
   id: string;
-  sport: string;
+  esporte: string;
   time: string;
   dateString: string;
   location: string;
@@ -54,10 +56,9 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
   onClose,
   onSave,
 }) => {
-  const [sport, setSport] = useState("");
   const [location, setLocation] = useState("");
   const [date, setDate] = useState(new Date());
-  const [esportes, setEsportes] = useState<any[]>([]);
+  const [esporte, setEsporte] = useState("");
   const [foto, setFoto] = useState<Imagem | undefined>(undefined);
   const [titulo, setTitulo] = useState("");
   const [tempoTreinadoMinutos, setTempoTreinadoMinutos] = useState(0);
@@ -67,13 +68,15 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [esportesAPI, setEsportesAPI] = useState<{ label: string; value: string }[]>([]);
+
 
   const horas = Array.from({ length: 10 }, (_, i) => i);
   const minutos = Array.from({ length: 60 }, (_, i) => i);
 
   useEffect(() => {
     if (visible) {
-      setSport("");
+      setEsporte("");
       setLocation("");
       setDate(new Date());
       setFoto(undefined);
@@ -82,11 +85,20 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
       setHoraSelecionada(0);
       setMinutoSelecionado(0);
 
-      const fetchEsportes = async () => {
-        const data = await ListarEsportes();
-        setEsportes(data);
+      const carregarEsportes = async () => {
+        try {
+          const data = await ListarEsportes();
+          const sorted = data
+            .map((e: any) => ({ label: e.label, value: e.label }))
+            .sort((a: { label: string; }, b: { label: any; }) =>
+              a.label.localeCompare(b.label, "pt", { sensitivity: "base" })
+            );
+          setEsportesAPI(sorted);
+        } catch (error) {
+          Alert.alert("Erro", "Não foi possível carregar os esportes. Tente novamente.");
+        }
       };
-      fetchEsportes();
+      if (visible) carregarEsportes();
     }
   }, [visible]);
 
@@ -115,7 +127,7 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
   };
 
   const handleSave = async () => {
-    if (!sport.trim() || !location.trim()) {
+    if (!esporte.trim() || !location.trim()) {
       alert("Preencha todos os campos obrigatórios.");
       return;
     }
@@ -123,18 +135,18 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
 
     const treino = {
       id: Date.now().toString(),
-      titulo: titulo || `Treino de ${sport}`,
+      titulo: titulo || `Treino de ${esporte}`,
       descricao: `Treino realizado em ${location}`,
-      nome_esporte: sport,
+      nome_esporte: esporte,
       data_hora_str: date,
       lugar: location,
       tempo_treinado: tempoTreinadoMinutos,
       imagem: foto
         ? {
-            uri: foto.uri,
-            name: foto.name,
-            type: foto.type,
-          }
+          uri: foto.uri,
+          name: foto.name,
+          type: foto.type,
+        }
         : undefined,
     };
 
@@ -144,7 +156,7 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
       if (resultado) {
         onSave({
           id: treino.id,
-          sport,
+          esporte,
           time: `${date.getHours().toString().padStart(2, "0")}:${date
             .getMinutes()
             .toString()
@@ -228,29 +240,11 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
                   </View>
 
                   <Text className="text-gray-300 mb-1 text-xl">Esporte</Text>
-                  <Dropdown
-                    data={esportes}
-                    labelField="label"
-                    valueField="value"
-                    placeholder="Selecione uma atividade"
-                    value={sport}
-                    onChange={(item) => setSport(item.value)}
-                    style={{
-                      backgroundColor: "transparent",
-                      borderRadius: 12,
-                      paddingHorizontal: 12,
-                      height: 50,
-                      marginBottom: 20,
-                      borderColor: "#4b5563",
-                      borderWidth: 1,
-                    }}
-                    containerStyle={{
-                      backgroundColor: "#404040",
-                      borderRadius: 12,
-                    }}
-                    itemTextStyle={{ textAlign: "center", color: "white" }}
-                    placeholderStyle={{ color: "#888", fontSize: 16 }}
-                    selectedTextStyle={{ color: "white", fontSize: 16 }}
+                  <CustomDropdown
+                    data={esportesAPI}
+                    value={esporte}
+                    placeholder="Selecione um esporte"
+                    onChange={(val) => setEsporte(val)}
                   />
 
                   <Text className="text-gray-300 mb-1 text-xl">
@@ -411,9 +405,8 @@ const ActivityCreationModal: React.FC<ActivityCreationModalProps> = ({
               </TouchableWithoutFeedback>
 
               <TouchableOpacity
-                className={`rounded-xl p-4 mb-4 mt-10 ${
-                  isSaving ? "bg-gray-600" : "bg-yellow-500 border-yellow-500"
-                }`}
+                className={`rounded-xl p-4 mb-4 mt-10 ${isSaving ? "bg-gray-600" : "bg-yellow-500 border-yellow-500"
+                  }`}
                 onPress={handleSave}
                 disabled={isSaving}
               >
