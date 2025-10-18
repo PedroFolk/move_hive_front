@@ -40,9 +40,7 @@
       "package": "com.movehive.movehiv"
     },
     "extra": {
-      "eas": {
-        "projectId": "ac6eb1ba-4815-4586-abad-9d68c6390d0c"
-      }
+      "__esModule": true
     },
     "runtimeVersion": {
       "policy": "appVersion"
