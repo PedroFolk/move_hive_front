@@ -52,6 +52,7 @@ export default function Main() {
     });
 
     const checkAuth = async () => {
+      
       try {
         const token = await SecureStore.getItemAsync("token");
         const id = await SecureStore.getItemAsync("userId");

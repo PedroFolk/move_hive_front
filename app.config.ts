@@ -1,4 +1,5 @@
 import { ExpoConfig } from "@expo/config";
+import "expo-env";
 
 export default ({ config }: { config: ExpoConfig }) => ({
   ...config,

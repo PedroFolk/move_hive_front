@@ -2,7 +2,12 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import Constants from "expo-constants";
 
-// Pega as variáveis do app.config extra
+// ✅ compatível com SDKs recentes e preview online
+const extra =
+  Constants.expoConfig?.extra ||
+  (Constants as any).manifest2?.extra || // nova estrutura
+  {};
+
 const {
   FIREBASE_API_KEY,
   FIREBASE_AUTH_DOMAIN,
@@ -12,10 +17,10 @@ const {
   FIREBASE_MESSAGING_SENDER_ID,
   FIREBASE_APP_ID,
   FIREBASE_MEASUREMENT_ID,
-} = Constants.expoConfig?.extra || {};
+} = extra;
 
 if (!FIREBASE_API_KEY) {
-  throw new Error("FIREBASE_API_KEY não está definida! Verifique seu .env ou EAS Build");
+  console.warn("⚠️ FIREBASE_API_KEY não encontrada. Verifique variáveis no Expo.dev ou .env local.");
 }
 
 const firebaseConfig = {
