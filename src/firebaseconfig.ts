@@ -2,7 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import Constants from "expo-constants";
 
-// Pega as variáveis do extra definidas em app.config.js
+// Pega as variáveis do app.config extra
 const {
   FIREBASE_API_KEY,
   FIREBASE_AUTH_DOMAIN,
@@ -13,6 +13,10 @@ const {
   FIREBASE_APP_ID,
   FIREBASE_MEASUREMENT_ID,
 } = Constants.expoConfig?.extra || {};
+
+if (!FIREBASE_API_KEY) {
+  throw new Error("FIREBASE_API_KEY não está definida! Verifique seu .env ou EAS Build");
+}
 
 const firebaseConfig = {
   apiKey: FIREBASE_API_KEY,
