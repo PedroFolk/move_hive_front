@@ -3,7 +3,7 @@ name: EAS Update on Push
 on:
   push:
     branches:
-      - '**'  # qualquer branch
+      - '**'
 
 jobs:
   eas-update:
@@ -22,23 +22,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install EAS CLI
-        run: npm install -g eas-cli
-
-      - name: Pre-compile NativeWind styles
-        run: npx tailwindcss --input ./global.css --output ./dist/nativewind-output.css
+      - name: Install latest EAS CLI
+        run: npm install -g eas-cli@latest
 
       - name: Set EAS token
         run: echo "EXPO_TOKEN=${{ secrets.EAS_TOKEN }}" >> $GITHUB_ENV
 
       - name: Run EAS Update
         run: |
-          BRANCH_NAME=${GITHUB_REF#refs/heads/}  # pega o nome da branch
-          COMMIT_MSG="${GITHUB_EVENT_HEAD_COMMIT_MESSAGE:-Auto update from push}" # commit msg
-          echo "Running EAS update for branch $BRANCH_NAME with message: $COMMIT_MSG"
-          eas update \
-            --branch "$BRANCH_NAME" \
-            --auto \
-            --clear-cache \
-            --non-interactive \
-            --message "[$BRANCH_NAME] $COMMIT_MSG"
+          MSG=$(git log -1 --pretty=%B)
+          eas update --auto --branch master --message "$MSG" --non-interactive || echo "Nenhum update criado"
