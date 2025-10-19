@@ -202,7 +202,7 @@ export default function ChatModal({ visible, onClose, chatId }: ChatModalProps) 
               className="flex-1 text-white bg-neutral-700 rounded-full px-4 py-3 mr-3"
               multiline
             />
-            <TouchableOpacity onPress={enviarMensagem} className="bg-yellow-600 p-3 rounded-full">
+            <TouchableOpacity onPress={enviarMensagem} className="bg-yellow-500 p-3 rounded-full">
               <Ionicons name="send" size={22} color="white" />
             </TouchableOpacity>
           </View>

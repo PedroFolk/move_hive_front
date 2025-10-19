@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   FlatList,
+  Alert,
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import * as ImagePicker from "expo-image-picker";
@@ -22,6 +23,7 @@ import SugestoesPerfis from "../../components/sugestoesPerfil";
 import { router } from "expo-router";
 import ModalSearchUser from "~/components/modals/modalSearchUser";
 import ModalNewPost from "~/components/modals/modalNewPost";
+import ModalComentarios from "~/components/modals/modalComentarios";
 
 export default function Feed() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -34,6 +36,8 @@ export default function Feed() {
   const [temNotificacoes, setTemNotificacoes] = useState(false);
   const [modalSearchVisible, setModalSearchVisible] = useState(false);
   const [token, setToken] = useState<string | null>(null);
+  const [modalComentariosVisible, setModalComentariosVisible] = useState(false);
+  const [postSelecionado, setPostSelecionado] = useState<any | null>(null);
 
   useEffect(() => {
     const carregarToken = async () => {
@@ -42,8 +46,6 @@ export default function Feed() {
     };
     carregarToken();
   }, []);
-
-
 
   const buscarPosts = async () => {
     try {
@@ -70,44 +72,49 @@ export default function Feed() {
   };
 
   const curtirPost = async (post_id: string) => {
+    const userId = token;
+    if (!userId) return;
+
+    setPosts((prevPosts) =>
+      prevPosts.map((p) => {
+        if (p.postagem.id === post_id) {
+          const usuarioJaCurtiu = p.postagem.curtidas?.some(
+            (c: any) => c.usuario_id === userId
+          );
+
+          let novasCurtidas;
+          let novoContador = p.postagem.contador_curtidas || 0;
+
+          if (usuarioJaCurtiu) {
+            novasCurtidas = p.postagem.curtidas.filter(
+              (c: any) => c.usuario_id !== userId
+            );
+            novoContador = Math.max(0, novoContador - 1);
+          } else {
+            novasCurtidas = [
+              ...(p.postagem.curtidas || []),
+              { usuario_id: userId },
+            ];
+            novoContador += 1;
+          }
+
+          return {
+            ...p,
+            postagem: {
+              ...p.postagem,
+              curtidas: novasCurtidas,
+              contador_curtidas: novoContador,
+            },
+          };
+        }
+        return p;
+      })
+    );
+
     try {
       await CurtirPost(post_id);
-      setPosts((prevPosts) =>
-        prevPosts.map((p) => {
-          if (p.postagem.id === post_id) {
-            const usuarioJaCurtiu = p.postagem.curtidas?.some(
-              (c: any) => c.usuario_id === token
-            );
-            let novasCurtidas;
-            let novoContador = p.postagem.contador_curtidas || 0;
-
-            if (usuarioJaCurtiu) {
-              novasCurtidas = p.postagem.curtidas.filter(
-                (c: any) => c.usuario_id !== token
-              );
-              novoContador -= 1;
-            } else {
-              novasCurtidas = [
-                ...(p.postagem.curtidas || []),
-                { usuario_id: token },
-              ];
-              novoContador += 1;
-            }
-
-            return {
-              ...p,
-              postagem: {
-                ...p.postagem,
-                curtidas: novasCurtidas,
-                contador_curtidas: novoContador,
-              },
-            };
-          }
-          return p;
-        })
-      );
     } catch (e) {
-      console.log("Erro ao curtir post:", e);
+      console.log("Erro ao curtir post na API:", e);
     }
   };
 
@@ -121,7 +128,6 @@ export default function Feed() {
 
   useEffect(() => {
     buscarPosts();
-
   }, [abaAtiva]);
 
   useEffect(() => {
@@ -133,7 +139,7 @@ export default function Feed() {
   const abrirGaleria = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      alert("Permissão para acessar galeria é necessária!");
+      Alert.alert("Permissão", "Permissão para acessar galeria é necessária!");
       return;
     }
 
@@ -158,7 +164,7 @@ export default function Feed() {
   const adicionarPost = async () => {
     if (loading) return;
     if (!descricao.trim() || !imagem) {
-      alert("Preencha a descrição e selecione uma imagem.");
+      Alert.alert("Atenção", "Preencha a descrição e selecione uma imagem.");
       return;
     }
     setLoading(true);
@@ -181,17 +187,15 @@ export default function Feed() {
         setImagem(null);
         setModalVisible(false);
       } else {
-        alert("Erro ao criar post.");
+        Alert.alert("Erro", "Erro ao criar post.");
       }
     } catch (e) {
       console.log("Erro ao criar post:", e);
-      alert("Erro ao criar post.");
+      Alert.alert("Erro", "Erro ao criar post.");
     } finally {
       setLoading(false);
     }
   };
-
-
 
   const irParaPerfil = (usuario_id: string) => {
     router.push({
@@ -207,6 +211,7 @@ export default function Feed() {
     return (
       <View className="mb-4 w-full bg-neutral-800 rounded-xl overflow-hidden">
         <TouchableOpacity
+          activeOpacity={100}
           className="flex-row items-center px-3 py-2"
           onPress={() => item.usuario?.id && irParaPerfil(item.usuario.id)}
         >
@@ -239,6 +244,8 @@ export default function Feed() {
         <View className="flex-row items-center px-3 py-2 justify-between">
           <View className="flex-row">
             <TouchableOpacity
+              activeOpacity={100}
+
               className="flex-row items-center mr-4"
               onPress={() => curtirPost(item.postagem.id)}
             >
@@ -252,14 +259,26 @@ export default function Feed() {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center mr-4">
+            <TouchableOpacity
+              activeOpacity={100}
+
+              className="flex-row items-center mr-4"
+              onPress={() => {
+                setPostSelecionado(item);
+                setModalComentariosVisible(true);
+              }}
+
+            >
               <Ionicons name="chatbubble-outline" size={24} color="white" />
-              <Text className="text-white ml-1 text-sm">
-                {item.comentarios || 0}
-              </Text>
+              {/* <Text className="text-white ml-1 text-sm">
+                {item.comentarios?.length || 0}
+              </Text> */}
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center">
+            <TouchableOpacity className="flex-row items-center"
+              activeOpacity={100}
+            >
+
               <Ionicons name="share-social-outline" size={24} color="white" />
             </TouchableOpacity>
           </View>
@@ -287,10 +306,13 @@ export default function Feed() {
       <View className="px-4 pt-4 flex-row justify-between items-center">
         <Text className="text-white text-2xl font-bold">Publicações</Text>
         <View className="flex-row">
-          <TouchableOpacity onPress={() => setModalSearchVisible(true)}>
+          <TouchableOpacity onPress={() => setModalSearchVisible(true)}
+            activeOpacity={100}
+          >
             <Ionicons name="search" size={28} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("../notifications")}>
+          <TouchableOpacity onPress={() => router.push("../notifications")} activeOpacity={100}
+          >
             <View className="relative ml-4">
               <MaterialCommunityIcons name="bell-outline" size={28} color="white" />
               {temNotificacoes && (
@@ -304,6 +326,7 @@ export default function Feed() {
       <View className="flex-row justify-around mt-4 mb-2 border-b border-neutral-700">
         {["descobrir", "seguindo"].map((aba) => (
           <TouchableOpacity
+
             key={aba}
             activeOpacity={100}
             className="p-4"
@@ -345,6 +368,12 @@ export default function Feed() {
         setDescricao={setDescricao}
         abrirGaleria={abrirGaleria}
       />
+      <ModalComentarios
+        visible={modalComentariosVisible}
+        onClose={() => setModalComentariosVisible(false)}
+        post={postSelecionado}
+      />
+
 
       <AddButton
         onPress={async () => {

@@ -221,3 +221,48 @@ export const CurtirPost = async (postId: string) => {
     return null;
   }
 };
+
+
+export const ListarComentariosPost = async (post_id: string) => {
+  const token = await getToken();
+  try {
+    const response = await fetch(`${API_URL}/postagem/ListarComentarios/${post_id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });   
+
+    if (!response.ok) throw new Error(`Erro ${response.status}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Erro ao buscar comentarios:", error);
+    return [];
+  }
+};
+
+
+export const CriarComentario = async (postId: string,comentario:string) => {
+  const token = await getToken();
+  try {
+    const response = await fetch(`${API_URL}/postagem/AdicionarComentario`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ post_id: postId,comentario:comentario }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Erro ao curtir postagem:", error);
+    return null;
+  }
+};
