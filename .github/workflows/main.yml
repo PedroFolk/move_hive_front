@@ -30,6 +30,5 @@ jobs:
 
       - name: Run EAS Update
         run: |
-              MSG=$(git log -1 --pretty=%B)
-              eas update --branch master --message "$MSG" --non-interactive --json || echo "Nenhum update criado"
-
+          MSG=$(git log -1 --pretty=%B)
+          eas update --auto --branch master --message "$MSG" --non-interactive || echo "Nenhum update criado"
