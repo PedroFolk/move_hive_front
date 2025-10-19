@@ -23,7 +23,7 @@ import SugestoesPerfis from "../../components/sugestoesPerfil";
 import { router } from "expo-router";
 import ModalSearchUser from "~/components/modals/modalSearchUser";
 import ModalNewPost from "~/components/modals/modalNewPost";
-import ModalComentarios from "~/components/modals/modalComentarios";
+import ModalComentarios from "../../components/modals/modalComentarios";
 
 export default function Feed() {
   const [posts, setPosts] = useState<any[]>([]);
