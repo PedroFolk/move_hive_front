@@ -3,7 +3,7 @@ name: EAS Update on Push
 on:
   push:
     branches:
-      - '**'  # qualquer branch
+      - '**'
 
 jobs:
   eas-update:
@@ -25,11 +25,8 @@ jobs:
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
-      - name: Pre-compile NativeWind styles
-        run: npx tailwindcss --input ./global.css --output ./dist/nativewind-output.css
-
       - name: Set EAS token
         run: echo "EXPO_TOKEN=${{ secrets.EAS_TOKEN }}" >> $GITHUB_ENV
 
       - name: Run EAS Update
-        run: eas update --branch master
+        run: eas update --branch main --non-interactive --verbose
