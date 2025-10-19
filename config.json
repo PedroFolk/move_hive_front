@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "Move-Hive",
+    "slug": "move-hive",
+    "version": "1.0.0",
+    "web": {
+      "bundler": "metro",
+      "favicon": "./src/app/images/logoMoveHive.jpg"
+    },
+    "experiments": {
+      "tsconfigPaths": true
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "orientation": "portrait",
+    "icon": "./src/images/logoMoveHive.jpg",
+    "userInterfaceStyle": "automatic",
+    "scheme": "my-expo-app",
+    "splash": {
+      "image": "./src/images/logoMoveHive.jpg",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.movehive.movehive",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./src/images/logoMoveHive.jpg",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.movehive.movehiv"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ac6eb1ba-4815-4586-abad-9d68c6390d0c"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/ac6eb1ba-4815-4586-abad-9d68c6390d0c"
+    },
+    "owner": "pedrofolk"
+  }
+}

@@ -1,0 +1,31 @@
+export default ({ config }) => ({
+  ...config,
+  extra: {
+    // Variáveis do Expo.dev são injetadas automaticamente no process.env
+    eas: {
+      projectId: "ac6eb1ba-4815-4586-abad-9d68c6390d0c",
+    },
+    FIREBASE_API_KEY: process.env.FIREBASE_API_KEY,
+    FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN,
+    FIREBASE_DATABASE_URL: process.env.FIREBASE_DATABASE_URL,
+    FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
+    FIREBASE_STORAGE_BUCKET: process.env.FIREBASE_STORAGE_BUCKET,
+    FIREBASE_MESSAGING_SENDER_ID: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    FIREBASE_APP_ID: process.env.FIREBASE_APP_ID,
+    FIREBASE_MEASUREMENT_ID: process.env.FIREBASE_MEASUREMENT_ID,
+  },
+  web: config.web,
+  experiments: config.experiments,
+  plugins: config.plugins,
+  orientation: config.orientation,
+  icon: config.icon,
+  userInterfaceStyle: config.userInterfaceStyle,
+  scheme: config.scheme,
+  splash: config.splash,
+  assetBundlePatterns: config.assetBundlePatterns,
+  ios: config.ios,
+  android: config.android,
+  runtimeVersion: config.runtimeVersion,
+  updates: config.updates,
+  owner: config.owner,
+});
