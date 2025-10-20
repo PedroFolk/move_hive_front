@@ -11,33 +11,49 @@ import {
     KeyboardAvoidingView,
     Platform,
     Keyboard,
+    Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
-import { CriarComentario, ListarComentariosPost } from "~/api/feed";
-
+import * as SecureStore from "expo-secure-store";
+import { CriarComentario, ListarComentariosPost, DeletarComentario } from "~/api/feed";
 
 interface ModalComentariosProps {
     visible: boolean;
     onClose: () => void;
     post: any;
     fotoPerfil?: string;
+    onNovoComentario?: () => void;
 }
 
 interface Comentario {
-    id: number;
+    comentario_id: number;
     foto_perfil?: string;
     username: string;
     data_criacao: string;
     comentario: string;
+    usuario_id?: string;
 }
 
+export default function ModalComentarios({
+    visible,
+    onClose,
+    post,
 
-export default function ModalComentarios({ visible, onClose, post, fotoPerfil }: ModalComentariosProps) {
+    onNovoComentario,
+}: ModalComentariosProps) {
     const [comentarios, setComentarios] = useState<Comentario[]>([]);
     const [novoComentario, setNovoComentario] = useState("");
     const [loading, setLoading] = useState(false);
     const [loadingEnvio, setLoadingEnvio] = useState(false);
+    const [userId, setUserId] = useState<string | null>(null);
+
+    useEffect(() => {
+        (async () => {
+            const id = await SecureStore.getItemAsync("userId");
+            setUserId(id);
+        })();
+
+    }, []);
 
     useEffect(() => {
         if (visible && post?.postagem?.id) carregarComentarios();
@@ -62,6 +78,9 @@ export default function ModalComentarios({ visible, onClose, post, fotoPerfil }:
             await CriarComentario(post.postagem.id, novoComentario);
             setNovoComentario("");
             Keyboard.dismiss();
+
+            if (onNovoComentario) onNovoComentario();
+
             await carregarComentarios();
         } catch (e) {
             console.log("Erro ao enviar comentário:", e);
@@ -70,17 +89,31 @@ export default function ModalComentarios({ visible, onClose, post, fotoPerfil }:
         }
     };
 
+    const deletarComentario = async (comentario_id: any) => {
+        Alert.alert("Excluir comentário", "Deseja realmente excluir este comentário?", [
+            { text: "Cancelar", style: "cancel" },
+            {
+                text: "Excluir",
+                style: "destructive",
+                onPress: async () => {
+                    try {
+                        await DeletarComentario(post.postagem.id, comentario_id);
+                        await carregarComentarios();
+                    } catch (e) {
+                        console.log("Erro ao deletar comentário:", e);
+                    }
+                },
+            },
+        ]);
+    };
+
     if (!visible || !post) return null;
 
     return (
         <Modal visible={visible} transparent animationType="slide">
-
             <View className="flex-1 justify-end bg-black/60">
-
                 <View className="h-[60%] bg-neutral-800 rounded-t-3xl flex-col">
-
                     <View className="flex-1 px-4 py-4">
-
                         <View className="flex-row justify-between items-center mb-3">
                             <Text className="text-white text-lg font-bold">Comentários</Text>
                             <TouchableOpacity onPress={onClose}>
@@ -97,7 +130,7 @@ export default function ModalComentarios({ visible, onClose, post, fotoPerfil }:
                                 contentContainerStyle={{ paddingBottom: 60 }}
                             >
                                 {comentarios.map((item, index) => (
-                                    <View key={index} className="mb-3 flex-row items-start">
+                                    <View key={index} className="my-4 flex-row items-start">
                                         {item.foto_perfil ? (
                                             <Image
                                                 source={{ uri: item.foto_perfil }}
@@ -106,26 +139,42 @@ export default function ModalComentarios({ visible, onClose, post, fotoPerfil }:
                                         ) : (
                                             <View className="w-8 h-8 rounded-full bg-neutral-700 mr-2" />
                                         )}
-                                        <View className="flex-1">
-                                            <View className="flex-row items-center mb-1">
-                                                <Text className="text-white font-bold mr-2">
-                                                    @{item.username || "usuário"}
-                                                </Text>
-                                                {item.data_criacao && (
-                                                    <Text className="text-neutral-400 text-xs">
-                                                        {new Date(item.data_criacao).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                                        <View className="flex-row justify-between flex-1 ">
+                                            <View className="flex justify-between mb-1">
+                                                <View className="flex-row items-center">
+                                                    <Text className="text-white font-bold mr-2">
+                                                        @{item.username || "usuário"}
                                                     </Text>
+                                                    {item.data_criacao && (
+                                                        <Text className="text-neutral-400 text-xs">
+                                                            {new Date(item.data_criacao).toLocaleTimeString(
+                                                                "pt-BR",
+                                                                { hour: "2-digit", minute: "2-digit" }
+                                                            )}
+                                                        </Text>
+                                                    )}
+                                                </View>
+
+
+
+                                                <Text className="text-white text-sm">{item.comentario}</Text>
+                                            </View>
+                                            <View className=" justify-center">
+
+
+                                                {item.usuario_id === userId && (
+
+                                                    <TouchableOpacity onPress={() => deletarComentario(item.comentario_id)}>
+                                                        <Ionicons name="trash" size={24} color="#f87171" />
+                                                    </TouchableOpacity>
                                                 )}
                                             </View>
-                                            <Text className="text-white text-sm">{item.comentario}</Text>
                                         </View>
                                     </View>
                                 ))}
                             </ScrollView>
                         )}
-
                     </View>
-
                 </View>
 
                 <KeyboardAvoidingView
@@ -157,7 +206,6 @@ export default function ModalComentarios({ visible, onClose, post, fotoPerfil }:
                         </View>
                     </View>
                 </KeyboardAvoidingView>
-
             </View>
         </Modal>
     );

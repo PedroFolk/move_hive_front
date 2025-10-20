@@ -109,10 +109,10 @@ export const DeletarTreino = async (treino_id: string) => {
   }
 };
 
-export const FeedTreinoSeguido = async () => {
+export const FeedTreinoSeguindo = async () => {
   const token = await getToken();
   try {
-    const response = await fetch(`${API_URL}/treino/FeedTreinosSeguidos`, {
+    const response = await fetch(`${API_URL}/treino/FeedTreinosSeguindo`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

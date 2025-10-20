@@ -266,3 +266,23 @@ export const CriarComentario = async (postId: string,comentario:string) => {
     return null;
   }
 };
+
+export const DeletarComentario = async (post_id:string,comentario_id: string) => {
+  const token = await getToken();
+  try {
+    const response = await fetch(`${API_URL}/postagem/DeletarComentario`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({post_id, comentario_id }),
+    });
+
+    if (!response.ok) throw new Error(`Erro ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error("Erro ao deletar comentario:", error);
+    return null;
+  }
+};

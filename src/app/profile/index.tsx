@@ -85,7 +85,6 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
       } else if (userIdString) {
         const raw = await UsuarioAlheio(userIdString);
         const postsRaw = await PostUsuarioAlheio(userIdString);
-        console.log(postsRaw);
         postsApi = postsRaw.map(
           (
             p: {

@@ -136,6 +136,8 @@ export default function Feed() {
     return () => clearInterval(interval);
   }, [verificarNotificacoes]);
 
+
+
   const abrirGaleria = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
@@ -179,6 +181,7 @@ export default function Feed() {
             imagem: resultado.imagem || imagem.uri,
             curtidas: resultado.curtidas || [],
             contador_curtidas: resultado.contador_curtidas || 0,
+            contador_comentarios: resultado.contador_comentarios || 0,
           },
           comentarios: resultado.comentarios || 0,
         };
@@ -196,6 +199,23 @@ export default function Feed() {
       setLoading(false);
     }
   };
+
+  const incrementarComentarios = (postId: string) => {
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.postagem.id === postId
+          ? {
+            ...p,
+            postagem: {
+              ...p.postagem,
+              contador_comentarios: (p.postagem.contador_comentarios || 0) + 1,
+            },
+          }
+          : p
+      )
+    );
+  };
+
 
   const irParaPerfil = (usuario_id: string) => {
     router.push({
@@ -261,19 +281,18 @@ export default function Feed() {
 
             <TouchableOpacity
               activeOpacity={100}
-
               className="flex-row items-center mr-4"
               onPress={() => {
                 setPostSelecionado(item);
                 setModalComentariosVisible(true);
               }}
-
             >
               <Ionicons name="chatbubble-outline" size={24} color="white" />
-              {/* <Text className="text-white ml-1 text-sm">
-                {item.comentarios?.length || 0}
-              </Text> */}
+              <Text className="text-white ml-1 text-sm">
+                {item.postagem?.contador_comentarios || 0}
+              </Text>
             </TouchableOpacity>
+
 
             <TouchableOpacity className="flex-row items-center"
               activeOpacity={100}
@@ -372,7 +391,9 @@ export default function Feed() {
         visible={modalComentariosVisible}
         onClose={() => setModalComentariosVisible(false)}
         post={postSelecionado}
+        onNovoComentario={() => incrementarComentarios(postSelecionado?.postagem?.id)}
       />
+
 
 
       <AddButton

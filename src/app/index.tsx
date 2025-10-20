@@ -23,6 +23,7 @@ export default function App() {
 
       if (token) {
         const decodedUserId = decodeToken(token);
+        
         if (decodedUserId) {
           await SecureStore.setItemAsync("userId", decodedUserId);
           router.push("/main");

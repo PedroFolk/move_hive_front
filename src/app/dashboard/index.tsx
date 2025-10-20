@@ -14,7 +14,7 @@ import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import AddActivityModal, { ModalActivity } from "../../components/modals/modalActivities";
 import AddButton from "../../components/addButton";
 import { ListaRankingTodos, ListaRankingSeguindo } from "~/api/rank";
-import { DeletarTreino, FeedTreinoSeguido, ListarTreinos } from "~/api/activities";
+import { DeletarTreino, FeedTreinoSeguindo, ListarTreinos } from "~/api/activities";
 import { ListarEsportes } from "~/api/getSports";
 
 interface UserRanking {
@@ -40,7 +40,6 @@ export default function Dashboard() {
     const [abaAtiva, setAbaAtiva] = useState<"ranking" | "atividades">("ranking");
     const tituloPagina = abaAtiva === "ranking" ? "Ranking" : "Atividades";
 
-    // Ranking
     const [ranking, setRanking] = useState<UserRanking[]>([]);
     const [selectedRankingCategory, setSelectedRankingCategory] = useState<string>("Geral");
     const [rankingRefreshing, setRankingRefreshing] = useState(false);
@@ -97,17 +96,16 @@ export default function Dashboard() {
         </View>
     );
 
-    // Atividades
     const [activities, setActivities] = useState<Activity[]>([]);
     const [categories, setCategories] = useState<{ label: string; value: string }[]>([]);
-    const [selectedActivityCategory, setSelectedActivityCategory] = useState<string>("Tudo");
+    const [selectedActivityCategory, setSelectedActivityCategory] = useState<string>("Minhas");
     const [activityRefreshing, setActivityRefreshing] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
 
     const carregarAtividades = async () => {
         let treinosRaw: any[] | null = [];
         if (selectedActivityCategory === "Seguindo") {
-            treinosRaw = await FeedTreinoSeguido();
+            treinosRaw = await FeedTreinoSeguindo();
         } else {
             treinosRaw = await ListarTreinos();
         }
@@ -131,7 +129,7 @@ export default function Dashboard() {
             .filter((e: any) => formatted.some((a) => a.nome_esporte === e.value))
             .map((e: any) => ({ label: e.label, value: e.value }));
 
-        setCategories([{ label: "Tudo", value: "Tudo" }, { label: "Seguindo", value: "Seguindo" }, ...categoriasAtivas]);
+        setCategories([{ label: "Minhas", value: "Minhas" }, { label: "Seguindo", value: "Seguindo" }, ...categoriasAtivas]);
     };
 
 
@@ -177,7 +175,12 @@ export default function Dashboard() {
     };
 
     const groupedActivities = activities
-        .filter((a) => selectedActivityCategory === "Tudo" || a.nome_esporte === selectedActivityCategory)
+        .filter(
+            (a) =>
+                selectedActivityCategory === "Minhas" ||
+                selectedActivityCategory === "Seguindo" ||
+                a.nome_esporte === selectedActivityCategory
+        )
         .reduce((acc: Record<string, Activity[]>, act) => {
             const dateObj = new Date(act.data_hora);
             const formattedDate = dateObj.toLocaleDateString("pt-BR");
@@ -185,6 +188,7 @@ export default function Dashboard() {
             acc[formattedDate].push(act);
             return acc;
         }, {});
+
 
     const sortedDates = Object.keys(groupedActivities).sort(
         (a, b) =>
@@ -202,7 +206,7 @@ export default function Dashboard() {
     };
 
     return (
-        <View className="h-full w-full bg-neutral-800 py-safe">
+        <View className="flex-1 w-full bg-neutral-800 py-safe">
             <View className="px-4 pt-4 flex-row justify-between items-center">
                 <Text className="text-white text-2xl font-bold">{tituloPagina}</Text>
             </View>
@@ -228,14 +232,10 @@ export default function Dashboard() {
 
             {abaAtiva === "ranking" && (
                 <>
-                    <FlatList
-                        horizontal
-                        data={RANKING_TYPES}
-                        keyExtractor={(item) => item}
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8 }}
-                        renderItem={({ item }) => (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-4 max-h-14">
+                        {RANKING_TYPES.map((item) => (
                             <TouchableOpacity
+                                key={item}
                                 onPress={() => setSelectedRankingCategory(item)}
                                 className={`mr-2 px-6 h-10 justify-center items-center rounded-full border ${selectedRankingCategory === item ? "bg-white border-transparent" : "border-gray-500 border-2"
                                     }`}
@@ -244,22 +244,30 @@ export default function Dashboard() {
                                     {item}
                                 </Text>
                             </TouchableOpacity>
-                        )}
-                    />
+                        ))}
+                    </ScrollView>
 
                     <FlatList
                         data={ranking}
                         keyExtractor={(item) => item.username}
                         renderItem={renderRankingItem}
                         showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 0, paddingBottom: 16 }} // <--- paddingTop menor
-                        refreshControl={<RefreshControl refreshing={rankingRefreshing} onRefresh={fetchRanking} />}
+                        className="flex-1 mt-0"
+                        contentContainerStyle={{
+                            paddingHorizontal: 16,
+                            paddingTop: 8,
+                            paddingBottom: 16,
+                        }}
+                        refreshControl={
+                            <RefreshControl refreshing={rankingRefreshing} onRefresh={fetchRanking} />
+                        }
                         ListEmptyComponent={() => (
-                            <View className="items-center mt-4">    
+                            <View className="items-center mt-4">
                                 <Text className="text-white text-lg">Nenhum usuário encontrado</Text>
                             </View>
                         )}
                     />
+
                 </>
             )}
 
@@ -313,12 +321,15 @@ export default function Dashboard() {
 
                                             <View className="flex-1 justify-between">
                                                 <Text className="text-white text-lg font-semibold mb-1">{act.titulo}</Text>
-                                                <TouchableOpacity
-                                                    onPress={() => handleDeleteActivity(act.id)}
-                                                    className="absolute top-2 right-2 p-1"
-                                                >
-                                                    <Ionicons name="trash-outline" size={20} color="#FF4D4F" />
-                                                </TouchableOpacity>
+                                                {selectedActivityCategory !== "Seguindo" && (
+                                                    <TouchableOpacity
+                                                        onPress={() => handleDeleteActivity(act.id)}
+                                                        className="absolute top-2 right-2 p-1"
+                                                    >
+                                                        <Ionicons name="trash-outline" size={20} color="#FF4D4F" />
+                                                    </TouchableOpacity>
+                                                )}
+
 
                                                 <View className="flex-row mb-2">
                                                     <Text className="text-gray-400">{time}</Text>
@@ -348,7 +359,7 @@ export default function Dashboard() {
                     <AddActivityModal
                         visible={modalVisible}
                         defaultCategory={
-                            selectedActivityCategory === "Tudo" && categories.length > 1 ? categories[1].value : selectedActivityCategory
+                            selectedActivityCategory === "Minhas" && categories.length > 1 ? categories[1].value : selectedActivityCategory
                         }
                         onSave={handleSaveActivity}
                         onClose={async () => {

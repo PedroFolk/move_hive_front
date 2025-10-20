@@ -21,8 +21,9 @@ export default function Main() {
   const [loading, setLoading] = useState(true);
   const params = useLocalSearchParams();
 
-
+  
   useEffect(() => {
+    
     const carregarDados = async () => {
       try {
         const data = await ListarDadosPerfil();
@@ -42,7 +43,7 @@ export default function Main() {
   useEffect(() => {
 
     const checkAuth = async () => {
-      
+
       try {
         const token = await SecureStore.getItemAsync("token");
         const id = await SecureStore.getItemAsync("userId");
