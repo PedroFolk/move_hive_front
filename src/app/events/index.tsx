@@ -175,14 +175,12 @@ export default function Events() {
 
 
 
-                  {/* Tags na parte inferior */}
                   <View className="absolute bottom-0 left-0 right-0 flex-row justify-between bg-black  opacity-[.80] px-4 py-2">
                     <Text className="text-white font-bold text-lg   ">{item.title}</Text>
                     <View className="bg-purple-300 opacity-[1] px-3 py-1 rounded-full">
                       <Text className="text-neutral-900 font-semibold text-md">#{item.sport}</Text>
                     </View>
 
-                    {/* Você pode adicionar mais tags aqui se quiser */}
                   </View>
                 </View>
               </TouchableOpacity>
@@ -192,9 +190,8 @@ export default function Events() {
         </View>
       )}
 
-      {/* Filtros horizontais */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-4 max-h-14">
-        {TYPES.map((cat) => (
+        {TYPES.filter(cat => !(cat === "Meus Eventos" && tipoUsuario !== "empresa")).map((cat) => (
           <TouchableOpacity
             key={cat}
             onPress={() => setSelectedCategory(cat)}
@@ -211,7 +208,7 @@ export default function Events() {
         ))}
       </ScrollView>
 
-      {/* Lista de eventos ou mensagem de nenhum evento */}
+
       {currentData.length === 0 ? (
         <View className="flex-1 justify-center items-center mt-10">
           <Text className="text-gray-400 text-lg">
@@ -238,7 +235,6 @@ export default function Events() {
         />
       )}
 
-      {/* Modais */}
       <ModalEventInfos
         visible={modalCardVisible}
         onClose={() => setModalCardVisible(false)}

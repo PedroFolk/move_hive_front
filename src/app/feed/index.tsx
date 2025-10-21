@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   RefreshControl,
   FlatList,
   Alert,
+  Animated,
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import * as ImagePicker from "expo-image-picker";
@@ -24,6 +25,7 @@ import { router } from "expo-router";
 import ModalSearchUser from "~/components/modals/modalSearchUser";
 import ModalNewPost from "~/components/modals/modalNewPost";
 import ModalComentarios from "../../components/modals/modalComentarios";
+import PostItem from "~/components/postitem";
 
 export default function Feed() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -224,10 +226,36 @@ export default function Feed() {
     });
   };
 
+
   const renderPost = ({ item }: { item: any }) => {
     const usuarioCurtiu = item.postagem?.curtidas?.some(
       (curtida: any) => curtida.usuario_id === token
     );
+
+    const [showHeart, setShowHeart] = useState(false);
+    const scaleAnim = useRef(new Animated.Value(0)).current;
+
+    const handleDoubleTap = () => {
+      const now = Date.now();
+      if (item.lastTap && now - item.lastTap < 300) {
+        curtirPost(item.postagem.id);
+
+        // animação do coração
+        setShowHeart(true);
+        scaleAnim.setValue(0);
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 3,
+          useNativeDriver: true,
+        }).start(() => {
+          // some depois de 800ms
+          setTimeout(() => setShowHeart(false), 800);
+        });
+      } else {
+        item.lastTap = now;
+      }
+    };
+
     return (
       <View className="mb-4 w-full bg-neutral-800 rounded-xl overflow-hidden">
         <TouchableOpacity
@@ -253,19 +281,39 @@ export default function Feed() {
           </Text>
         </TouchableOpacity>
 
-        {item.postagem?.imagem && (
-          <Image
-            source={{ uri: item.postagem.imagem }}
-            style={{ width: "100%", aspectRatio: 1 }}
-            resizeMode="cover"
-          />
-        )}
+        {/* Imagem do post com duplo clique */}
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={handleDoubleTap}
+        >
+          {item.postagem?.imagem && (
+            <Image
+              source={{ uri: item.postagem.imagem }}
+              style={{ width: "100%", aspectRatio: 1 }}
+              resizeMode="cover"
+            />
+          )}
 
+          {/* Coração animado */}
+          {showHeart && (
+            <Animated.View
+              style={{
+                position: "absolute",
+                top: "40%",
+                left: "40%",
+                transform: [{ scale: scaleAnim }],
+              }}
+            >
+              <Ionicons name="heart" size={100} color="white" />
+            </Animated.View>
+          )}
+        </TouchableOpacity>
+
+        {/* Resto do post (curtir, comentar, etc.) */}
         <View className="flex-row items-center px-3 py-2 justify-between">
           <View className="flex-row">
             <TouchableOpacity
               activeOpacity={100}
-
               className="flex-row items-center mr-4"
               onPress={() => curtirPost(item.postagem.id)}
             >
@@ -293,11 +341,7 @@ export default function Feed() {
               </Text>
             </TouchableOpacity>
 
-
-            <TouchableOpacity className="flex-row items-center"
-              activeOpacity={100}
-            >
-
+            <TouchableOpacity className="flex-row items-center" activeOpacity={100}>
               <Ionicons name="share-social-outline" size={24} color="white" />
             </TouchableOpacity>
           </View>
@@ -364,14 +408,19 @@ export default function Feed() {
       <FlatList
         data={posts}
         keyExtractor={(item, index) => index.toString()}
-        renderItem={renderPost}
+        renderItem={({ item }) => (
+          <PostItem
+            item={item}
+            token={token}
+            curtirPost={curtirPost}
+            irParaPerfil={irParaPerfil}
+            setPostSelecionado={setPostSelecionado}
+            setModalComentariosVisible={setModalComentariosVisible}
+          />
+        )}
         contentContainerStyle={{ paddingBottom: 120, marginTop: 5 }}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={aoAtualizar}
-            colors={["#facc15"]}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={aoAtualizar} colors={["#facc15"]} />
         }
         ListHeaderComponent={abaAtiva === "descobrir" ? <SugestoesPerfis /> : null}
       />
@@ -406,3 +455,4 @@ export default function Feed() {
     </View>
   );
 }
+

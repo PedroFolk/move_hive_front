@@ -28,7 +28,7 @@ export default function ProfileModal({
     >
       <View className='flex-1 py-safe bg-neutral-800'>
         <View style={{ flex: 1 }}>
-          {/* Botão de Fechar no topo do modal */}
+          Botão de Fechar no topo do modal
           <TouchableOpacity
             onPress={onClose}
            className='px-4 absolute z-10 top-10 left-0 flex start-0'
