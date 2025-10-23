@@ -20,17 +20,21 @@ import { colors } from "../../styles/styles";
 import { LogarUsuario } from "~/api/auth";
 import * as SecureStore from "expo-secure-store";
 import TextField from "~/components/fields";
+import ModalWelcome from "~/components/modals/modalWelcome";
 
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [modalWelcome, setmodalWelcome] = useState(true);
+
+  const handleModal = () => setmodalWelcome(false)
 
   const handleLogin = async () => {
-    if (loading) return; // previne múltiplos cliques
+    if (loading) return;
 
-    setLoading(true); // bloqueia o botão
+    setLoading(true);
     try {
       const result = await LogarUsuario(email, password);
 
@@ -42,7 +46,7 @@ export default function Login() {
     } catch (error) {
       Alert.alert("Erro", "Ocorreu um erro ao tentar logar.");
     } finally {
-      setLoading(false); // libera o botão após a resposta
+      setLoading(false);
     }
   };
 
@@ -55,7 +59,7 @@ export default function Login() {
     checkAuth();
   }, []);
   return (
-    <SafeAreaView className={`flex-1 ${colors.background}  `}>
+    <View className={`flex-1 py-safe ${colors.background}  `}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -98,7 +102,7 @@ export default function Login() {
 
             <TouchableOpacity
               onPress={handleLogin}
-              disabled={loading} // bloqueia o botão enquanto loading = true
+              disabled={loading}
               className={`mt-10 rounded-2xl ${colors.button} p-3 ${loading ? "opacity-50" : ""
                 }`}
             >
@@ -130,26 +134,15 @@ export default function Login() {
                 Cadastrar-se
               </Text>
             </TouchableOpacity>
-            {/* 
-            <View className="mt-10 flex flex-row items-center gap-5">
-              <View
-                className={`h-1 flex-1 rounded-full ${colors.separator} `}
-              />
-              <Text className="text-2xl text-white ">ou</Text>
-              <View className={`h-1 flex-1 rounded-full ${colors.separator}`} />
-            </View>
 
-            <TouchableOpacity
-              className={`mt-10 flex flex-row items-center gap-5 rounded-2xl bg-neutral-600 p-2 `}
-            >
-              <AntDesign name="google" size={48} color="gray" />
-              <Text className=" text-2xl font-bold text-white">
-                Entrar com Google
-              </Text>
-            </TouchableOpacity> */}
           </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
-    </SafeAreaView>
+
+      <ModalWelcome visible={modalWelcome} onClose={function (): void {
+        handleModal();
+      }} />
+
+    </View>
   );
 }

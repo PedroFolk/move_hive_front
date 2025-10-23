@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -232,30 +232,8 @@ export default function Feed() {
       (curtida: any) => curtida.usuario_id === token
     );
 
-    const [showHeart, setShowHeart] = useState(false);
-    const scaleAnim = useRef(new Animated.Value(0)).current;
 
-    const handleDoubleTap = () => {
-      const now = Date.now();
-      if (item.lastTap && now - item.lastTap < 300) {
-        curtirPost(item.postagem.id);
-
-        // animação do coração
-        setShowHeart(true);
-        scaleAnim.setValue(0);
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          friction: 3,
-          useNativeDriver: true,
-        }).start(() => {
-          // some depois de 800ms
-          setTimeout(() => setShowHeart(false), 800);
-        });
-      } else {
-        item.lastTap = now;
-      }
-    };
-
+    
     return (
       <View className="mb-4 w-full bg-neutral-800 rounded-xl overflow-hidden">
         <TouchableOpacity
@@ -281,11 +259,10 @@ export default function Feed() {
           </Text>
         </TouchableOpacity>
 
-        {/* Imagem do post com duplo clique */}
         <TouchableOpacity
-          activeOpacity={1}
-          onPress={handleDoubleTap}
-        >
+          activeOpacity={100}
+
+>
           {item.postagem?.imagem && (
             <Image
               source={{ uri: item.postagem.imagem }}
@@ -294,22 +271,9 @@ export default function Feed() {
             />
           )}
 
-          {/* Coração animado */}
-          {showHeart && (
-            <Animated.View
-              style={{
-                position: "absolute",
-                top: "40%",
-                left: "40%",
-                transform: [{ scale: scaleAnim }],
-              }}
-            >
-              <Ionicons name="heart" size={100} color="white" />
-            </Animated.View>
-          )}
+
         </TouchableOpacity>
 
-        {/* Resto do post (curtir, comentar, etc.) */}
         <View className="flex-row items-center px-3 py-2 justify-between">
           <View className="flex-row">
             <TouchableOpacity

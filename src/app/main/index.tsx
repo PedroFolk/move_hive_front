@@ -13,6 +13,7 @@ import Hive from "../hive";
 import HiveChats from "../chat";
 import Constants from "expo-constants";
 import Dashboard from "../dashboard";
+import ModalWelcome from "~/components/modals/modalWelcome";
 
 
 export default function Main() {
@@ -21,9 +22,9 @@ export default function Main() {
   const [loading, setLoading] = useState(true);
   const params = useLocalSearchParams();
 
-  
+
   useEffect(() => {
-    
+
     const carregarDados = async () => {
       try {
         const data = await ListarDadosPerfil();
@@ -109,7 +110,7 @@ export default function Main() {
           selectedIndex={selectedIndex}
           setSelectedIndex={setSelectedIndex} />
       </View>
-
+      
       <ModalFirstTime
         visible={modalVisible}
         onClose={() => setModalVisible(false)}

@@ -12,7 +12,7 @@ import {
   Switch,
   Alert,
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { AdicionarHive, EditarHive } from "~/api/hive";
@@ -250,9 +250,18 @@ const HiveCreationModal: React.FC<Props> = ({
     >
       <View className="bg-neutral-900 py-safe p-6 flex-1">
         <View className="flex-1">
-          <Text className="text-2xl font-bold text-center mt-4 mb-6 text-white">
-            {hiveToEdit ? "Editar Hive" : "Nova Hive"}
-          </Text>
+
+          <View className="flex-row items-center justify-between py-4 mb-4 border-b border-neutral-700 bg-neutral-900">
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={26} color="#ffffff" />
+            </TouchableOpacity>
+            <Text className="text-2xl font-bold text-center mt-4 mb-6 text-white">
+              {hiveToEdit ? "Editar Hive" : "Nova Hive"}
+            </Text>
+            <View className="w-6" />
+          </View>
+
+
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             className="flex-1"

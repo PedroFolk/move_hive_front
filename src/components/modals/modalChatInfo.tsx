@@ -9,9 +9,8 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  RefreshControl,
   Image,
-  InteractionManager,
+  Keyboard,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
@@ -47,10 +46,12 @@ export default function ChatModal({ visible, onClose, chatId }: ChatModalProps) 
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [loading, setLoading] = useState(true);
   const [mensagem, setMensagem] = useState("");
+  const [enviando, setEnviando] = useState(false);
   const flatListRef = useRef<FlatList<Mensagem>>(null);
   const [meuUsuarioId, setMeuUsuarioId] = useState<string>("");
   const cacheUsuarios = useRef<Record<string, { nome: string; foto: string }>>({});
-  const [readyToRender, setReadyToRender] = useState(false);
+  const prevCount = useRef(0);
+
 
   useEffect(() => {
     (async () => {
@@ -59,16 +60,15 @@ export default function ChatModal({ visible, onClose, chatId }: ChatModalProps) 
     })();
   }, []);
 
+  const scrollToBottom = () => {
+    setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+  };
+
   useEffect(() => {
     if (!visible || !chatId) return;
     setLoading(true);
-    setReadyToRender(false);
 
-    const q = query(
-      collection(db, "Chat", chatId, "mensagens"),
-      orderBy("timestamp", "asc")
-    );
-
+    const q = query(collection(db, "Chat", chatId, "mensagens"), orderBy("timestamp", "asc"));
     const unsubscribe = onSnapshot(q, async (snapshot) => {
       const msgs: Mensagem[] = snapshot.docs.map((doc) => ({
         mensagem_id: doc.id,
@@ -103,45 +103,52 @@ export default function ChatModal({ visible, onClose, chatId }: ChatModalProps) 
 
       setMensagens(mensagensComDados);
       setLoading(false);
-      setReadyToRender(true);
+
+      if (msgs.length > prevCount.current || msgs.length === 1) {
+        prevCount.current = msgs.length;
+        scrollToBottom();
+      }
     });
 
     return () => unsubscribe();
   }, [visible, chatId]);
 
-  useEffect(() => {
-    if (readyToRender && mensagens.length > 0) {
-      InteractionManager.runAfterInteractions(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      });
-    }
-  }, [readyToRender, mensagens]);
-
   const enviarMensagem = async () => {
     if (!mensagem.trim() || !chatId || !meuUsuarioId) return;
 
+    const texto = mensagem.trim();
+    setMensagem(""); 
+    Keyboard.dismiss();
+    setEnviando(true);
+
     try {
       await addDoc(collection(db, "Chat", chatId, "mensagens"), {
-        texto: mensagem,
+        texto,
         id_remetente: meuUsuarioId,
         timestamp: serverTimestamp(),
       });
 
       await updateDoc(doc(db, "Chat", chatId), {
-        ultima_mensagem: mensagem,
+        ultima_mensagem: texto,
         horario_ultima_mensagem: serverTimestamp(),
       });
 
-      setMensagem("");
+      scrollToBottom(); // rola ao fim
     } catch (e) {
       console.error("Erro ao enviar mensagem:", e);
+    } finally {
+      setEnviando(false);
     }
   };
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View className="flex-1 py-safe bg-neutral-900">
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1"
+        >
+
           <View className="flex-row items-center justify-between p-4 border-b border-neutral-700 bg-neutral-900">
             <TouchableOpacity onPress={onClose}>
               <Ionicons name="arrow-back" size={26} color="#eab308" />
@@ -150,41 +157,60 @@ export default function ChatModal({ visible, onClose, chatId }: ChatModalProps) 
             <View className="w-6" />
           </View>
 
-          {loading || !readyToRender ? (
+
+          {loading ? (
             <View className="flex-1 items-center justify-center">
               <ActivityIndicator size="large" color="#eab308" />
             </View>
           ) : (
-            <FlatList<Mensagem>
+            <FlatList
               ref={flatListRef}
               data={mensagens}
               keyExtractor={(item) => item.mensagem_id}
               contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
-              refreshControl={<RefreshControl refreshing={false} onRefresh={() => {}} tintColor="#eab308" />}
+              onContentSizeChange={scrollToBottom}
               ListEmptyComponent={
                 <View className="flex-1 items-center justify-center mt-20">
                   <Text className="text-neutral-400 text-base">Nenhuma mensagem ainda.</Text>
                 </View>
               }
-              renderItem={({ item, index }) => {
+              renderItem={({ item }) => {
                 const minhaMensagem = item.id_remetente === meuUsuarioId;
                 const nome = item.nome_usuario || "Usuário";
                 const foto = item.foto_usuario || "";
-                const isLast = index === mensagens.length - 1;
 
                 return (
                   <View
-                    onLayout={() => { if (isLast) flatListRef.current?.scrollToEnd({ animated: true }); }}
-                    className={`mb-3 flex-row items-end ${minhaMensagem ? "self-end flex-row-reverse" : "self-start"}`}
+                    className={`mb-3 flex-row items-end ${
+                      minhaMensagem ? "self-end flex-row-reverse" : "self-start"
+                    }`}
                   >
                     <View className="mx-2">
-                      {foto ? <Image source={{ uri: foto }} className="w-7 h-7 rounded-full" /> : <Ionicons name="person-circle" size={28} color="#eab308" />}
+                      {foto ? (
+                        <Image source={{ uri: foto }} className="w-7 h-7 rounded-full" />
+                      ) : (
+                        <Ionicons name="person-circle" size={28} color="#eab308" />
+                      )}
                     </View>
-                    <View className={`rounded-2xl px-4 py-3 max-w-[75%] ${minhaMensagem ? "bg-yellow-600" : "bg-neutral-700"}`}>
-                      {!minhaMensagem && <Text className="text-neutral-200 text-xs mb-1">{nome}</Text>}
+
+                    <View
+                      className={`rounded-2xl px-4 py-3 max-w-[75%] ${
+                        minhaMensagem ? "bg-yellow-600" : "bg-neutral-700"
+                      }`}
+                    >
+                      {!minhaMensagem && (
+                        <Text className="text-neutral-200 text-xs mb-1">{nome}</Text>
+                      )}
                       <Text className="text-white">{item.texto}</Text>
                       <Text className="text-white text-xs text-right mt-1">
-                        {item.timestamp ? new Date(item.timestamp.toDate?.() || item.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : ""}
+                        {item.timestamp
+                          ? new Date(
+                              item.timestamp.toDate?.() || item.timestamp
+                            ).toLocaleTimeString("pt-BR", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : ""}
                       </Text>
                     </View>
                   </View>
@@ -202,8 +228,18 @@ export default function ChatModal({ visible, onClose, chatId }: ChatModalProps) 
               className="flex-1 text-white bg-neutral-700 rounded-full px-4 py-3 mr-3"
               multiline
             />
-            <TouchableOpacity onPress={enviarMensagem} className="bg-yellow-500 p-3 rounded-full">
-              <Ionicons name="send" size={22} color="white" />
+            <TouchableOpacity
+              onPress={enviarMensagem}
+              disabled={enviando}
+              className={`p-3 rounded-full ${
+                enviando ? "bg-yellow-400 opacity-70" : "bg-yellow-500"
+              }`}
+            >
+              {enviando ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Ionicons name="send" size={22} color="white" />
+              )}
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
