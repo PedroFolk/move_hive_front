@@ -48,11 +48,6 @@ export default function Main() {
       try {
         const token = await SecureStore.getItemAsync("token");
         const id = await SecureStore.getItemAsync("userId");
-
-
-
-
-
         if (!token) {
           await SecureStore.deleteItemAsync("token");
           await SecureStore.deleteItemAsync("userId");

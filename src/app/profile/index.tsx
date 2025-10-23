@@ -355,6 +355,22 @@ export default function Perfil({ userId, meuUserId }: PerfilProps) {
         />
       </TouchableOpacity>
     );
+  if (!perfil) {
+    return (
+      <View className="flex-1 items-center justify-center bg-neutral-800">
+        <TouchableOpacity
+          onPress={() => router.replace("/login")}
+          className="absolute top-12 left-4 p-2 rounded-full bg-neutral-700"
+        >
+          <Ionicons name="arrow-back" size={26} color="#fff" />
+        </TouchableOpacity>
+
+        <ActivityIndicator size="large" color="#facc15" />
+        <Text className="text-white mt-4">Carregando...</Text>
+      </View>
+    );
+  }
+
 
   return (
     <View className="w-full h-full bg-neutral-800 py-safe">
