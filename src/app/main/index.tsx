@@ -2,65 +2,51 @@ import { useState, useEffect } from "react";
 import { Text, ActivityIndicator, View } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { ListarDadosPerfil, PreencherDadosModal } from "~/api/user";
-import "../../../global.css";
-import Events from "../events";
-import Perfil from "../profile";
-import Menu from "~/components/menu";
-import ModalFirstTime from "~/components/modals/modalFirstTime";
-import Feed from "../feed";
-import Hive from "../hive";
-import HiveChats from "../chat";
-import Constants from "expo-constants";
-import Dashboard from "../dashboard";
-import ModalWelcome from "~/components/modals/modalWelcome";
+import "../../../global.css"; 
+import { ListarDadosPerfil, PreencherDadosModal } from "~/features/profile/api/user";
+import ModalFirstTime from "~/features/profile/components/ModalFirstTime";
+import DashboardScreen from "../dashboard";
+import EventsScreen from "../events";
+import FeedScreen from "../feed";
+import HiveScreen from "../hive";
+import ProfileScreen from "../profile";
+import Menu from "~/core/componentes/Menu";
 
 
 export default function Main() {
   const [selectedIndex, setSelectedIndex] = useState(2);
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [meuUserId, setMeuUserId] = useState("");
   const params = useLocalSearchParams();
 
-
   useEffect(() => {
-
     const carregarDados = async () => {
       try {
         const data = await ListarDadosPerfil();
         if (data?.tipo_usuario) {
           await SecureStore.setItemAsync("tipo_usuario", data.tipo_usuario);
-
+        }
+        if (data?.id) {
+          setMeuUserId(data.id);
         }
       } catch (err) {
         console.error("Erro ao carregar perfil:", err);
-      }
-    };
-
-    carregarDados();
-  }, []);
-
-
-  useEffect(() => {
-
-    const checkAuth = async () => {
-
-      try {
-        const token = await SecureStore.getItemAsync("token");
-        const id = await SecureStore.getItemAsync("userId");
-        if (!token) {
-          await SecureStore.deleteItemAsync("token");
-          await SecureStore.deleteItemAsync("userId");
-          router.replace("/login");
-        }
-      } catch (err) {
-        console.error("Erro ao verificar auth:", err);
-        router.replace("/login");
       } finally {
         setLoading(false);
       }
     };
-    checkAuth();
+
+    carregarDados();
+
+    const checkToken = async () => {
+      const token = await SecureStore.getItemAsync("token");
+      if (!token) {
+        router.replace("/login");
+      }
+    };
+
+    checkToken();
   }, []);
 
   useEffect(() => {
@@ -72,17 +58,17 @@ export default function Main() {
   const renderContent = () => {
     switch (selectedIndex) {
       case 0:
-        return <Events />;
+        return <EventsScreen />;
       case 1:
-        return <Feed />;
+        return <FeedScreen />;
       case 2:
-        return <Hive />;
+        return <HiveScreen />;
       case 3:
-        return <Dashboard />;
+        return <DashboardScreen />;
       case 4:
-        return <Perfil meuUserId={""} />;
+        return <ProfileScreen meuUserId={meuUserId} />; 
       default:
-        return <HiveChats />;
+        return <HiveScreen />; 
     }
   };
 
@@ -117,12 +103,13 @@ export default function Main() {
             data.esportes_praticados,
             data.arquivo_foto
           );
-          if (!result) {
-            alert("Erro ao atualizar perfil.");
+          if (result) {
+            setModalVisible(false);
+          } else {
+            throw new Error("Falha ao enviar dados");
           }
         }}
       />
     </>
   );
-
 }
